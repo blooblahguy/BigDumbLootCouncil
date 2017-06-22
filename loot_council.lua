@@ -1,10 +1,27 @@
-local bdlc, f, c = select(2, ...):unpack()
+local bdlc, l, f = select(2, ...):unpack()
 
 ----------------------------------------
 -- Get/add/remove
 ----------------------------------------
 function FetchUnitName(name)
 	local name, server = strsplit("-", name)
+	-- local n, blank = strsplit("-", name)
+	-- local realname, server = UnitFullName(n)
+	
+	-- if (not server or string.len(server) == 0) then
+		-- server = GetRealmName()
+	-- end
+	
+	-- if (not realname) then
+		-- --print("Error! can't find any player named either:")
+		-- --print(name)
+		-- --print(realname)
+		
+		-- return n.."-"..server;
+	-- end
+	
+	-- return realname.."-"..server
+	
 	server_name = GetUnitName(name,true)
 	if (server_name) then
 		name = server_name
@@ -68,6 +85,7 @@ end
 ----------------------------------------
 -- Enchanters
 ----------------------------------------
+--[[
 function bdlc:addEnchanter(playerName, guildRankIndex)
 	playerName = FetchUnitName(playerName)
 	bdlc.enchanters[playerName] = guildRankIndex
@@ -97,7 +115,7 @@ function bdlc:findEnchanters()
 		--end
 	end
 end
-
+--]]
 
 ----------------------------------------
 -- BuildLC
@@ -105,39 +123,63 @@ end
 function bdlc:buildLC()
 	bdlc.enchanters = {}
 	bdlc.loot_council = {}
+	local min_rank
+	if (bdlc_config.lc_rank) then
+		min_rank = strsplit(": ",bdlc_config.lc_rank)
+	else
+		min_rank = bdlc_config.council_min_rank
+	end
+	min_rank = tonumber(min_rank)
+
 	if (IsMasterLooter() or not IsInRaid()) then
-		SendAddonMessage(bdlc.message_prefix, "findEnchanters", bdlc.sendTo, UnitName("player"));
+		playerName = FetchUnitName('player')
+		bdlc.loot_council[playerName] = true
+		bdlc:debug(playerName..' added to lc')
+		
+		--SendAddonMessage(bdlc.message_prefix, "findEnchanters", bdlc.sendTo, UnitName("player"));
 		bdlc:debug("building LC")
-		local autocouncil = {[FetchUnitName("player")] = true}
+		
+		local autocouncil = {}
 		local numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
 		local numRaid = GetNumGroupMembers()
 		if (numRaid == 0) then
 			numRaid = 1
 		end
-		local inraid = {} 
+		local inraid = {}
+		inraid[playerName] = true
 
 		for i = 1, numRaid do
-			local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i) or FetchUnitName("player")
+			local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
 			inraid[name] = true
 		end
 
 		for i = 1, numGuildMembers do
 			local fullName, rank, rankIndex, level, class, zone, note, officernote, online, status, classFileName, achievementPoints, achievementRank, isMobile, canSoR, reputation = GetGuildRosterInfo(i)
 
-			if (online and rankIndex <= bdlc_config.council_min_rank) then
+			if (online and rankIndex <= min_rank) then
 				local name = FetchUnitName(fullName)
 				autocouncil[name] = true
+				bdlc.loot_council[name] = true
 			end
-
 		end
 
+		-- People who are in your custom loot council
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
+				bdlc.loot_council[k] = true
 				SendAddonMessage(bdlc.message_prefix, "addToLC><"..k, bdlc.sendTo, GetUnitName("player",true),true);
 			end
 		end
+		
+		-- People who are added via rank
 		for k, v in pairs (autocouncil) do
 			SendAddonMessage(bdlc.message_prefix, "addToLC><"..k, bdlc.sendTo, GetUnitName("player",true));
+		end
+		
+		-- Quick notes
+		SendAddonMessage(bdlc.message_prefix, "wipeQN", bdlc.sendTo, GetUnitName("player",true));
+		for k, v in pairs(bdlc_config.custom_qn) do
+			SendAddonMessage(bdlc.message_prefix, "customQN><"..k, bdlc.sendTo, GetUnitName("player",true));
 		end
 	end
 end

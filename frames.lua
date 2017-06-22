@@ -1,29 +1,29 @@
-local bdlc, f, c = select(2, ...):unpack()
+local bdlc, l, f = select(2, ...):unpack()
 f.rolls = {}
 f.tabs = {}
 f.entries = {}
 
 function bdlc:fetchUserGear(unit, itemLink)
+	
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	
-	local found_tier = false
-	for k, v in pairs(bdlc.tier_names) do
-		if (strfind(name, k)) then found_tier = true end
-	end
+	local isRelic = bdlc:IsRelic(itemLink)
 	
-	if (found_tier) then
-		if (strfind(name, "Helm")) then
+	local isTier = bdlc:IsTier(itemLink)
+	
+	if (isTier) then
+		if (strfind(name:lower(), l["tierHelm"]:lower())) then
 			equipSlot = "INVTYPE_HEAD"
-		elseif (strfind(name, "Shoulders")) then
+		elseif (strfind(name:lower(), l["tierShoulders"]:lower())) then
 			equipSlot = "INVTYPE_SHOULDER"
-		elseif (strfind(name, "Leggings")) then
+		elseif (strfind(name:lower(), l["tierLegs"]:lower())) then
 			equipSlot = "INVTYPE_LEGS"
-		elseif (strfind(name, "Chest")) then
+		elseif (strfind(name:lower(), l["tierCloak"]:lower())) then
+			equipSlot = "INVTYPE_BACK"
+		elseif (strfind(name:lower(), l["tierChest"]:lower())) then
 			equipSlot = "INVTYPE_CHEST"
-		elseif (strfind(name, "Gauntlets")) then
+		elseif (strfind(name:lower(), l["tierGloves"]:lower())) then
 			equipSlot = "INVTYPE_HAND"
-		elseif (strfind(name, "Badge")) then
-			equipSlot = "INVTYPE_TRINKET"
 		end
 	end
 	
@@ -43,9 +43,6 @@ function bdlc:fetchUserGear(unit, itemLink)
 	if (equipSlot == "INVTYPE_OFFHAND") then slotID = 17 end
 	if (equipSlot == "INVTYPE_RANGED") then slotID = 18 end
 	
-	if (slotID == 0) then
-		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer ");
-	end
 	
 	local itemLink1 = GetInventoryItemLink(unit, slotID)
 	local itemLink2 = 0
@@ -53,20 +50,38 @@ function bdlc:fetchUserGear(unit, itemLink)
 	if (equipSlot == "INVTYPE_FINGER") then 
 		itemLink1 = GetInventoryItemLink(unit, 11)
 		itemLink2 = GetInventoryItemLink(unit, 12)
+		slotID = 11
 	end
 	if (equipSlot == "INVTYPE_TRINKET") then
 		itemLink1 = GetInventoryItemLink(unit, 13)
 		itemLink2 = GetInventoryItemLink(unit, 14)
+		slotID = 13
 	end
-	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED") then
+	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND") then
 		itemLink1 = GetInventoryItemLink(unit, 16)
 		itemLink2 = GetInventoryItemLink(unit, 17)
+		slotID = 16
+	end
+	if (isRelic) then
+		local relicType = bdlc:GetRelicType(itemLink)
+		local relic1, relic2 = bdlc:GetRelics(relicType)
+		
+		if (relic1) then
+			itemLink1 = relic1
+		end
+		if (relic2) then
+			itemLink2 = relic2
+		end
 	end
 	if (not itemLink1) then
 		itemLink1 = 0
 	end
 	if (not itemLink2) then
 		itemLink2 = 0
+	end
+	
+	if (slotID == 0 and not isRelic) then
+		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer know");
 	end
 	
 	return itemLink1, itemLink2
@@ -140,6 +155,7 @@ function bdlc:repositionFrames()
 		if (f.tabs[tabs]:GetAlpha() == 1) then
 			tabselect = true
 			f.tabs[tabs].selected = true
+			f.tabs[tabs].icon:SetDesaturated(false)
 		else
 			f.tabs[tabs].selected = false
 			f.tabs[tabs].icon:SetDesaturated(true)
@@ -162,22 +178,23 @@ function bdlc:repositionFrames()
 	end
 end
 
-local function awardLoot(name, dropdown, itemLink)
-	bdlc:debug("Award "..itemLink.." to "..name)
+local function awardLoot(name, dropdown, itemUID)
 
 	bdlc.award_slot = nil
 	local name = FetchUnitName(name)
 	name, server = strsplit("-",name)
 	server = server or bdlc.player_realm;
 
-	if (not itemLink) then
+	if (not itemUID) then
 		for t = 1, #f.tabs do
 			if (f.tabs[t].active) then
-				itemLink = f.tabs[t].itemLink
+				itemUID = f.tabs[t].itemUID
 				break
 			end
 		end
 	end
+	local itemLink = bdlc.itemUID_Map[itemUID]
+	bdlc:debug("Award "..itemLink.." to "..name)
 	
 	for slot = 1, GetNumLootItems() do
 		local slot_itemLink = GetLootSlotLink(slot)
@@ -193,7 +210,7 @@ local function awardLoot(name, dropdown, itemLink)
 			local candidate = GetMasterLootCandidate(bdlc.award_slot,i)
 			
 			if (candidate == name or candidate == name.."-"..server) then
-				print("|cff3399FFBDGLC|r Awarding "..itemLink.." to "..name)
+				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name)
 				GiveMasterLoot(bdlc.award_slot, i)
 				break
 			end
@@ -206,19 +223,19 @@ end
 --	Create all the necessary frames now, use them forever. 
 -------------------------------------------------------
 bdlc.font_small = CreateFont("BDLC_FONT_SMALL")
-bdlc.font_small:SetFont("Interface\\Addons\\BDLC\\font.ttf", 12)
+bdlc.font_small:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 12)
 bdlc.font_small:SetShadowColor(0, 0, 0)
 bdlc.font_small:SetShadowOffset(1, -1)
 bdlc.font = CreateFont("BDLC_FONT")
-bdlc.font:SetFont("Interface\\Addons\\BDLC\\font.ttf", 13)
+bdlc.font:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 13)
 bdlc.font:SetShadowColor(0, 0, 0)
 bdlc.font:SetShadowOffset(1, -1)
 bdlc.font_large = CreateFont("BDLC_FONT_LARGE")
-bdlc.font_large:SetFont("Interface\\Addons\\BDLC\\font.ttf", 14)
+bdlc.font_large:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14)
 bdlc.font_large:SetShadowColor(0, 0, 0)
 bdlc.font_large:SetShadowOffset(1, -1)
 bdlc.normal_text = CreateFont("bdlc_button")
-bdlc.normal_text:SetFont("Interface\\Addons\\BDLC\\font.ttf", 13)
+bdlc.normal_text:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 13)
 bdlc.normal_text:SetTextColor(1,1,1,1)
 bdlc.normal_text:SetShadowColor(0, 0, 0)
 bdlc.normal_text:SetShadowOffset(1, -1)
@@ -266,7 +283,7 @@ f.voteFrame.loot_council:SetSize(84, 18)
 bdlc:skinBackdrop(f.voteFrame.loot_council, .1,.1,.1,.8);
 f.voteFrame.loot_council.text = f.voteFrame.loot_council:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
 f.voteFrame.loot_council.text:SetPoint("LEFT", f.voteFrame.loot_council, "LEFT", 4, 0)
-f.voteFrame.loot_council.text:SetText("Loot Council")
+f.voteFrame.loot_council.text:SetText(l["frameLC"])
 f.voteFrame.loot_council.text:SetJustifyH("LEFT")
 f.voteFrame.loot_council.image = f.voteFrame.loot_council:CreateTexture(nil, "OVERLAY")
 f.voteFrame.loot_council.image:SetTexture("Interface\\FriendsFrame\\InformationIcon")
@@ -322,7 +339,7 @@ f.voteFrame.loot_council:SetScript("OnEnter", function()
 			councilName = name
 		end
 		local classFileName = select(2, UnitClass(councilName))
-		local color = RAID_CLASS_COLORS[classFileName] or {['r'] = 1, ['b'] = 1, ['g'] = 1}
+		local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["b"] = 1, ["g"] = 1}
 		GameTooltip:AddLine(councilName, color.r, color.g, color.b)
 	end
 
@@ -333,6 +350,7 @@ f.voteFrame.loot_council:SetScript("OnLeave", function()
 end)
 
 -- Loot Disenchanters
+--[[
 f.voteFrame.enchanters = CreateFrame("Button", nil, f.voteFrame)
 f.voteFrame.enchanters:SetText("Disenchant")
 f.voteFrame.enchanters:Hide()
@@ -356,10 +374,10 @@ f.voteFrame.enchanters:SetScript("OnClick", function()
 		if (f.voteFrame.enchanters.dropdown:IsShown()) then
 			f.voteFrame.enchanters.dropdown:Hide()
 		else
-			local itemLink = nil
+			local itemUID = nil
 			for i = 1, #f.tabs do
 				if (f.tabs[i].selected) then
-					itemLink = f.tabs[i].itemLink
+					itemUID = f.tabs[i].itemUID
 				end
 			end
 			
@@ -376,7 +394,7 @@ f.voteFrame.enchanters:SetScript("OnClick", function()
 					--local vname, server = strsplit("-", name)
 					f.voteFrame.enchanters.dropdown[index]:Show()
 					f.voteFrame.enchanters.dropdown[index]:SetText(name)
-					f.voteFrame.enchanters.dropdown[index].itemLink = itemLink
+					f.voteFrame.enchanters.dropdown[index].itemUID = itemUID
 					f.voteFrame.enchanters.dropdown[index].playerName = name
 
 					index = index + 1
@@ -400,13 +418,13 @@ for i = 1, 4 do
 	enchanter:SetHighlightFontObject("bdlc_button")
 	enchanter:SetPushedTextOffset(0,-1)
 	enchanter:SetScript("OnClick", function(self)
-		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemLink)
+		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemUID)
 	end)
 end
-
+--]]
 -- Rolls
 rollFrame = CreateFrame('frame', "BDLC Roll Window", bdlc)
-rollFrame:SetSize(418, 1)
+rollFrame:SetSize(458, 1)
 rollFrame:SetPoint("CENTER", UIParent, "CENTER", 600, 0)
 rollFrame:EnableMouse(true)
 rollFrame:SetMovable(true);
@@ -417,6 +435,11 @@ rollFrame:SetClampedToScreen(true);
 rollFrame:RegisterForDrag("LeftButton","RightButton")
 rollFrame:SetScript("OnDragStart", function(self) rollFrame:StartMoving() end)
 rollFrame:SetScript("OnDragStop", function(self) rollFrame:StopMovingOrSizing() end)
+
+rollFrame.title = rollFrame:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+rollFrame.title:SetText("Big Dumb Loot Council")
+rollFrame.title:SetPoint("BOTTOM", rollFrame, "TOP", 0, 2)
+
 rollFrame:Hide()
 
 -- Create roll children
@@ -424,13 +447,11 @@ for i = 1, 10 do
 	local roll = CreateFrame("frame", nil, rollFrame);
 	roll:SetPoint("TOPLEFT", rollFrame, "TOPLEFT", 0, -(59*(i-1)))
 	roll:SetSize(rollFrame:GetWidth(), 60);
-	roll.itemLink = 0
+	roll.itemUID = 0
 	roll.active = false
 	roll.notes = "";
 	roll:Hide()
 	roll:EnableMouse(true)
-	roll:SetMovable(true);
-	roll:SetClampedToScreen(true);
 	roll:RegisterForDrag("LeftButton","RightButton")
 	roll:SetScript("OnDragStart", function(self) rollFrame:StartMoving() end)
 	roll:SetScript("OnDragStop", function(self) rollFrame:StopMovingOrSizing() end)
@@ -439,20 +460,18 @@ for i = 1, 10 do
 	-- Loot item info/hover
 	roll.item = CreateFrame("frame", nil, roll);
 	roll.item:SetAllPoints(roll)
-	roll.item:SetFrameStrata("FULLSCREEN_DIALOG")
-	roll.item:SetFrameLevel(4)
-	roll.item:EnableMouse(true)
-	roll.item:SetMovable(true);
-	roll.item:SetClampedToScreen(true);
-	roll.item:RegisterForDrag("LeftButton","RightButton")
-	roll.item:SetScript("OnDragStart", function(self) rollFrame:StartMoving() end)
-	roll.item:SetScript("OnDragStop", function(self) rollFrame:StopMovingOrSizing() end)
-	
 
-	roll.item.icon = CreateFrame("frame", nil, roll)
+	roll.item.icon = CreateFrame("frame", nil, roll.item)
 	roll.item.icon:SetSize(50, 50)
 	roll.item.icon:SetPoint("TOPLEFT", roll, "TOPLEFT", 5, -5)
 	bdlc:skinBackdrop(roll.item.icon, 0,0,0,.8);
+	
+	roll.item.icon.wfsock = roll.item.icon:CreateFontString(nil, "ARTWORK")
+	roll.item.icon.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	roll.item.icon.wfsock:SetText("")
+	roll.item.icon.wfsock:SetTextColor(0.7,0.7,0.7)
+	roll.item.icon.wfsock:SetPoint("CENTER", roll.item.icon, "CENTER", 0, 0)
+	roll.item.icon.wfsock:SetJustifyH("CENTER")
 	
 	roll.item.icon.tex = roll.item.icon:CreateTexture(nil, "ARTWORK")
 	roll.item.icon.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -461,47 +480,51 @@ for i = 1, 10 do
 	roll.item.icon.tex:SetPoint("TOPLEFT", roll.item.icon, "TOPLEFT", 2, -2)
 	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -2, 2)
 	
-	roll.item.item_text = roll:CreateFontString(nil, "ARTWORK","BDLC_FONT_LARGE")
-	roll.item.item_text:SetText("item name")
+	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK","BDLC_FONT_LARGE")
+	roll.item.item_text:SetText(l["frameItem"])
 	roll.item.item_text:SetPoint("TOPLEFT", roll, "TOPLEFT", 60, -8)
 	roll.item.item_text:SetJustifyH("LEFT")
-	
 	
 	roll.item.num_items = roll:CreateFontString(nil, "OVERLAY","BDLC_FONT")
 	roll.item.num_items:SetText("x1")
 	roll.item.num_items:SetPoint("LEFT", roll.item.item_text, "RIGHT", 6, 0)
 	roll.item.num_items:SetJustifyH("LEFT")
 	
-	roll.item.item_ilvl = roll:CreateFontString(nil, "OVERLAY", "BDLC_FONT_SMALL")
+	--[[roll.item.item_ilvl = roll:CreateFontString(nil, "OVERLAY", "BDLC_FONT_SMALL")
 	roll.item.item_ilvl:SetText("ilvl: ")
 	roll.item.item_ilvl:SetPoint("TOPRIGHT", roll, "TOPRIGHT", -5, -10)
-	roll.item.item_ilvl:SetJustifyH("RIGHT")
+	roll.item.item_ilvl:SetJustifyH("RIGHT")--]]
 	
 	-- Loot Buttons
 	roll.buttons = CreateFrame("frame", nil, roll);
 	roll.buttons:SetPoint("BOTTOMLEFT", roll, "BOTTOMLEFT", 50, 0);
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
-	roll.buttons:EnableMouse(1)
-	roll.buttons:SetFrameStrata("FULLSCREEN_DIALOG")
-	roll.buttons:SetFrameLevel(5)
 	
 	roll.buttons.submit = function(wantLevel)
-		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", roll.itemLink)
+		local itemLink = bdlc.itemUID_Map[roll.itemUID]
+		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		
-		local itemString = string.match(roll.itemLink, "item[%-?%d:]+")
-		local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2  = string.split(":", itemString)
-		bonusID1 = bonusID1 or 0
-		bonusID2 = bonusID2 or 0
-		local itemUID = itemID..":"..numBonusIDs..":"..bonusID1..":"..bonusID2
+		determineScope()
 
-		SendAddonMessage(bdlc.message_prefix, "addUserWant><"..itemUID.."><"..bdlc.local_player.."><"..wantLevel.."><"..itemLink1.."><"..itemLink2, bdlc.sendTo, UnitName("player"));
-		if (string.len(roll.notes) > 0) then
-			SendAddonMessage(bdlc.message_prefix, "addUserNotes><"..itemUID.."><"..bdlc.local_player.."><"..roll.notes, bdlc.sendTo, UnitName("player"));
+		SendAddonMessage(bdlc.message_prefix, "addUserWant><"..roll.itemUID.."><"..bdlc.local_player.."><"..wantLevel.."><"..itemLink1.."><"..itemLink2, bdlc.sendTo, UnitName("player"));
+		
+		local notes = roll.notes
+		if (string.len(roll.qn) > 0) then
+			roll.qn = string.sub(roll.qn, 0, -3)
+			if (string.len(notes) > 0) then
+				notes = notes..", "..roll.qn
+			else
+				notes = roll.qn
+			end
+		end
+		if (string.len(notes) > 0) then
+			SendAddonMessage(bdlc.message_prefix, "addUserNotes><"..roll.itemUID.."><"..bdlc.local_player.."><"..notes, bdlc.sendTo, UnitName("player"));
 		end
 
-		roll.itemLink = 0
+		roll.itemUID = 0
 		roll.active = false
 		roll.notes = ""
+		roll.qn = ""
 		roll.buttons.notes:SetText("")
 		roll.buttons.notes:Hide()
 		roll:Hide()
@@ -509,39 +532,39 @@ for i = 1, 10 do
 	end
 	
 	roll.buttons.main = CreateFrame("Button", nil, roll.buttons)
-	roll.buttons.main:SetPoint("LEFT", roll.buttons, "LEFT", 8, 0)
-	roll.buttons.main:SetText("Mainspec")
+	roll.buttons.main:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
+	roll.buttons.main:SetText(l["frameMain"])
 	bdlc:skinButton(roll.buttons.main)
 	roll.buttons.main:SetScript("OnClick", function() roll.buttons.submit(1) end)
 	
 	roll.buttons.minor = CreateFrame("Button", nil, roll.buttons)
-	roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 1, 0)
-	roll.buttons.minor:SetText("Minor Up")
+	roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
+	roll.buttons.minor:SetText(l["frameMinorUp"])
 	bdlc:skinButton(roll.buttons.minor)
 	roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
 	
 	roll.buttons.off = CreateFrame("Button", nil, roll.buttons)
-	roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 1, 0)
-	roll.buttons.off:SetText("Offspec")
+	roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
+	roll.buttons.off:SetText(l["frameOffspec"])
 	bdlc:skinButton(roll.buttons.off)
 	roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
 	
 	roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons)
-	roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 1, 0)
-	roll.buttons.reroll:SetText("Reroll")
+	roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
+	roll.buttons.reroll:SetText(l["frameReroll"])
 	bdlc:skinButton(roll.buttons.reroll)
 	roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
 	
 	roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons)
-	roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 1, 0)
-	roll.buttons.xmog:SetText("Transmog")
+	roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
+	roll.buttons.xmog:SetText(l["frameTransmog"])
 	bdlc:skinButton(roll.buttons.xmog)
 	roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
 	
 	roll.buttons.note = CreateFrame("Button", nil, roll.buttons)
 	roll.buttons.note:SetSize(40, 25)
-	roll.buttons.note:SetPoint("LEFT", roll.buttons.xmog, "RIGHT", 1, 0)
-	roll.buttons.note:SetText("Note")
+	roll.buttons.note:SetPoint("LEFT", roll.buttons.xmog, "RIGHT", 4, 0)
+	roll.buttons.note:SetText(l["frameNote"])
 	bdlc:skinButton(roll.buttons.note,false,"blue")
 	roll.buttons.note:SetScript("OnClick", function()
 		roll.buttons.notes:Show()
@@ -549,14 +572,54 @@ for i = 1, 10 do
 		
 	end)
 	
+	roll.qn = "";
+	roll.buttons.note.quicknotes = CreateFrame("frame",nil,roll.buttons)
+	roll.buttons.note.quicknotes:SetPoint("TOPRIGHT", roll.buttons, "TOPRIGHT", -2, 16)
+	roll.buttons.note.quicknotes:SetPoint("BOTTOMLEFT", roll.buttons, "TOPLEFT", 0, -8)
+	roll.buttons.note.quicknotes:EnableMouse(true)
+	roll.buttons.note.quicknotes:RegisterForDrag("LeftButton","RightButton")
+	roll.buttons.note.quicknotes:SetScript("OnDragStart", function(self) rollFrame:StartMoving() end)
+	roll.buttons.note.quicknotes:SetScript("OnDragStop", function(self) rollFrame:StopMovingOrSizing() end)
+	
+	roll.buttons.note.quicknotes.append = function(text)
+		if (string.len(text) > 0 and not strfind(roll.qn, text)) then
+			roll.qn = roll.qn..text..", "
+		end
+	end
+	local lastqn = nil
+	for i = 1, 10 do
+		roll.buttons.note.quicknotes[i] = CreateFrame("button",nil,roll.buttons.note.quicknotes)
+		local qn = roll.buttons.note.quicknotes[i]
+		qn:SetAlpha(0.6)
+		qn:SetText("")
+		if (not lastqn) then
+			qn:SetPoint("BOTTOMRIGHT", roll.buttons.note.quicknotes, "BOTTOMRIGHT", -4, 4)
+		else
+			qn:SetPoint("RIGHT", lastqn, "LEFT", 1, 0)
+		end
+		lastqn = qn
+		qn:SetScript("OnClick", function() 
+			roll.buttons.note.quicknotes.append(qn:GetText()) 
+			if (not qn.selected) then
+				bdlc:skinButton(qn,false,"blue")
+				qn:SetAlpha(1)
+				qn.selected = true
+			else
+				bdlc:skinButton(qn,false)
+				qn:SetAlpha(0.6)
+				qn.selected = false
+			end
+		end)
+	end
+	
 	roll.buttons.pass = CreateFrame("Button", nil, roll.buttons)
 	roll.buttons.pass:SetSize(42, 25)
-	roll.buttons.pass:SetPoint("LEFT", roll.buttons.note, "RIGHT", 1, 0)
-	roll.buttons.pass:SetText("Pass")
+	roll.buttons.pass:SetPoint("LEFT", roll.buttons.note, "RIGHT", 4, 0)
+	roll.buttons.pass:SetText(l["framePass"])
 	bdlc:skinButton(roll.buttons.pass,false,"red")
 	roll.buttons.pass:SetScript("OnClick", function()
-		SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..roll.itemLink.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
-		roll.itemLink = 0
+		SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..roll.itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
+		roll.itemUID = 0
 		roll.active = false
 		roll.notes = ""
 		roll.buttons.notes:SetText("")
@@ -566,21 +629,21 @@ for i = 1, 10 do
 	end)
 	
 	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons)
-	roll.buttons.notes:SetSize(277, 24)
-	roll.buttons.notes:SetPoint("BOTTOMLEFT", roll.buttons, "BOTTOMLEFT", 8, 8)
+	roll.buttons.notes:SetSize(310, 24)
+	roll.buttons.notes:SetPoint("BOTTOMLEFT", roll.buttons, "BOTTOMLEFT", 8, 7)
 	roll.buttons.notes:SetMaxLetters(100)
 	roll.buttons.notes:IsMultiLine(1)
 	roll.buttons.notes:SetTextInsets(6, 2, 2, 2)
 	roll.buttons.notes:SetFontObject("BDLC_FONT")
-	roll.buttons.notes:SetFrameLevel(8)
+	roll.buttons.notes:SetFrameLevel(27)
 	roll.buttons.notes:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
 	roll.buttons.notes:SetBackdropColor(.1,.1,.1,1)
 	roll.buttons.notes:SetBackdropBorderColor(0,0,0,1)
 	roll.buttons.notes:Hide()
 	roll.buttons.notes.okay = CreateFrame("Button", nil, roll.buttons.notes)
-	roll.buttons.notes.okay:SetSize(40, 25)
-	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT", 1, 0)
-	roll.buttons.notes.okay:SetText("Okay")
+	roll.buttons.notes.okay:SetSize(37, 25)
+	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT", -1, 0)
+	roll.buttons.notes.okay:SetText(l["frameOkay"])
 	bdlc:skinButton(roll.buttons.notes.okay)
 	roll.buttons.notes.okay:SetScript("OnClick", function(self)
 		self:GetParent():Hide()
@@ -600,7 +663,7 @@ f.voteFrame.tabs:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMLEFT", 0, 0)
 for i = 1, 10 do
 	local tab = CreateFrame('frame', nil, f.voteFrame.tabs)
 	tab.active = false
-	tab.itemLink = 0
+	tab.itemUID = 0
 	tab.selected = false
 	tab:Hide()
 	tab:SetSize(40, 40)
@@ -631,6 +694,13 @@ for i = 1, 10 do
 	tab.icon:SetDesaturated(true)
 	tab.icon:SetPoint("TOPLEFT", tab, "TOPLEFT", 2, -2)
 	tab.icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -2, 2)
+	
+	tab.wfsock = tab:CreateFontString(nil, "ARTWORK")
+	tab.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	tab.wfsock:SetText("")
+	tab.wfsock:SetTextColor(0.7,0.7,0.7)
+	tab.wfsock:SetPoint("CENTER", tab, "CENTER", 0, 0)
+	tab.wfsock:SetJustifyH("CENTER")
 	
 	--parent frame 
 	local vote_table = CreateFrame("Frame", nil, tab) 
@@ -666,37 +736,37 @@ for i = 1, 10 do
 	
 	-- Headers
 	vote_table.name_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.name_text:SetText("Name");
+	vote_table.name_text:SetText(l["frameName"]);
 	vote_table.name_text:SetTextColor(1, 1, 1);
 	vote_table.name_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 10, 16);
 	
 	vote_table.rank_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.rank_text:SetText("Rank");
+	vote_table.rank_text:SetText(l["frameRank"]);
 	vote_table.rank_text:SetTextColor(1, 1, 1);
 	vote_table.rank_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 80, 16);
 	
 	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.ilvl_text:SetText("ilvl");
+	vote_table.ilvl_text:SetText(l["frameIlvl"]);
 	vote_table.ilvl_text:SetTextColor(1, 1, 1);
 	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 170, 16);
 	
 	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.ilvl_text:SetText("Interest");
+	vote_table.ilvl_text:SetText(l["frameInterest"]);
 	vote_table.ilvl_text:SetTextColor(1, 1, 1);
 	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 200, 16);
 	
 	vote_table.notes_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.notes_text:SetText("Notes");
+	vote_table.notes_text:SetText(l["frameNotes"]);
 	vote_table.notes_text:SetTextColor(1, 1, 1);
 	vote_table.notes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -250, 16);
 	
 	vote_table.current_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.current_text:SetText("Current Gear");
+	vote_table.current_text:SetText(l["frameCurrentGear"]);
 	vote_table.current_text:SetTextColor(1, 1, 1);
 	vote_table.current_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -160, 16);
 	
 	vote_table.votes_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.votes_text:SetText("Votes");
+	vote_table.votes_text:SetText(l["frameVotes"]);
 	vote_table.votes_text:SetTextColor(1, 1, 1);
 	vote_table.votes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -100, 16);
 	
@@ -712,7 +782,7 @@ for i = 1, 10 do
 	vote_table.item:SetSize(340, 40)
 
 	vote_table.item.itemtext = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
-	vote_table.item.itemtext:SetText("Item Name")
+	vote_table.item.itemtext:SetText(l["frameItem"])
 	vote_table.item.itemtext:SetPoint("TOPLEFT", vote_table.item, "TOPLEFT", 50, -6)
 	
 	vote_table.item.num_items = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
@@ -721,7 +791,7 @@ for i = 1, 10 do
 	vote_table.item.num_items:SetPoint("LEFT", vote_table.item.itemtext, "RIGHT", 6, 0)
 
 	vote_table.item.itemdetail = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	vote_table.item.itemdetail:SetText("ilvl: ");
+	vote_table.item.itemdetail:SetText(l["frameIlvl"]..": ");
 	vote_table.item.itemdetail:SetTextColor(1,1,1,.7);
 	vote_table.item.itemdetail:SetPoint("BOTTOMLEFT", vote_table.item, "BOTTOMLEFT", 50, 6)
 
@@ -729,6 +799,13 @@ for i = 1, 10 do
 	vote_table.item.icon:SetSize(40, 40)
 	vote_table.item.icon:SetPoint("TOPLEFT", vote_table.item, "TOPLEFT", 0, 0)
 	bdlc:skinBackdrop(vote_table.item.icon, 0,0,0,.8);
+	
+	vote_table.item.wfsock = vote_table.item.icon:CreateFontString(nil, "ARTWORK")
+	vote_table.item.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	vote_table.item.wfsock:SetText("")
+	vote_table.item.wfsock:SetTextColor(0.7,0.7,0.7)
+	vote_table.item.wfsock:SetPoint("CENTER", vote_table.item.icon, "CENTER", 0, 0)
+	vote_table.item.wfsock:SetJustifyH("CENTER")
 
 	vote_table.item.icon.tex = vote_table.item.icon:CreateTexture(nil, "OVERLAY")
 	vote_table.item.icon.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -740,11 +817,11 @@ for i = 1, 10 do
 	vote_table.endSession = CreateFrame("Button", nil, vote_table)
 	vote_table.endSession:SetSize(100, 25)
 	vote_table.endSession:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 60)
-	vote_table.endSession:SetText("End Session")
+	vote_table.endSession:SetText(l["frameEndSession"])
 	bdlc:skinButton(vote_table.endSession,false,"red")
 	vote_table.endSession:SetScript("OnClick", function()
-		SendAddonMessage(bdlc.message_prefix, "endSession><"..f.tabs[i].itemLink, bdlc.sendTo, UnitName("player"));
-		bdlc:endSession(f.tabs[i].itemLink)
+		SendAddonMessage(bdlc.message_prefix, "endSession><"..f.tabs[i].itemUID, bdlc.sendTo, UnitName("player"));
+		bdlc:endSession(f.tabs[i].itemUID)
 	end)
 	
 	
@@ -754,7 +831,7 @@ for i = 1, 10 do
 	for e = 1, 40 do
 		-- Create entry in table
 		local entry = CreateFrame("Button", nil, vote_table.content)
-		entry.itemLink = 0
+		entry.itemUID = 0
 		entry.wantLevel = 0
 		entry.rankIndex = 0
 		entry.playerName = ""
@@ -785,15 +862,15 @@ for i = 1, 10 do
 		entry.award.text:SetPoint("TOP", entry.award, "TOP", 0, -2)
 		
 		entry.award.yes = CreateFrame("Button", nil, entry.award)
-		entry.award.yes:SetText("Yes")
+		entry.award.yes:SetText(l["frameYes"])
 		entry.award.yes:SetPoint("BOTTOMLEFT", entry.award, "BOTTOMLEFT", 2, 2)
 		bdlc:skinButton(entry.award.yes,false,"blue")
-		entry.award.yes:SetScript("OnClick", function(self) 
-			awardLoot(entry.playerName, entry.award, entry.itemLink)
+		entry.award.yes:SetScript("OnClick", function(self)
+			awardLoot(entry.playerName, entry.award, entry.itemUID)
 		end)
 		
 		entry.award.no = CreateFrame("Button", nil, entry.award)
-		entry.award.no:SetText("No")
+		entry.award.no:SetText(l["frameNo"])
 		entry.award.no:SetPoint("BOTTOMRIGHT", entry.award, "BOTTOMRIGHT", -2, 2)
 		entry.award.no:SetScript("OnClick", function() entry.award:Hide() end)
 		bdlc:skinButton(entry.award.no,false,"red")
@@ -810,7 +887,7 @@ for i = 1, 10 do
 					entry.award:Hide()
 				else
 					entry.award:Show()
-					entry.award.text:SetText("Award to "..entry.name:GetText().."?")
+					entry.award.text:SetText(l["frameAward"]..entry.name:GetText().."?")
 					entry.award:SetWidth(entry.award.text:GetWidth()+12)
 				end
 			else
@@ -819,7 +896,7 @@ for i = 1, 10 do
 		end)
 		
 		entry.rank = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-		entry.rank:SetText("rank");
+		entry.rank:SetText(l["frameRank"]);
 		entry.rank:SetTextColor(1,1,1);
 		entry.rank:SetPoint("LEFT", entry, "LEFT", 80, 0)
 		
@@ -829,7 +906,7 @@ for i = 1, 10 do
 		entry.ilvl:SetPoint("LEFT", entry, "LEFT", 166, 0)
 		
 		entry.interest = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-		entry.interest:SetText("considering...");
+		entry.interest:SetText(l["frameConsidering"]);
 		entry.interest:SetTextColor(.5,.5,.5);
 		entry.interest:SetPoint("LEFT", entry, "LEFT", 198, 0)
 		
@@ -854,12 +931,12 @@ for i = 1, 10 do
 		entry.voteUser = CreateFrame("Button", nil, entry)
 		entry.voteUser:SetSize(45, 20)
 		entry.voteUser:SetPoint("RIGHT", entry, "RIGHT", -38, 0)
-		entry.voteUser:SetText("Vote")
+		entry.voteUser:SetText(l["frameVote"])
 		bdlc:skinButton(entry.voteUser, true, "blue")
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
-			bdlc:voteForUser(bdlc.local_player, entry.itemLink, entry.playerName)
-			SendAddonMessage(bdlc.message_prefix, "voteForUser><"..bdlc.local_player.."><"..entry.itemLink.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
+			bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName)
+			SendAddonMessage(bdlc.message_prefix, "voteForUser><"..bdlc.local_player.."><"..entry.itemUID.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
 		end)
 		
 		entry.removeUser = CreateFrame("Button", nil, entry)
@@ -869,8 +946,8 @@ for i = 1, 10 do
 		entry.removeUser:Hide()
 		bdlc:skinButton(entry.removeUser,true,"red")
 		entry.removeUser:SetScript("OnClick", function()
-			bdlc:removeUserConsidering(entry.itemLink, entry.playerName)
-			SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..entry.itemLink.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
+			SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..entry.itemUID.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
+			bdlc:removeUserConsidering(entry.itemUID, entry.playerName)
 		end)
 		
 		entry.gear1 = CreateFrame("frame", nil, entry)
@@ -913,7 +990,7 @@ for i = 1, 10 do
 				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
 				
 				
-				for k, v in pairs(bdlc.loot_council_votes[entry.itemLink][entry.playerName]) do
+				for k, v in pairs(bdlc.loot_council_votes[entry.itemUID][entry.playerName]) do
 					local name, server = strsplit("-", k)
 					GameTooltip:AddLine(name, 1, 1, 1)
 				end	

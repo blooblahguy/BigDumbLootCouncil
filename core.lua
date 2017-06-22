@@ -1,62 +1,68 @@
-local bdlc, f, c = select(2, ...):unpack()
-
+local bdlc, l, f = select(2, ...):unpack()
+local demo_samples = {
+	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
+	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
+	names = {"OReilly","Billy","Tìncan","Mango","Ugh","Onebutton","Thor","Deadpool","Atlas","Edgelord","Yeah"}
+}
 
 ----------------------------------------
 -- StartSession
 ----------------------------------------
 function bdlc:startSession(itemLink,num)
-
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
-	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2  = string.split(":", itemString)
-	bonusID1 = bonusID1 or 0
-	bonusID2 = bonusID2 or 0
-	local itemUID = itemID..":"..numBonusIDs..":"..bonusID1..":"..bonusID2
-	
-	bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
-	if (not num) then num = bdlc.item_drops[itemLink] end
+	if (not itemString) then return end
+	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue, wf_tf  = string.split(":", itemString)
 	
 	if (GetItemInfo(itemLink)) then
+		
+		local itemUID = bdlc:GetItemUID(itemLink)
+		
+		bdlc.itemUID_Map[itemUID] = itemLink
+		
+		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
+		if (not num) then num = bdlc.item_drops[itemLink] or 1 end
+	
+		local isTier = bdlc:IsTier(itemLink)
 		local equipSlot = select(9, GetItemInfo(itemLink))
-		local name = select(1, GetItemInfo(itemLink))
+		local isRelic = bdlc:IsRelic(itemLink)
 		
-		local found_tier = false
-		for k, v in pairs(bdlc.tier_names) do
-			if (strfind(name, k)) then found_tier = true end
-		end
-		
-		if (not bdlc.loot_sessions[itemLink] and (string.len(equipSlot) > 0 or found_tier)) then
+		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
 			bdlc:debug("Starting session for "..itemLink)
-			bdlc.loot_sessions[itemLink] = itemUID
+			bdlc.loot_sessions[itemUID] = itemUID
 			if (bdlc:inLC()) then
-				bdlc:createVoteWindow(itemLink,num)
+				bdlc:createVoteWindow(itemUID,num)
 				
-				bdlc.loot_council_votes[itemLink] = {}
-				bdlc.loot_considering[itemLink] = {}
-				bdlc.loot_want[itemLink] = {}
+				bdlc.loot_council_votes[itemUID] = {}
+				bdlc.loot_considering[itemUID] = {}
+				bdlc.loot_want[itemUID] = {}
 			end
-			bdlc:createRollWindow(itemLink,num)
+			bdlc:createRollWindow(itemUID,num)
 		end
 	else
 		bdlc.items_waiting[itemID] = itemLink
+		local name = GetItemInfo(itemLink)
 	end
 end
 ----------------------------------------
 -- EndSession
 ----------------------------------------
-function bdlc:endSession(itemLink)
+function bdlc:endSession(itemUID)
+	if not itemUID then return end
+	local itemLink = bdlc.itemUID_Map[itemUID]
+	if not itemLink then return end
 	bdlc.item_drops[itemLink] = nil
 	local currententry = nil
 	local currenttab = nil
-	if bdlc:inLC() then 
+	--if bdlc:inLC() then 
 		for i = 1, #f.tabs do
-			if (f.tabs[i].itemLink == itemLink) then
+			if (f.tabs[i].itemUID == itemUID) then
 				for e = 1, #f.entries[i] do
-					if (f.entries[i][e].itemLink == itemLink) then
+					if (f.entries[i][e].itemUID == itemUID) then
 						currententry = f.entries[i][e]
 						currententry:Hide()
 						currententry.user_notes:Hide()
 						currententry.active = false
-						currententry.itemLink = 0
+						currententry.itemUID = 0
 						currententry.votes.text:SetText("0")
 						currententry.playerName = ""
 						currententry.voteUser:Hide()
@@ -70,21 +76,21 @@ function bdlc:endSession(itemLink)
 				currenttab.table:Hide()
 				currenttab.active = false
 				currenttab.selected = false
-				currenttab.itemLink = 0
+				currenttab.itemUID = 0
 				currenttab.table.item.num_items:SetText("x1")
 				
 				break
 			end
 		end
-		bdlc.loot_considering[itemLink] = nil
-		bdlc.loot_want[itemLink] = nil
-	end
+		bdlc.loot_considering[itemUID] = nil
+		bdlc.loot_want[itemUID] = nil
+	--end
 	local currentroll = nil
 	for i = 1, #f.rolls do
-		if (f.rolls[i].itemLink == itemLink) then
+		if (f.rolls[i].itemUID == itemUID) then
 			currentroll = f.rolls[i]
 			currentroll.active = false
-			currentroll.itemLink = 0
+			currentroll.itemUID = 0
 			currentroll.notes = ""
 			currentroll:Hide()
 			
@@ -92,8 +98,10 @@ function bdlc:endSession(itemLink)
 		end
 	end
 	
-	bdlc.loot_sessions[itemLink] = nil
-	bdlc.loot_council_votes[itemLink] = nil
+	bdlc.loot_sessions[itemUID] = nil
+	bdlc.loot_council_votes[itemUID] = nil
+	
+	--bdlc.itemUID_Map[itemUID] = nil
 	
 	bdlc:repositionFrames()
 end
@@ -104,38 +112,35 @@ end
 function bdlc:startMockSession()
 	bdlc:debug("Starting mock session")
 	
-	local demo_samples = {
-		classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK"},
-		ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
-		names = {"OReilly","Billy","Tìncan","Mango","Ugh","Onebutton","Thor","Deadpool","Atlas"}
-	}
+	
 	local demo_players = {
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(695,740), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
 	}
 	
 	bdlc:buildLC()
-	bdlc.item_drops = {
-		[GetInventoryItemLink("player", 14)] = 1,
-		[GetInventoryItemLink("player", 1)] = 3,
-		[GetInventoryItemLink("player", 16)] = 1,
-		[GetInventoryItemLink("player", 15)] = 2
-	}
-	for k, v in pairs(bdlc.item_drops) do
-		SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
+	local itemslots = {1,2,3,5,8,9,10,11,12,13,14,15}
+	bdlc.item_drops = {}
+	for i = 1, 4 do
+		local index = itemslots[math.random(#itemslots)]
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(1,3)
+		table.remove(itemslots,index)
 	end
 
 	for k, v in pairs(bdlc.item_drops) do
+		local itemUID = bdlc:GetItemUID(k)
+		SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
+		
 		for k2, v2 in pairs(demo_players) do
-			SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..k.."><"..k2.."><"..v2[1].."><"..v2[2].."><"..v2[3], bdlc.sendTo, UnitName("player"));
+			SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemUID.."><"..k2.."><"..v2[1].."><"..v2[2].."><"..v2[3], bdlc.sendTo, UnitName("player"));
 		end
 	end
 end
@@ -143,18 +148,20 @@ end
 ----------------------------------------
 -- CreateVoteWindow
 ----------------------------------------
-function bdlc:createVoteWindow(itemLink,num)
+function bdlc:createVoteWindow(itemUID,num)
+	local itemLink = bdlc.itemUID_Map[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
+	
 	f.voteFrame:Show()
-	local itemUID = bdlc.loot_sessions[itemLink]
-	itemUID = bdlc:split(itemUID,":")
+	
+	local itemID, gem, bonus1, bonus2 = string.split(":", itemUID)
 	
 	local currenttab = nil
 	for i = 1, #f.tabs do
 		if (not currenttab and not f.tabs[i].active) then
 			currenttab = f.tabs[i]
 			currenttab.active = true
-			currenttab.itemLink = itemLink
+			currenttab.itemUID = itemUID
 			
 			break
 		end
@@ -164,23 +171,37 @@ function bdlc:createVoteWindow(itemLink,num)
 	-- Set Up tab and item info
 	currenttab:Show()
 	currenttab.icon:SetTexture(texture)
-	currenttab.table.item.itemtext:SetText(link)
-	currenttab.table.item.num_items:SetText("x"..num)
+	currenttab.table.item.itemtext:SetText(itemLink)
+	if (num > 1) then
+		currenttab.table.item.num_items:SetText("x"..num)
+		currenttab.table.item.num_items:SetTextColor(0,1,0)
+	else
+		currenttab.table.item.num_items:SetText("")
+		currenttab.table.item.num_items:SetTextColor(1,1,1)
+	end
 	currenttab.table.item.icon.tex:SetTexture(texture)
-	if (tonumber(itemUID[2]) >= 2) then
+
+	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
+	currenttab.wfsock:SetText(infostr)
+	currenttab.table.item.wfsock:SetText(infostr)
+	--[[if (wf_tf or socket) then
+		currenttab.wfsock:SetText(infostr)
 		currenttab:SetBackdropBorderColor(0,.7,0,1)
+		currenttab.table.item.wfsock:SetText(infostr)
 		currenttab.table.item.icon:SetBackdropBorderColor(0,.7,0,1)
 	else
+		currenttab.wfsock:SetText("")
 		currenttab:SetBackdropBorderColor(0,0,0,1)
+		currenttab.table.item.wfsock:SetText("")
 		currenttab.table.item.icon:SetBackdropBorderColor(0,0,0,1)
-	end
+	end--]]
 	local slotname = string.lower(string.gsub(equipSlot, "INVTYPE_", ""));
 	slotname = slotname:gsub("^%l", string.upper)
 	currenttab.table.item.itemdetail:SetText("ilvl: "..iLevel.."    "..subclass..", "..slotname);
 	currenttab.table.item:SetScript("OnEnter", function()
 		ShowUIPanel(GameTooltip)
 		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(link)
+		GameTooltip:SetHyperlink(itemLink)
 		GameTooltip:Show()
 	end)
 	currenttab.table.item:SetScript("OnLeave", function()
@@ -194,63 +215,114 @@ end
 ----------------------------------------
 -- CreateRollWindow
 ----------------------------------------
-function bdlc:createRollWindow(itemLink,num)
+function bdlc:createRollWindow(itemUID,num)
+	local itemLink = bdlc.itemUID_Map[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	rollFrame:Show()
-	local itemUID = bdlc.loot_sessions[itemLink]
-	itemUID = bdlc:split(itemUID,":")
+	
+	local itemID, gem, bonus1, bonus2 = string.split(":", itemUID)
 	
 	local currentroll = nil
 	for i = 1, #f.rolls do
 		if (not currentroll and not f.rolls[i].active) then
 			currentroll = f.rolls[i]
 			currentroll.active = true
-			currentroll.itemLink = itemLink
+			currentroll.itemUID = itemUID
 			
 			break
 		end
 	end
 	
 	if (not currentroll) then bdlc:debug("couldn't find currentroll") return false end
-	
 	currentroll:Show()
 	currentroll.item.icon.tex:SetTexture(texture)
-	currentroll.item.item_text:SetText(link)
-	currentroll.item.num_items:SetText("x"..num)
-	currentroll.item.item_ilvl:SetText("ilvl: "..iLevel)
-	if (tonumber(itemUID[2]) >= 2) then
-		currentroll.item.icon:SetBackdropBorderColor(0,.7,0,1)
+	currentroll.item.item_text:SetText(itemLink)
+	if (num > 1) then
+		currentroll.item.num_items:SetText("x"..num)
+		currentroll.item.num_items:SetTextColor(0,1,0)
 	else
-		currentroll.item.icon:SetBackdropBorderColor(0,0,0,1)
+		currentroll.item.num_items:SetText("")
+		currentroll.item.num_items:SetTextColor(1,1,1)
 	end
+	--currentroll.item.item_ilvl:SetText("ilvl: "..iLevel)
+	
+	-- custom quick notes
+	for i = 1, 10 do
+		currentroll.buttons.note.quicknotes[i]:SetText("")
+		currentroll.buttons.note.quicknotes[i]:Hide()
+		currentroll.buttons.note.quicknotes[i]:SetAlpha(0.6)
+		currentroll.buttons.note.quicknotes[i].selected = false
+	end
+	local ml_qn = {}
+	for k, v in pairs(bdlc.master_looter_qn) do
+		table.insert(ml_qn, k)
+	end
+	table.sort(ml_qn)
+	for k, v in pairs(ml_qn) do
+		local qn
+		for i = 1, 10 do
+			local rqn = currentroll.buttons.note.quicknotes[i]
+			if (not rqn:IsShown()) then
+				qn = rqn
+				break
+			end
+		end
+		qn:Show()
+		qn:SetText(v)
+		bdlc:skinButton(qn,false)
+	end
+
+	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
+	currentroll.item.icon.wfsock:SetText(infostr)
 
 	currentroll.item:SetScript("OnEnter", function()
 		ShowUIPanel(GameTooltip)
 		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(link)
+		GameTooltip:SetHyperlink(itemLink)
 		GameTooltip:Show()
 	end)
 	currentroll.item:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 	
-	local guildRank = select(2,GetGuildInfo("player"))
+	local guildRank = select(2,GetGuildInfo("player")) or ""
 	local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
-	SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemLink.."><"..bdlc.local_player.."><"..player_itemlvl.."><"..guildRank, bdlc.sendTo, UnitName("player"));
 	
+	if bdlc:itemEquippable(itemUID) then
+		bdlc:debug("turns out I can use this, doing nothing.")
+		SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemUID.."><"..bdlc.local_player.."><"..player_itemlvl.."><"..guildRank, bdlc.sendTo, UnitName("player"));
+	else
+		bdlc:debug("I guess I can't use this, autopassing")
+		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
+		
+		SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
+		local currentroll = nil
+		for i = 1, #f.rolls do
+			if (f.rolls[i].itemUID == itemUID) then
+				currentroll = f.rolls[i]
+				currentroll.active = false
+				currentroll.itemUID = 0
+				currentroll.notes = ""
+				currentroll:Hide()
+				
+				break
+			end
+		end
+	end
 	bdlc:repositionFrames()
+	
 end
 
 ----------------------------------------
 -- RemoveUserRoll
 ----------------------------------------
-function bdlc:removeUserRoll(itemLink)
+function bdlc:removeUserRoll(itemUID)
 	local currentroll = nil
 	for i = 1, #f.rolls do
-		if (f.rolls[i].itemLink == itemLink) then
+		if (f.rolls[i].itemUID == itemUID) then
 			currentroll = f.rolls[i]
 			currentroll.active = false
-			currentroll.itemLink = 0
+			currentroll.itemUID = 0
 			currentroll.notes = ""
 			currentroll:Hide()
 			
@@ -264,26 +336,49 @@ end
 ----------------------------------------
 -- AddUserConsidering
 ----------------------------------------
-function bdlc:addUserConsidering(itemLink, playerName, iLvL, guildRank, playerClass)
-	playerName = FetchUnitName(playerName)
+function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerClass)
+	playerName = FetchUnitName(playerName) or playerName
+	local itemLink = bdlc.itemUID_Map[itemUID]
 	
-	bdlc:debug(playerName.." considering "..itemLink)
+	--bdlc:debug(playerName.." considering "..itemLink)
+	
+	if bdlc.loot_considering[itemUID] then
+		if bdlc.loot_considering[itemUID][playerName] then return false end
+	end
 	if not bdlc:inLC() then return false end
-	if (not bdlc.loot_sessions[itemLink]) then return false end
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 
 	local currententry = nil
+	local found = nil
 	for i = 1, #f.tabs do
-		if (f.tabs[i].itemLink == itemLink) then
+		if (f.tabs[i].itemUID == itemUID) then
 			for e = 1, #f.entries[i] do
-				if (f.entries[i][e].active == false) then
+				if (f.entries[i][e].playerName == playerName) then
 					currententry = f.entries[i][e]
 					currententry.active = true
-					currententry.itemLink = itemLink
+					currententry.itemUID = itemUID
 					currententry.wantLevel = 15
 					currententry.notes = ""
 					currententry.playerName = playerName
 					
+					found = true
+					
 					break
+				end
+			end
+			
+			if (not found) then
+				for e = 1, #f.entries[i] do
+					if (f.entries[i][e].active == false) then
+						currententry = f.entries[i][e]
+						currententry.active = true
+						currententry.itemUID = itemUID
+						currententry.wantLevel = 15
+						currententry.notes = ""
+						currententry.playerName = playerName
+						
+						break
+					end
 				end
 			end
 		end
@@ -295,7 +390,7 @@ function bdlc:addUserConsidering(itemLink, playerName, iLvL, guildRank, playerCl
 	--local guildName, guildRankName, guildRankIndex = GetGuildInfo(name)
 	local name, server = strsplit("-", playerName)
 
-	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass
+	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName]
 	if (not color) then print(playerName.." not found") return false end
 	name = GetUnitName(name,true) or name
@@ -317,7 +412,7 @@ function bdlc:addUserConsidering(itemLink, playerName, iLvL, guildRank, playerCl
 		currententry.removeUser:Hide()
 	end
 	
-	bdlc.loot_considering[itemLink][playerName] = {itemLink, playerName, iLvL, guildRank}
+	bdlc.loot_considering[itemUID][playerName] = {itemUID, playerName, iLvL, guildRank}
 	
 	bdlc:repositionFrames()
 end
@@ -325,17 +420,27 @@ end
 ----------------------------------------
 -- RemoveUserConsidering
 ----------------------------------------
-function bdlc:removeUserConsidering(itemLink, playerName)
-	playerName = FetchUnitName(playerName)
+function bdlc:removeUserConsidering(itemUID, playerName)
+	--print(itemUID)
+	--print(playerName)
+	local itemLink = bdlc.itemUID_Map[itemUID]
+	if (not itemLink) then return end
+	playerName = FetchUnitName(playerName) or playerName
+	
+	--if (bdlc.loot_considering[itemUID]) then
+	--	bdlc.loot_considering[itemUID][playerName] = nil
+	--end
+	
+	bdlc:debug("removed "..playerName.." considering "..itemLink)
 	
 	if bdlc:inLC() then 
-		local currententry = bdlc:returnEntry(itemLink, playerName)
+		local currententry = bdlc:returnEntry(itemUID, playerName)
 
 		if (currententry) then
 			currententry:Hide()
 			currententry.user_notes:Hide()
 			currententry.active = false
-			currententry.itemLink = 0
+			currententry.itemUID = 0
 			currententry.notes = ""
 			currententry.playerName = ""
 			currententry.wantLevel = 0
@@ -343,17 +448,17 @@ function bdlc:removeUserConsidering(itemLink, playerName)
 			currententry.votes.text:SetText("0")
 		end
 	
-		if (bdlc.loot_council_votes[itemLink]) then
-			bdlc.loot_council_votes[itemLink][playerName] = nil
+		if (bdlc.loot_council_votes[itemUID]) then
+			bdlc.loot_council_votes[itemUID][playerName] = nil
 		end
-		if (bdlc.loot_considering[itemLink]) then
-			bdlc.loot_considering[itemLink][playerName] = nil
+		if (bdlc.loot_considering[itemUID]) then
+			bdlc.loot_considering[itemUID][playerName] = nil
 		end
-		if (bdlc.loot_want[itemLink]) then
-			bdlc.loot_want[itemLink][playerName] = nil
+		if (bdlc.loot_want[itemUID]) then
+			bdlc.loot_want[itemUID][playerName] = nil
 		end
 		if (UnitExists(playerName)) then
-			SendAddonMessage(bdlc.message_prefix, "removeUserRoll><"..itemLink, "WHISPER", playerName);
+			SendAddonMessage(bdlc.message_prefix, "removeUserRoll><"..itemUID, "WHISPER", playerName);
 		end
 	end
 	
@@ -366,17 +471,15 @@ end
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	playerName = FetchUnitName(playerName)
 	
-	local itemLink = nil
-	for link, id in pairs(bdlc.loot_sessions) do
-		if (itemUID == id) then
-			itemLink = link
-		end
-	end
+	local itemLink = bdlc.itemUID_Map[itemUID]
 
-	if (not bdlc.loot_sessions[itemLink]) then return false end
+	if (bdlc.loot_want[itemUID]) then
+		if bdlc.loot_want[itemUID][playerName] then return false end
+	end
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 	
-	local currententry = bdlc:returnEntry(itemLink, playerName)
+	local currententry = bdlc:returnEntry(itemUID, playerName)
 	
 	if (not currententry) then 
 		bdlc:debug("didn't find frame for player: "..playerName) 
@@ -442,7 +545,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 		end
 	end
 	
-	bdlc.loot_want[itemLink][playerName] = {itemLink, playerName, want, itemLink1, itemLink2}
+	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2}
 	
 	bdlc:repositionFrames()
 end
@@ -452,18 +555,12 @@ end
 ----------------------------------------
 function bdlc:addUserNotes(itemUID, playerName, notes)
 	playerName = FetchUnitName(playerName)
-	local itemLink = nil
-	for link, id in pairs(bdlc.loot_sessions) do
-		if (itemUID == id) then
-			itemLink = link
-		end
-	end
 
 	bdlc:debug("Add "..playerName.." notes")
-	if (not bdlc.loot_sessions[itemLink]) then return false end
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 	
-	local currententry = bdlc:returnEntry(itemLink,playerName)
+	local currententry = bdlc:returnEntry(itemUID,playerName)
 	
 	if (not currententry) then return false end
 	
@@ -475,20 +572,29 @@ end
 -- UpdateUserItem
 ----------------------------------------
 function bdlc:updateUserItem(itemLink, frame)
-	local link = select(2, GetItemInfo(itemLink))
+	--local itemLink = bdlc.itemUID_Map[itemUID]
+
+	--local link = select(2, GetItemInfo(itemLink))
 	local texture = select(10, GetItemInfo(itemLink))
 	frame:Show()
 	frame.tex:SetTexture(texture)
 	frame:SetScript("OnEnter", function()
 		ShowUIPanel(GameTooltip)
 		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(link)
+		GameTooltip:SetHyperlink(itemLink)
 		GameTooltip:Show()
 	end)
 	frame:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 	
+end
+
+function bdlc:wipeQN(note)
+	bdlc.master_looter_qn = {}
+end
+function bdlc:customQN(note)
+	bdlc.master_looter_qn[note] = true
 end
 
 ----------------------------------------
@@ -567,31 +673,31 @@ end
 ----------------------------------------
 -- VoteForUser
 ----------------------------------------
-function bdlc:voteForUser(councilName, itemLink, playerName)
+function bdlc:voteForUser(councilName, itemUID, playerName)
 	playerName = FetchUnitName(playerName)
 	
-	if (not bdlc.loot_sessions[itemLink]) then return false end
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 	
 	-- make sure theres an array to represent this user in the raid
-	bdlc.loot_council_votes[itemLink][playerName] = bdlc.loot_council_votes[itemLink][playerName] or {}
+	bdlc.loot_council_votes[itemUID][playerName] = bdlc.loot_council_votes[itemUID][playerName] or {}
 	-- first, unset this council member on any other user for this item
-	for playerName, v in pairs(bdlc.loot_council_votes[itemLink]) do
+	for playerName, v in pairs(bdlc.loot_council_votes[itemUID]) do
 		v[councilName] = nil
 	end
 	
 	-- now add this council member as a vote for this raid member and this itemLink
-	bdlc.loot_council_votes[itemLink][playerName][councilName] = true
+	bdlc.loot_council_votes[itemUID][playerName][councilName] = true
 	
 	-- now lets loop through open sessions, and their entries while tallying votes for said item>entry
-	for itemLink, _ in pairs(bdlc.loot_sessions) do
+	for itemUID, un in pairs(bdlc.loot_sessions) do
 		for i = 1, #f.tabs do
-			if (f.tabs[i].itemLink == itemLink) then
+			if (f.tabs[i].itemUID == itemUID) then
 				for e = 1, #f.entries[i] do
 					local currententry = f.entries[i][e]
-					if (currententry.active and bdlc.loot_council_votes[itemLink][currententry.playerName]) then
+					if (currententry.active and bdlc.loot_council_votes[itemUID][currententry.playerName]) then
 						local votes = 0
-						for k, v in pairs(bdlc.loot_council_votes[itemLink][currententry.playerName]) do
+						for k, v in pairs(bdlc.loot_council_votes[itemUID][currententry.playerName]) do
 							votes = votes + 1
 						end
 						currententry.votes.text:SetText(votes)
@@ -603,8 +709,64 @@ function bdlc:voteForUser(councilName, itemLink, playerName)
 	
 end
 
+function bdlc:fetchSessions()
+
+	if (IsMasterLooter()) then
+		if (GetNumLootItems() > 0) then
+			bdlc:parseLoot()
+		else
+			for itemUID, v in pairs(bdlc.loot_sessions) do
+				local itemLink = bdlc.itemUID_Map[itemUID]
+				local num = bdlc.item_drops[itemLink]
+				
+				if (not num) then return end
+				
+				SendAddonMessage(bdlc.message_prefix, "startSession><"..itemLink.."><"..num, bdlc.sendTo, UnitName("player"));
+				
+				for playerName, data in pairs(bdlc.loot_want[itemUID]) do
+					SendAddonMessage(bdlc.message_prefix, "addUserWant><"..data[1].."><"..data[2].."><"..data[3].."><"..data[4].."><"..data[5], bdlc.sendTo, UnitName("player"));
+				end
+				
+				for playerName, data in pairs(bdlc.loot_considering[itemUID]) do
+					SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..data[1].."><"..data[2].."><"..data[3].."><"..data[4], bdlc.sendTo, UnitName("player"));
+				end
+			end
+		end
+	end
+end
+function bdlc:parseLoot()
+	--f.voteFrame.enchanters:Show()
+	bdlc.loot_slots = {}
+	bdlc.item_drops = {}
+	for slot = 1, GetNumLootItems() do
+		local texture, item, quantity, quality, locked = GetLootSlotInfo(slot)
+
+		if (quality and quality > 3) then
+			local itemLink = GetLootSlotLink(slot)
+			bdlc.loot_slots[slot] = itemLink
+
+			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or 0
+			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] + 1
+		end
+	end
+	for k, v in pairs(bdlc.item_drops) do
+		SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
+	end
+end
+
+function determineLC()
+
+end
+function determineScope()
+	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
+		bdlc.sendTo = "RAID"
+	else
+		bdlc.sendTo = "WHISPER"
+	end
+end
+
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
-	if (event == "ADDON_LOADED" and arg1 == "BDLC") then
+	if (event == "ADDON_LOADED" and arg1 == "BigDumbLootCouncil") then
 		bdlc:UnregisterEvent("ADDON_LOADED")
 		-------------------------------------------------------
 		--- Register necessary events
@@ -618,14 +780,28 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:RegisterEvent('CHAT_MSG_WHISPER')
 		bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
 		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
+		bdlc:RegisterEvent('LOADING_SCREEN_DISABLED')
+		
+		LoadAddOn("Blizzard_ArtifactUI")
+		
+		-- force load player items
+		for i = 1, 19 do
+			local link = GetInventoryItemLink("player", i)
+		end
+		SocketInventoryItem(17)
+		SocketInventoryItem(16)
+		HideUIPanel(ArtifactFrame)
 		
 		--------------------------------------------------------------------------------
 		-- Load configuration or set bdlc.defaults
 		--------------------------------------------------------------------------------
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
 		RegisterAddonMessagePrefix(bdlc.message_prefix);
-		if (not bdlc_config) then
-			bdlc_config = bdlc.defaults
+		bdlc_config = bdlc_config or bdlc.defaults
+		for k, v in pairs(bdlc.defaults) do
+			if (bdlc_config[k] == nil) then
+				bdlc_config[k] = v
+			end
 		end
 		
 		--------------------------------------------------------------------------------
@@ -638,8 +814,9 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local param = bdlc:split(origmsg," ")
 			local msg = param[0] or origmsg;
 			if (msg == "" or msg == " ") then
-				print("|cff3399FFBCLC|r Options:")
+				print("|cff3399FFBDLC|r Options:")
 				print("  /bdlc test - Tests the addon (must be in raid)")
+				print("  /bdlc config - Shows the configuration window")
 				print("  /bdlc show - Shows the vote window (if you're in the LC)")
 				print("  /bdlc hide - Hides the vote window (if you're in the LC)")
 				print("  /bdlc version - Check the bdlc versions that the raid is using")
@@ -654,7 +831,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				local s, e = string.find(origmsg, msg)
 				local newmsg = strtrim(string.sub(origmsg, e+1))
 				
-				if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
+				if (IsMasterLooter() or IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
+					bdlc:debug(newmsg)
 					SendAddonMessage(bdlc.message_prefix, "startSession><"..newmsg.."><"..1, bdlc.sendTo, UnitName("player"));
 				else
 					print("bdlc: You must be in the loot council and be either the loot master or the raid leader to do that");
@@ -684,54 +862,28 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:Config()
 	end
 	
-	if (event == "PLAYER_ENTERING_WORLD") then
+	if (event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED") then
+		determineScope()
 		SendAddonMessage(bdlc.message_prefix, "fetchLC", bdlc.sendTo, UnitName("player"));
-		if (IsInRaid()) then
-			bdlc.sendTo = "RAID"
-		else
-			bdlc.sendTo = "WHISPER"
-		end
 	end
 	
+	if (event == "ENCOUNTER_END") then
+		determineScope()
+		--bdlc:buildLC() -- don't think we need to do this here
+	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
+		determineScope()
 		bdlc:buildLC()
-		if (IsInRaid()) then
-			bdlc.sendTo = "RAID"
-		else
-			bdlc.sendTo = "WHISPER"
-		end
-		--SendAddonMessage(bdlc.message_prefix, "fetchLC", bdlc.sendTo, UnitName("player"));
-		--SendAddonMessage(bdlc.message_prefix, "fetchSessions:"..bdlc.local_player, bdlc.sendTo, UnitName("player"))
-		--bdlc:UnregisterEvent("GROUP_ROSTER_UPDATE")
 	end
 	
-	if (IsMasterLooter() and event == "LOOT_CLOSED") then
-		f.voteFrame.enchanters:Hide()
-	end
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
-		f.voteFrame.enchanters:Show()
-		bdlc.loot_slots = {}
-		bdlc.item_drops = {}
-		for slot = 1, GetNumLootItems() do
-			local texture, item, quantity, quality, locked = GetLootSlotInfo(slot)
-
-			if (quality and quality > 3) then
-				local itemLink = GetLootSlotLink(slot)
-				bdlc.loot_slots[slot] = itemLink
-
-				bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or 0
-				bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] + 1
-			end
-		end
-		for k, v in pairs(bdlc.item_drops) do
-			SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
-		end
+		bdlc:parseLoot()
 	end
 	
 	
 	if (event == "CHAT_MSG_WHISPER") then
 		if (IsMasterLooter()) then
-			bdlc:takeWhisperEntry(arg1, arg2)
+			--bdlc:takeWhisperEntry(arg1, arg2)
 		end
 	end
 	
@@ -748,8 +900,10 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			end
 		end
 		if (bdlc.item_drops[itemLink] == 0) then
-			SendAddonMessage(bdlc.message_prefix, "endSession><"..itemLink, bdlc.sendTo, UnitName("player"));
-			bdlc:endSession(itemLink)
+			local itemUID = bdlc:GetItemUID(itemLink)
+		
+			SendAddonMessage(bdlc.message_prefix, "endSession><"..itemUID, bdlc.sendTo, UnitName("player"));
+			bdlc:endSession(itemUID)
 		end
 		
 		bdlc.award_slot = {}
@@ -763,15 +917,19 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local param = bdlc:split(arg2, "><")
 			local action = param[0] or arg2;
 			
-			--bdlc:debug(action..": "..unpack(param))
-			
 			-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
 			for p = 0, #param do
 				local test = param[p]
 				if (tonumber(test)) then
 					param[p] = tonumber(param[p])
 				end
+				if (test == nil or test == "") then
+					param[p] = ""
+				end
 			end
+			
+			bdlc:debug(arg2)
+			
 			if (action == "startSession") then
 				bdlc:startSession(param[1],param[2])
 			elseif (action == "fetchLC") then
@@ -793,7 +951,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addUserNotes") then
 				bdlc:addUserNotes(param[1], param[2], param[3])
 			elseif (action == "fetchSessions") then
-				fetchSessions(param[1])
+				bdlc:fetchSessions()
 			elseif (action == "voteForUser") then
 				bdlc:voteForUser(param[1], param[2], param[3])
 			elseif (action == "removeUserRoll") then
@@ -801,11 +959,15 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addEnchanter") then
 				bdlc:addEnchanter(param[1], param[2])
 			elseif (action == "findEnchanters") then
-				bdlc:findEnchanters()
+				--bdlc:findEnchanters()
 			elseif (action == "endSession") then
 				bdlc:endSession(param[1])
+			elseif (action == "customQN") then
+				bdlc:customQN(param[1])
+			elseif (action == "wipeQN") then
+				bdlc:wipeQN()
 			else
-				
+				print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..arg2);
 			end
 		end
 	end

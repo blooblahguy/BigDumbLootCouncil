@@ -10,20 +10,11 @@ function engine:unpack()
 end
 
 bdlc = engine[1]
-f = engine[2]
-c = engine[3]
+l = engine[2]
+f = engine[3]
 
 bdlc.player_realm = GetRealmName()
 bdlc.local_player = UnitName("player").."-"..bdlc.player_realm
-
-bdlc.tier_names = {
-	['Protector'] = true,
-	['Conqueror'] = true,
-	['Vanquisher'] = true,
-	['Defender'] = true,
-	['Champion'] = true,
-	['Hero'] = true
-}
 
 bdlc.message_prefix = "BDLC";
 bdlc.item_drops = {}
@@ -38,7 +29,9 @@ bdlc.loot_considering = {}
 bdlc.loot_want = {}
 bdlc.items_waiting = {}
 bdlc.player_items_waiting = {}
+bdlc.master_looter_qn = {}
 
+bdlc.itemUID_Map = {}
 
 -- Config
 bdlc.config = {
@@ -46,9 +39,14 @@ bdlc.config = {
 	height = 400,
 	width = 600,
 	debug = false,
-	version = "0.8.1"
+	version = "2.01"
 }
 bdlc.defaults = {
 	council_min_rank = 2,
-	custom_council = {}
+	custom_council = {},
+	custom_qn = {
+		["BiS"] = true,
+		["2p"] = true,
+		["4p"] = true,
+	}
 }

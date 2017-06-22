@@ -1,11 +1,12 @@
-## Interface: 60200
-## Title: |cff3399FFBig|r Dumb Loot Council
-## Version: 0.8.1
+## Interface: 72000
+## Title: |cffA02C2FBig|r Dumb Loot Council
+## Version: 1.7
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: bdlc_config
 
 init.lua
+localization.lua
 functions.lua
 versions.lua
 loot_council.lua
