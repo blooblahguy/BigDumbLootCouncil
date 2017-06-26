@@ -39,7 +39,7 @@ function bdlc:startSession(itemLink,num)
 			bdlc:createRollWindow(itemUID,num)
 		end
 	else
-		bdlc.items_waiting[itemID] = itemLink
+		bdlc.items_waiting[itemID] = {itemLink,num}
 		local name = GetItemInfo(itemLink)
 	end
 end
@@ -980,7 +980,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local num1 = tonumber(arg1)
 			local num2 = tonumber(k)
 			if (num1 == num2) then
-				bdlc:startSession(v)
+				bdlc:startSession(v[0],v[1])
 				bdlc.items_waiting[k] = nil
 			end
 		end
