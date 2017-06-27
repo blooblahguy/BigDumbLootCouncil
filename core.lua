@@ -766,7 +766,7 @@ function determineScope()
 end
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
-	if (event == "ADDON_LOADED" and arg1 == "BigDumbLootCouncil") then
+	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
 		bdlc:UnregisterEvent("ADDON_LOADED")
 		-------------------------------------------------------
 		--- Register necessary events
@@ -980,7 +980,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local num1 = tonumber(arg1)
 			local num2 = tonumber(k)
 			if (num1 == num2) then
-				bdlc:startSession(v[0],v[1])
+				bdlc:startSession(v[1],v[2])
 				bdlc.items_waiting[k] = nil
 			end
 		end
