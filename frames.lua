@@ -350,7 +350,6 @@ f.voteFrame.loot_council:SetScript("OnLeave", function()
 end)
 
 -- Loot Disenchanters
---[[
 f.voteFrame.enchanters = CreateFrame("Button", nil, f.voteFrame)
 f.voteFrame.enchanters:SetText("Disenchant")
 f.voteFrame.enchanters:Hide()
@@ -390,7 +389,7 @@ f.voteFrame.enchanters:SetScript("OnClick", function()
 			end)
 			local index = 1
 			for name, gRank in pairs(bdlc.enchanters) do
-				if index <= 4 then
+				--if index <= 4 then
 					--local vname, server = strsplit("-", name)
 					f.voteFrame.enchanters.dropdown[index]:Show()
 					f.voteFrame.enchanters.dropdown[index]:SetText(name)
@@ -398,7 +397,7 @@ f.voteFrame.enchanters:SetScript("OnClick", function()
 					f.voteFrame.enchanters.dropdown[index].playerName = name
 
 					index = index + 1
-				end
+				--end
 			end
 		end
 	end
@@ -421,7 +420,7 @@ for i = 1, 4 do
 		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemUID)
 	end)
 end
---]]
+
 -- Rolls
 rollFrame = CreateFrame('frame', "BDLC Roll Window", bdlc)
 rollFrame:SetSize(458, 1)

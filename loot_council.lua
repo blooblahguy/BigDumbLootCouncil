@@ -85,7 +85,6 @@ end
 ----------------------------------------
 -- Enchanters
 ----------------------------------------
---[[
 function bdlc:addEnchanter(playerName, guildRankIndex)
 	playerName = FetchUnitName(playerName)
 	bdlc.enchanters[playerName] = guildRankIndex
@@ -115,7 +114,6 @@ function bdlc:findEnchanters()
 		--end
 	end
 end
---]]
 
 ----------------------------------------
 -- BuildLC
@@ -136,7 +134,7 @@ function bdlc:buildLC()
 		bdlc.loot_council[playerName] = true
 		bdlc:debug(playerName..' added to lc')
 		
-		--SendAddonMessage(bdlc.message_prefix, "findEnchanters", bdlc.sendTo, UnitName("player"));
+		SendAddonMessage(bdlc.message_prefix, "findEnchanters", bdlc.sendTo, UnitName("player"));
 		bdlc:debug("building LC")
 		
 		local autocouncil = {}

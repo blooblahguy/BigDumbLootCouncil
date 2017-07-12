@@ -14,11 +14,9 @@ function bdlc:startSession(itemLink,num)
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue, wf_tf  = string.split(":", itemString)
 	
 	if (GetItemInfo(itemLink)) then
-		
+	
 		local itemUID = bdlc:GetItemUID(itemLink)
-		
 		bdlc.itemUID_Map[itemUID] = itemLink
-		
 		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
 		if (not num) then num = bdlc.item_drops[itemLink] or 1 end
 	
@@ -36,7 +34,9 @@ function bdlc:startSession(itemLink,num)
 				bdlc.loot_considering[itemUID] = {}
 				bdlc.loot_want[itemUID] = {}
 			end
-			bdlc:createRollWindow(itemUID,num)
+			C_Timer.After(1, function()
+				bdlc:createRollWindow(itemUID,num)
+			end)
 		end
 	else
 		bdlc.items_waiting[itemID] = {itemLink,num}
@@ -340,11 +340,6 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	playerName = FetchUnitName(playerName) or playerName
 	local itemLink = bdlc.itemUID_Map[itemUID]
 	
-	--bdlc:debug(playerName.." considering "..itemLink)
-	
-	if bdlc.loot_considering[itemUID] then
-		if bdlc.loot_considering[itemUID][playerName] then return false end
-	end
 	if not bdlc:inLC() then return false end
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 
@@ -369,7 +364,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 			
 			if (not found) then
 				for e = 1, #f.entries[i] do
-					if (f.entries[i][e].active == false) then
+					if (not f.entries[i][e].active) then
 						currententry = f.entries[i][e]
 						currententry.active = true
 						currententry.itemUID = itemUID
@@ -412,8 +407,13 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 		currententry.removeUser:Hide()
 	end
 	
-	bdlc.loot_considering[itemUID][playerName] = {itemUID, playerName, iLvL, guildRank}
-	
+	bdlc.loot_considering[itemUID][playerName] = {}
+	bdlc.loot_considering[itemUID][playerName].itemUID = itemUID
+	bdlc.loot_considering[itemUID][playerName].playerName = playerName
+	bdlc.loot_considering[itemUID][playerName].iLvL = iLvL
+	bdlc.loot_considering[itemUID][playerName].guildRank = guildRank
+	bdlc.loot_considering[itemUID][playerName].frame = currententry
+
 	bdlc:repositionFrames()
 end
 
@@ -421,45 +421,39 @@ end
 -- RemoveUserConsidering
 ----------------------------------------
 function bdlc:removeUserConsidering(itemUID, playerName)
-	--print(itemUID)
-	--print(playerName)
+	if (not bdlc:inLC()) then return end
+
 	local itemLink = bdlc.itemUID_Map[itemUID]
 	if (not itemLink) then return end
 	playerName = FetchUnitName(playerName) or playerName
 	
-	--if (bdlc.loot_considering[itemUID]) then
-	--	bdlc.loot_considering[itemUID][playerName] = nil
-	--end
-	
 	bdlc:debug("removed "..playerName.." considering "..itemLink)
 	
-	if bdlc:inLC() then 
-		local currententry = bdlc:returnEntry(itemUID, playerName)
+	local currententry = bdlc.loot_considering[itemUID][playerName].frame
 
-		if (currententry) then
-			currententry:Hide()
-			currententry.user_notes:Hide()
-			currententry.active = false
-			currententry.itemUID = 0
-			currententry.notes = ""
-			currententry.playerName = ""
-			currententry.wantLevel = 0
-			currententry.voteUser:Hide()
-			currententry.votes.text:SetText("0")
-		end
-	
-		if (bdlc.loot_council_votes[itemUID]) then
-			bdlc.loot_council_votes[itemUID][playerName] = nil
-		end
-		if (bdlc.loot_considering[itemUID]) then
-			bdlc.loot_considering[itemUID][playerName] = nil
-		end
-		if (bdlc.loot_want[itemUID]) then
-			bdlc.loot_want[itemUID][playerName] = nil
-		end
-		if (UnitExists(playerName)) then
-			SendAddonMessage(bdlc.message_prefix, "removeUserRoll><"..itemUID, "WHISPER", playerName);
-		end
+	if (currententry) then
+		currententry:Hide()
+		currententry.user_notes:Hide()
+		currententry.active = false
+		currententry.itemUID = 0
+		currententry.notes = ""
+		currententry.playerName = ""
+		currententry.wantLevel = 0
+		currententry.voteUser:Hide()
+		currententry.votes.text:SetText("0")
+	end
+
+	if (bdlc.loot_council_votes[itemUID]) then
+		bdlc.loot_council_votes[itemUID][playerName] = nil
+	end
+	if (bdlc.loot_considering[itemUID]) then
+		bdlc.loot_considering[itemUID][playerName] = nil
+	end
+	if (bdlc.loot_want[itemUID]) then
+		bdlc.loot_want[itemUID][playerName] = nil
+	end
+	if (UnitExists(playerName)) then
+		SendAddonMessage(bdlc.message_prefix, "removeUserRoll><"..itemUID, "WHISPER", playerName);
 	end
 	
 	bdlc:repositionFrames()
@@ -472,17 +466,13 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemUID_Map[itemUID]
-
-	if (bdlc.loot_want[itemUID]) then
-		if bdlc.loot_want[itemUID][playerName] then return false end
-	end
-	if (not bdlc.loot_sessions[itemUID]) then return false end
-	if not bdlc:inLC() then return false end
+	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playername.." rolled on an item with no session") return false end
+	if (not bdlc:inLC()) then return false end
 	
-	local currententry = bdlc:returnEntry(itemUID, playerName)
+	local currententry = bdlc.loot_considering[itemUID][playerName].frame
 	
 	if (not currententry) then 
-		bdlc:debug("didn't find frame for player: "..playerName) 
+		print("BDLC: "..playerName.."rolled on item, but BDLC couldn't find the vote window entry")
 		return false 
 	end
 	
@@ -710,7 +700,6 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 end
 
 function bdlc:fetchSessions()
-
 	if (IsMasterLooter()) then
 		if (GetNumLootItems() > 0) then
 			bdlc:parseLoot()
@@ -734,8 +723,9 @@ function bdlc:fetchSessions()
 		end
 	end
 end
+
 function bdlc:parseLoot()
-	--f.voteFrame.enchanters:Show()
+	f.voteFrame.enchanters:Show()
 	bdlc.loot_slots = {}
 	bdlc.item_drops = {}
 	for slot = 1, GetNumLootItems() do
@@ -959,7 +949,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addEnchanter") then
 				bdlc:addEnchanter(param[1], param[2])
 			elseif (action == "findEnchanters") then
-				--bdlc:findEnchanters()
+				bdlc:findEnchanters()
 			elseif (action == "endSession") then
 				bdlc:endSession(param[1])
 			elseif (action == "customQN") then

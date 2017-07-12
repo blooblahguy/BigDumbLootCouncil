@@ -159,35 +159,37 @@ function bdlc:createDropdown(option, info)
 	dropdown:SetSize(container:GetWidth()+4, 22*#items)
 
 	for i = 1, #items do
-		local item = CreateFrame("Button", nil, dropdown)
-		item:SetSize(dropdown:GetWidth()-4, 20)
-		item:SetBackdrop({bgFile = media.flat, })
-		item:SetBackdropColor(0,0,0,0)
-		item:SetScript("OnEnter",function() item:SetBackdropColor(.21,.25,.29,1) end)
-		item:SetScript("OnLeave",function() item:SetBackdropColor(0,0,0,0) end)
-		item.label = item:CreateFontString(nil)
-		item.label:SetFont(media.font, 13)
-		item.label:SetPoint("LEFT", item, "LEFT", 6, 0)
-		item.label:SetText(i..": "..items[i])
-		item.id = i
-		if (not dropdown.lastFrame) then
-			item:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 2, -2)
-		else
-			item:SetPoint("TOPLEFT", dropdown.lastFrame, "BOTTOMLEFT", 0, 0)
-		end
-		
-		item:SetScript("OnClick", function(self)
-			bdlc_config[option] = self.label:GetText()
-			
-			if (info.callback) then
-				info:callback()
+		if (items[i]) then
+			local item = CreateFrame("Button", nil, dropdown)
+			item:SetSize(dropdown:GetWidth()-4, 20)
+			item:SetBackdrop({bgFile = media.flat, })
+			item:SetBackdropColor(0,0,0,0)
+			item:SetScript("OnEnter",function() item:SetBackdropColor(.21,.25,.29,1) end)
+			item:SetScript("OnLeave",function() item:SetBackdropColor(0,0,0,0) end)
+			item.label = item:CreateFontString(nil)
+			item.label:SetFont(media.font, 13)
+			item.label:SetPoint("LEFT", item, "LEFT", 6, 0)
+			item.label:SetText(i..": "..items[i])
+			item.id = i
+			if (not dropdown.lastFrame) then
+				item:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 2, -2)
+			else
+				item:SetPoint("TOPLEFT", dropdown.lastFrame, "BOTTOMLEFT", 0, 0)
 			end
-		
-			container.selected:SetText(bdlc_config[option])
-			container:click()
-		end)
-		
-		dropdown.lastFrame = item
+			
+			item:SetScript("OnClick", function(self)
+				bdlc_config[option] = self.label:GetText()
+				
+				if (info.callback) then
+					info:callback()
+				end
+			
+				container.selected:SetText(bdlc_config[option])
+				container:click()
+			end)
+			
+			dropdown.lastFrame = item
+		end
 	end
 
 	dropdown:SetPoint("TOPLEFT", container, "BOTTOMLEFT", -2, 1)
