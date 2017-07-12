@@ -3,6 +3,16 @@ local bdlc, l, f = select(2, ...):unpack()
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
+function bdlc:sendAction(action, ...)
+	local parameters = {...}
+	local paramString = ""
+	for k, v in pairs(parameters) do
+		paramString = paramString.."><"..v
+	end
+	
+	SendAddonMessage(bdlc.message_prefix, action.."><"..paramString, bdlc.sendTo, UnitName("player"));
+end
+
 local searchArray(arr, val)
 	for k, v in pairs(arr) do
 		if (v == val) then 

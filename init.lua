@@ -33,6 +33,14 @@ bdlc.master_looter_qn = {}
 
 bdlc.itemUID_Map = {}
 
+bdlc.wantTable = {
+	[1] = {"Mainspec", {.2, 1, .2}},
+	[2] = {"Minor Up", {.6, 1, .6}},
+	[3] = {"Offspec", {.8, .6, .6}},
+	[4] = {"Reroll", {.1, .6, .6}},
+	[5] = {"Transmog", {.8, .4, 1}}
+}
+
 -- Config
 bdlc.config = {
 	flat = "Interface\\Buttons\\WHITE8x8",

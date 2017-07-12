@@ -476,16 +476,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 		return false 
 	end
 	
-	local wantTable = {
-		[1] = {"Mainspec", {.2, 1, .2}},
-		[2] = {"Minor Up", {.6, 1, .6}},
-		[3] = {"Offspec", {.8, .6, .6}},
-		[4] = {"Reroll", {.1, .6, .6}},
-		[5] = {"Transmog", {.8, .4, 1}}
-	}
-	
-	local wantText = wantTable[want][1]
-	local wantColor = wantTable[want][2]
+	local wantText = bdlc.wantTable[want][1]
+	local wantColor = bdlc.wantTable[want][2]
 	
 	bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
 	
@@ -744,6 +736,27 @@ function bdlc:parseLoot()
 	end
 end
 
+function bdlc:addLootHistory(itemUID, playerName, enchanter)
+	local datetimestamp = time().."."..GetTime()
+	local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][playerName])
+	
+	local today = date("%m/%d/%Y")
+	bdlc_history[today] = bdlc_history[today] or {}
+	
+	if (playerName) then
+		-- log the history
+		local index = #bdlc_history[today] + 1
+		local entry = bdlc_history[today][index] = {}
+		entry.stamp = time()
+		entry.playerName = playerName
+		entry.itemLink = itemLink
+		entry.disenchanter = enchanter
+		entry.want = want
+		entry.itemLink1 = itemLink1
+		entry.itemLink2 = itemLink2
+	end
+end
+
 function determineLC()
 
 end
@@ -788,6 +801,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
 		RegisterAddonMessagePrefix(bdlc.message_prefix);
 		bdlc_config = bdlc_config or bdlc.defaults
+		bdlc_history = bdlc_history or {}
 		for k, v in pairs(bdlc.defaults) do
 			if (bdlc_config[k] == nil) then
 				bdlc_config[k] = v
@@ -956,6 +970,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				bdlc:customQN(param[1])
 			elseif (action == "wipeQN") then
 				bdlc:wipeQN()
+			elseif (action == "addLootHistory") then
+				bdlc:addLootHistory(param[1], param[2], param[3])
 			else
 				print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..arg2);
 			end

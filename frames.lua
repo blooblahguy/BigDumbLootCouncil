@@ -178,8 +178,9 @@ function bdlc:repositionFrames()
 	end
 end
 
-local function awardLoot(name, dropdown, itemUID)
-
+local function awardLoot(...)
+	local name, dropdown, itemUID, enchanter = ...
+	if (not enchanter) then enchanter = false end
 	bdlc.award_slot = nil
 	local name = FetchUnitName(name)
 	name, server = strsplit("-",name)
@@ -210,8 +211,17 @@ local function awardLoot(name, dropdown, itemUID)
 			local candidate = GetMasterLootCandidate(bdlc.award_slot,i)
 			
 			if (candidate == name or candidate == name.."-"..server) then
-				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name)
 				GiveMasterLoot(bdlc.award_slot, i)
+				local name = UnitName("raid"..i)
+				local datetimestamp = time().."."..GetTime()
+				local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
+				
+				local wantInfo = bdlc.wantTable[want]
+				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName..": "wantInfo[1])
+				
+				if (playerName) then					
+					bdlc:sendAction("addLootHistory", itemUID, playerName, enchanter)
+				end
 				break
 			end
 		end
@@ -417,7 +427,7 @@ for i = 1, 4 do
 	enchanter:SetHighlightFontObject("bdlc_button")
 	enchanter:SetPushedTextOffset(0,-1)
 	enchanter:SetScript("OnClick", function(self)
-		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemUID)
+		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemUID, true)
 	end)
 end
 

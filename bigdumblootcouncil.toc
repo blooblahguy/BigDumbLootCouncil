@@ -3,7 +3,7 @@
 ## Version: @project-version@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: bdlc_config
+## SavedVariables: bdlc_config, bdlc_history
 
 init.lua
 localization.lua
