@@ -1,6 +1,6 @@
 ## Interface: 72000
 ## Title: |cffA02C2FBig|r Dumb Loot Council
-## Version: 1.7
+## Version: @project-version@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: bdlc_config
