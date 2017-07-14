@@ -13,7 +13,7 @@ function bdlc:sendAction(action, ...)
 	SendAddonMessage(bdlc.message_prefix, action.."><"..paramString, bdlc.sendTo, UnitName("player"));
 end
 
-local searchArray(arr, val)
+local function searchArray(arr, val)
 	for k, v in pairs(arr) do
 		if (v == val) then 
 			return true
@@ -31,70 +31,70 @@ function bdlc:itemEquippable(itemUID)
 	
 	classes["WARRIOR"] = {}
 	classes["WARRIOR"].armor = "Plate"
-	classes["WARRIOR"].tier = t["tierProtector"]
+	classes["WARRIOR"].tier = l["tierProtector"]
 	classes["WARRIOR"].relics = {"Iron", "Blood", "Shadow", "Fire", "Storm"}
 	
 	classes["PALADIN"] = {}
 	classes["PALADIN"].armor = "Plate"
-	classes["PALADIN"].tier = t["tierConqueror"]
+	classes["PALADIN"].tier = l["tierConqueror"]
 	classes["PALADIN"].relics = {"Life", "Holy", "Iron", "Fire", "Arcane"}
 	
 	classes["HUNTER"] = {}
 	classes["HUNTER"].armor = "Mail"
-	classes["HUNTER"].tier = t["tierProtector"]
+	classes["HUNTER"].tier = l["tierProtector"]
 	classes["HUNTER"].relics = {"Storm", "Arcane", "Blood", "Iron", "Life"}
 	
 	classes["ROGUE"] = {}
 	classes["ROGUE"].armor = "Leather"
-	classes["ROGUE"].tier = t["tierVanquisher"]
+	classes["ROGUE"].tier = l["tierVanquisher"]
 	classes["ROGUE"].relics = {"Shadow", "Blood", "Fel", "Iron", "Storm", "Fel"}
 	
 	classes["PRIEST"] = {}
 	classes["PRIEST"].armor = "Cloth"
-	classes["PRIEST"].tier = t["tierConqueror"]
+	classes["PRIEST"].tier =l["tierConqueror"]
 	classes["PRIEST"].relics = {"Holy", "Shadow", "Blood", "Life"}
 	
 	classes["DEATHKNIGHT"] = {}
 	classes["DEATHKNIGHT"].armor = "Plate"
-	classes["DEATHKNIGHT"].tier = t["tierVanquisher"]
+	classes["DEATHKNIGHT"].tier = l["tierVanquisher"]
 	classes["DEATHKNIGHT"].relics = {"Blood", "Frost", "Fire", "Shadow", "Iron"}
 	
 	classes["SHAMAN"] = {}
 	classes["SHAMAN"].armor = "Mail"
-	classes["SHAMAN"].tier = t["tierProtector"]
+	classes["SHAMAN"].tier = l["tierProtector"]
 	classes["SHAMAN"].relics = {"Storm", "Fire", "Life", "Frost", "Iron"}
 	
 	classes["MAGE"] = {}
 	classes["MAGE"].armor = "Cloth"
-	classes["MAGE"].tier = t["tierVanquisher"]
+	classes["MAGE"].tier = l["tierVanquisher"]
 	classes["MAGE"].relics = {"Arcane", "Fire", "Frost"}
 	
 	classes["WARLOCK"] = {}
 	classes["WARLOCK"].armor = "Cloth"
-	classes["WARLOCK"].tier = t["tierConqueror"]
+	classes["WARLOCK"].tier = l["tierConqueror"]
 	classes["WARLOCK"].relics = {"Shadow", "Fel", "Blood", "Fire"}
 	
 	classes["MONK"] = {}
 	classes["MONK"].armor = "Leather"
-	classes["MONK"].tier = t["tierProtector"]
+	classes["MONK"].tier = l["tierProtector"]
 	classes["MONK"].relics = {"Life", "Frost", "Storm", "Iron"}
 	
 	classes["DRUID"] = {}
 	classes["DRUID"].armor = "Leather"
-	classes["DRUID"].tier = t["tierVanquisher"]
+	classes["DRUID"].tier = l["tierVanquisher"]
 	classes["DRUID"].relics = {"Arcane", "Frost", "Fire", "Life", "Blood"}
 	
 	classes["DEMONHUNTER"] = {}
 	classes["DEMONHUNTER"].armor = "Leather"
-	classes["DEMONHUNTER"].tier = t["tierConqueror"]
+	classes["DEMONHUNTER"].tier = l["tierConqueror"]
 	classes["DEMONHUNTER"].relics = {"Fel", "Iron", "Shadow", "Arcane"}
 	
 	local myClass = classes[playerClass]
 	
 	if class == "Armor" and subclass ~= "Miscellaneous" and subclass ~= "Cosmetic" and equipSlot ~= "INVTYPE_CLOAK" then
 		armorType = subclass
-	elseif (bdlc:isRelic(itemLink)) then
-		local relicType = bdlc:GetRelicType(relicLink)
+	elseif (bdlc:IsRelic(itemLink)) then
+		local relicType = bdlc:GetRelicType(itemLink)
 		
 		if (searchArray(myClass.relics, relicType)) then
 			bdlc:debug("This item is "..relicType..". I am a "..playerClass.." I can use this!")
@@ -102,7 +102,7 @@ function bdlc:itemEquippable(itemUID)
 		else
 			return false
 		end
-	elseif (bdlc:isTier(itemLink)) then
+	elseif (bdlc:IsTier(itemLink)) then
 			bdlc:debug("This item is tier. I am tier "..myClass.tier.." I can use this!")
 		if (string.find(itemLink, myClass.tier)) then
 			return true
@@ -114,10 +114,11 @@ function bdlc:itemEquippable(itemUID)
 		return true
 	end
 	
-	if (not armorType == myClass.armor) then
+	if (armorType ~= myClass.armor) then
 		bdlc:debug("This item is "..armorType..". I am a "..playerClass.." I can't use this!!")
 		return false
 	end
+	
 	bdlc:debug("This item is "..armorType..". I am a "..playerClass.." I can totally use this!!")
 	return true
 end

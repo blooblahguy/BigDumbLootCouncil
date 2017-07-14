@@ -29,7 +29,7 @@ function bdlc:startSession(itemLink,num)
 			bdlc.loot_sessions[itemUID] = itemUID
 			if (bdlc:inLC()) then
 				bdlc:createVoteWindow(itemUID,num)
-				
+				f.voteFrame.enchanters:Show()
 				bdlc.loot_council_votes[itemUID] = {}
 				bdlc.loot_considering[itemUID] = {}
 				bdlc.loot_want[itemUID] = {}
@@ -295,7 +295,7 @@ function bdlc:createRollWindow(itemUID,num)
 		bdlc:debug("I guess I can't use this, autopassing")
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		
-		SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
+		--SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
 		local currentroll = nil
 		for i = 1, #f.rolls do
 			if (f.rolls[i].itemUID == itemUID) then
@@ -746,7 +746,8 @@ function bdlc:addLootHistory(itemUID, playerName, enchanter)
 	if (playerName) then
 		-- log the history
 		local index = #bdlc_history[today] + 1
-		local entry = bdlc_history[today][index] = {}
+		bdlc_history[today][index] = {}
+		local entry = bdlc_history[today][index] 
 		entry.stamp = time()
 		entry.playerName = playerName
 		entry.itemLink = itemLink

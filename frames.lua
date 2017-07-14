@@ -217,7 +217,7 @@ local function awardLoot(...)
 				local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
 				
 				local wantInfo = bdlc.wantTable[want]
-				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName..": "wantInfo[1])
+				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName..": "..wantInfo[1])
 				
 				if (playerName) then					
 					bdlc:sendAction("addLootHistory", itemUID, playerName, enchanter)
