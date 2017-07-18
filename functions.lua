@@ -24,6 +24,7 @@ end
 
 function bdlc:itemEquippable(itemUID)
 	-- this feature isn't localized
+	if (GetLocale() ~= "enUS" and GetLocale() ~= "enGB") then return true end
 
 	local itemLink = bdlc.itemUID_Map[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)

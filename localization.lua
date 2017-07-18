@@ -157,12 +157,12 @@ elseif (GetLocale() == "ruRU") then
 	l["tierConqueror"] = "завоевателя"
 	l["tierProtector"] = "защитника"
 	
-	l["tierCloak"] = "Спина"
-	l["tierShoulders"] = "Плечо"
-	l["tierLegs"] = "Ноги"
-	l["tierChest"] = "Грудь"
-	l["tierGloves"] = "Кисти рук"
-	l["tierHelm"] = "Голова"
+	l["tierCloak"] = "Плащ"
+	l["tierShoulders"] = "Наплечники"
+	l["tierLegs"] = "Поножи"
+	l["tierChest"] = "Нагрудник"
+	l["tierGloves"] = "Рукавицы"
+	l["tierHelm"] = "Шлем"
 	
 	l["itemWarforged"] = "Предмет закален в бою"
 	l["itemTitanforged"] = "Кованый титанами"
