@@ -3,7 +3,7 @@ local bdlc, l, f = select(2, ...):unpack()
 --------------------------------------
 -- EN Localization Defaults (dont touch, use as reference)
 --------------------------------------
--- important functionality documentation
+-- important functionality localization
 l["tierProtector"] = "Protector"
 l["tierConqueror"] = "Conqueror"
 l["tierVanquisher"] = "Vanquisher"

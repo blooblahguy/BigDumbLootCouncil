@@ -23,6 +23,8 @@ local function searchArray(arr, val)
 end
 
 function bdlc:itemEquippable(itemUID)
+	-- this feature isn't localized
+
 	local itemLink = bdlc.itemUID_Map[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local playerClass = select(2, UnitClass("player"))
@@ -91,7 +93,7 @@ function bdlc:itemEquippable(itemUID)
 	
 	local myClass = classes[playerClass]
 	
-	if class == "Armor" and subclass ~= "Miscellaneous" and subclass ~= "Cosmetic" and equipSlot ~= "INVTYPE_CLOAK" then
+	if (class == "Armor" and subclass ~= "Miscellaneous" and subclass ~= "Cosmetic" and equipSlot ~= "INVTYPE_CLOAK") then
 		armorType = subclass
 	elseif (bdlc:IsRelic(itemLink)) then
 		local relicType = bdlc:GetRelicType(itemLink)
