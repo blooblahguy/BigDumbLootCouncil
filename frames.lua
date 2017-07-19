@@ -215,9 +215,10 @@ local function awardLoot(...)
 				local name = UnitName("raid"..i)
 				local datetimestamp = time().."."..GetTime()
 				
-				local wantInfo = bdlc.wantTable[want]
+				--local wantInfo = bdlc.wantTable[want]
+				--print(wantInfo)
 
-				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName..": "..wantInfo[1])
+				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName)
 				
 				--[[local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
 				
