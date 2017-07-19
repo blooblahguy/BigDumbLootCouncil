@@ -23,6 +23,9 @@ local function searchArray(arr, val)
 end
 
 function bdlc:itemEquippable(itemUID)
+	return true
+end
+function bdlc:itemEquippable2(itemUID)
 	-- this feature isn't localized
 	if (GetLocale() ~= "enUS" and GetLocale() ~= "enGB") then return true end
 

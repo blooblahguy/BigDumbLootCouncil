@@ -429,7 +429,14 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	
 	bdlc:debug("removed "..playerName.." considering "..itemLink)
 	
-	local currententry = bdlc.loot_considering[itemUID][playerName].frame
+	--print("considering", itemUID, playerName)
+	
+	local currententry = bdlc.loot_considering[itemUID][playerName]
+	if (currententry) then
+		currententry = currententry.frame
+	else
+		return
+	end
 
 	if (currententry) then
 		currententry:Hide()
@@ -527,6 +534,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 		end
 	end
 	
+	--print("want", itemUID, playerName)
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2}
 	
 	bdlc:repositionFrames()
