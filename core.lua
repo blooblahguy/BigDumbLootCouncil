@@ -466,7 +466,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemUID_Map[itemUID]
-	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playername.." rolled on an item with no session") return false end
+	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return false end
 	if (not bdlc:inLC()) then return false end
 	
 	local currententry = bdlc.loot_considering[itemUID][playerName].frame
