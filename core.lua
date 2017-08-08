@@ -407,6 +407,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 		currententry.removeUser:Hide()
 	end
 	
+	bdlc.loot_considering[itemUID] = bdlc.loot_considering[itemUID] or {}
 	bdlc.loot_considering[itemUID][playerName] = {}
 	bdlc.loot_considering[itemUID][playerName].itemUID = itemUID
 	bdlc.loot_considering[itemUID][playerName].playerName = playerName
@@ -431,6 +432,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	
 	--print("considering", itemUID, playerName)
 	
+	bdlc.loot_considering[itemUID] = bdlc.loot_considering[itemUID] or {}
 	local currententry = bdlc.loot_considering[itemUID][playerName]
 	if (currententry) then
 		currententry = currententry.frame

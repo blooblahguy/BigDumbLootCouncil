@@ -404,6 +404,7 @@ f.voteFrame.enchanters:SetScript("OnClick", function()
 			end)
 			local index = 1
 			for name, gRank in pairs(bdlc.enchanters) do
+				if (not f.voteFrame.enchanters.dropdown[index]) then break end
 				--if index <= 4 then
 					--local vname, server = strsplit("-", name)
 					f.voteFrame.enchanters.dropdown[index]:Show()
