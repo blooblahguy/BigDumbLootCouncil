@@ -855,7 +855,7 @@ for i = 1, 10 do
 		bdlc:skinButton(entry.voteUser, true, "blue")
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
-			bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName)
+			--bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName)
 			bdlc:sendAction("voteForUser", bdlc.local_player, entry.itemUID, entry.playerName);
 		end)
 		

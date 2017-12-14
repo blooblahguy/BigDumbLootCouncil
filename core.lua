@@ -85,7 +85,7 @@ function bdlc:startMockSession()
 	bdlc.item_drops = {}
 	for i = 1, 4 do
 		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(1,3)
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(3,5)
 		table.remove(itemslots,index)
 	end
 
@@ -506,13 +506,14 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 	if not bdlc:inLC() then return false end
 
 	local playerName = FetchUnitName(playerName)
-	local itemlink = bdlc.itemMap[itemUID] = itemLink
+	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = bdlc.item_drops[itemLink]
 	local votes = bdlc.loot_council_votes[itemUID]
 	local voteindex = numvotes -- not used, just for readability
 
 	-- if they haven't voted yet, then give them # votes
 	if (not votes[councilName]) then
+		votes[councilName] = {}
 		for v = 1, numvotes do
 			votes[councilName][v]= {}
 		end
@@ -533,17 +534,17 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 		for t = 1, #f.tabs do
 			if (f.tabs[t].itemUID == itemUID) then
 				for e = 1, #f.entries[t] do
-					local entry = f.entries[i][e]
+					local entry = f.entries[t][e]
 					local votes = 0
 					for council, v in pairs(bdlc.loot_council_votes[itemUID]) do
 						for v = 1, numvotes do
-							if bdlc.loot_council_votes[itemUID][council][v] == playerName then
+							if bdlc.loot_council_votes[itemUID][council][v] == entry.playerName then
 								votes = votes + 1
 							end
 						end
 					end
 
-					currententry.votes.text:SetText(votes)
+					entry.votes.text:SetText(votes)
 				end
 			end
 		end
