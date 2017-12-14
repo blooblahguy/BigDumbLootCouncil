@@ -111,7 +111,7 @@ local function awardLoot(name, dropdown, itemUID, enchanter)
 			end
 		end
 	end
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap(itemUID)
 	bdlc:debug("Award "..itemLink.." to "..name)
 	
 	for slot = 1, GetNumLootItems() do
@@ -433,7 +433,7 @@ for i = 1, 10 do
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
 	
 	roll.buttons.submit = function(wantLevel)
-		local itemLink = libc:Decompress(roll.itemUID)
+		local itemLink = bdlc.itemMap(roll.itemUID)
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);

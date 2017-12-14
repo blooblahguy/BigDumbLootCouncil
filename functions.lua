@@ -145,7 +145,8 @@ function bdlc:itemEquippable2(itemUID)
 	-- this feature isn't localized
 	if (GetLocale() ~= "enUS" and GetLocale() ~= "enGB") then return true end
 
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = bdlc.itemMap[itemUID]
+
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local playerClass = select(2, UnitClass("player"))
 	local armorType = nil
@@ -296,9 +297,23 @@ function bdlc:GetItemValue(itemLink)
 	return ilvl, wf_tf, socket, infostr
 end
 
--- this used to return a parsed itemstring with only necessary info, but we'll just compress the raw itemLink instead
+-- a hash value is fine here, because we don't actually care whats in the UID, we just need something shorter than a full link
 function bdlc:GetItemUID(itemLink)
-	return libc:Compress(itemLink)
+	local text = string.match(itemLink, "item[%-?%d:]+")
+	local counter = 1
+	local len = string.len(text)
+	for i = 1, len, 3 do 
+	counter = math.fmod(counter*8161, 4294967279) + 
+		(string.byte(text,i)*16776193) +
+		((string.byte(text,i+1) or (len-i+256))*8372226) +
+		((string.byte(text,i+2) or (len-i+256))*3932164)
+	end
+	return math.fmod(counter, 4294967291)
+
+	--return libc:Compress(itemLink)
+
+	--local itemString = string.match(itemLink, "item[%-?%d:]+")
+	--local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 
 	--[[local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return false end

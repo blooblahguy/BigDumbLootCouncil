@@ -17,6 +17,7 @@ function bdlc:startSession(itemLink,num)
 	
 	if (GetItemInfo(itemLink)) then
 		local itemUID = bdlc:GetItemUID(itemLink)
+		bdlc.itemMap[itemUID] = itemLink
 
 		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
 		if (not num) then num = bdlc.item_drops[itemLink] or 1 end
@@ -46,7 +47,7 @@ end
 -- EndSession
 ----------------------------------------
 function bdlc:endSession(itemUID)
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 
 	if not itemLink then return end
 
@@ -103,7 +104,7 @@ end
 -- CreateVoteWindow
 ----------------------------------------
 function bdlc:createVoteWindow(itemUID,num)
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	
 	f.voteFrame:Show()
@@ -158,7 +159,7 @@ end
 -- CreateRollWindow
 ----------------------------------------
 function bdlc:createRollWindow(itemUID,num)
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	rollFrame:Show()
 	
@@ -245,7 +246,7 @@ end
 ----------------------------------------
 function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerClass)
 	playerName = FetchUnitName(playerName) or playerName
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 	
 	if not bdlc:inLC() then return false end
 	if (not bdlc.loot_sessions[itemUID]) then return false end
@@ -289,7 +290,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	if (not bdlc:inLC()) then return end
 
 	playerName = FetchUnitName(playerName)
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 	
 	bdlc:debug("removed "..playerName.." considering "..itemLink)
 	
@@ -317,7 +318,7 @@ end
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	playerName = FetchUnitName(playerName)
 	
-	local itemLink = libc:Decompress(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
 	if (not bdlc:inLC()) then return false end
@@ -539,7 +540,7 @@ function bdlc:fetchSessions()
 			bdlc:parseLoot()
 		else
 			for itemUID, v in pairs(bdlc.loot_sessions) do
-				local itemLink = bdlc.itemUID_Map[itemUID]
+				local itemLink = bdlc.itemMap[itemUID]
 				local num = bdlc.item_drops[itemLink]
 				
 				if (not num) then return end

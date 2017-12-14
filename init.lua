@@ -25,13 +25,12 @@ bdlc.loot_sessions = { --[[[	itemLink] = itemUID	--]]}
 bdlc.loot_council_votes = { --[[	itemLink[playerName] = {councilNames}	--]]}
 bdlc.loot_council = {}
 bdlc.loot_slots = {}
-bdlc.loot_considering = {}
-bdlc.loot_want = {}
+
 bdlc.items_waiting = {}
 bdlc.player_items_waiting = {}
 bdlc.master_looter_qn = {}
 
-bdlc.itemUID_Map = {}
+bdlc.itemMap = {}
 
 bdlc.wantTable = {
 	[1] = {"Mainspec", {.2, 1, .2}},
