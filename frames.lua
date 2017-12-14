@@ -433,7 +433,7 @@ for i = 1, 10 do
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
 	
 	roll.buttons.submit = function(wantLevel)
-		local itemLink = bdlc.itemMap(roll.itemUID)
+		local itemLink = bdlc.itemMap[roll.itemUID]
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);
@@ -935,29 +935,20 @@ f.tabs[1].table:Show()
 
 -- function to handle frame returning and releasing
 function bdlc:getTab(itemUID)
-	local tab = nil
-
 	-- try to find existing tab
 	for t = 1, #f.tabs do
 		if (f.tabs[t].itemUID == itemUID) then
-			tab = f.tabs[t]
-			tab.itemUID = itemUID
-			break
+			return f.tabs[t]
 		end
 	end
-
-	if tab then return tab end
 
 	-- if not, return fresh tab
 	for t = 1, #f.tabs do
 		if (not f.tabs[t].itemUID) then
-			tab = f.tabs[t]
-			tab.itemUID = itemUID
-			break
+			f.tabs[t].itemUID = itemUID
+			return f.tabs[t]
 		end
 	end
-
-	return tab
 end
 
 function bdlc:getEntry(itemUID, playerName)
@@ -967,26 +958,21 @@ function bdlc:getEntry(itemUID, playerName)
 		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (f.entries[t][e].playerName == playerName) then
-					entry = f.entries[t][e]
-					break
+					return f.entries[t][e]
 				end
 			end
 
 			break
 		end
 	end
-
-	if entry then return entry end
-
 	-- if not return fresh
 	for t = 1, #f.tabs do
 		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (not f.entries[t][e].playerName) then
-					entry = f.entries[t][e]
-					entry.itemUID = itemUID
-					entry.playerName = playerName
-					break
+					f.entries[t][e].itemUID = itemUID
+					f.entries[t][e].playerName = playerName
+					return f.entries[t][e]
 				end
 			end
 

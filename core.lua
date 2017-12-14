@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-local libc = LibStub:GetLibrary("LibCompress")
 
 local demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
@@ -520,7 +519,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 			if (f.tabs[i].itemUID == itemUID) then
 				for e = 1, #f.entries[i] do
 					local currententry = f.entries[i][e]
-					if (currententry.active and bdlc.loot_council_votes[itemUID][currententry.playerName]) then
+					if (currententry.itemUID and bdlc.loot_council_votes[itemUID][currententry.playerName]) then
 						local votes = 0
 						for k, v in pairs(bdlc.loot_council_votes[itemUID][currententry.playerName]) do
 							votes = votes + 1
@@ -742,8 +741,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "CHAT_MSG_ADDON" and arg1 == bdlc.message_prefix) then
 		local method, partyMaster, raidMaster = GetLootMethod()
 		if (method == "master" or not IsInRaid()) then
-			local data = libc:Decompress(arg2)
-			if (string.len(arg2) == 255) then
+			local data = arg2
+			if (string.len(data) == 255) then
 				print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer").
 				print(data)
 			end

@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-local libc = LibStub:GetLibrary("LibCompress")
 
 -- tooltip scanning
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
@@ -107,10 +106,8 @@ end
 
 -- send compressed addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
-	print("predata:", ...)
 	local delim = "<>"
 	local paramString = strjoin(delim, ...)
-	print("postdata:",paramString)
 
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
@@ -120,8 +117,7 @@ function bdlc:sendAction(action, ...)
 	if (bdlc.overrideSender) then sender = bdlc.overrideSender end
 
 	-- compress then send
-	local data = libc:Compress(action..delim..paramString)
-	print("data:",data)
+	local data = action..delim..paramString
 	SendAddonMessage(bdlc.message_prefix, data, channel, sender);
 
 	-- unset these, probably shouldn't have them in the first place but it works
