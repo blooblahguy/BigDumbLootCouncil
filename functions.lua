@@ -107,14 +107,9 @@ end
 
 -- send compressed addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
-	local parameters = {...}
-	local paramString = ""
-	local delim = "\t"
-
 	print("predata:", ...)
-	for k, v in pairs(parameters) do
-		paramString = paramString..delim..v
-	end
+	local delim = "<>"
+	local paramString = strjoin(delim, ...)
 	print("postdata:",paramString)
 
 	-- allow the user to whisper through this function
@@ -126,7 +121,8 @@ function bdlc:sendAction(action, ...)
 
 	-- compress then send
 	local data = libc:Compress(action..delim..paramString)
-	SendAddonMessage(bdlc.message_prefix, data, channel, sender;
+	print("data:",data)
+	SendAddonMessage(bdlc.message_prefix, data, channel, sender);
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil

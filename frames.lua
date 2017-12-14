@@ -380,8 +380,7 @@ for i = 1, 10 do
 	local roll = CreateFrame("frame", nil, rollFrame);
 	roll:SetPoint("TOPLEFT", rollFrame, "TOPLEFT", 0, -(59*(i-1)))
 	roll:SetSize(rollFrame:GetWidth(), 60);
-	roll.itemUID = 0
-	roll.active = false
+
 	roll.notes = "";
 	roll:Hide()
 	roll:EnableMouse(true)
@@ -434,7 +433,7 @@ for i = 1, 10 do
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
 	
 	roll.buttons.submit = function(wantLevel)
-		local itemLink = libc:Decompress(itemUID)
+		local itemLink = libc:Decompress(roll.itemUID)
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);
@@ -452,13 +451,8 @@ for i = 1, 10 do
 			bdlc:sendAction("addUserNotes", roll.itemUID, bdlc.local_player, notes);
 		end
 
-		roll.itemUID = 0
-		roll.active = false
-		roll.notes = ""
-		roll.qn = ""
-		roll.buttons.notes:SetText("")
-		roll.buttons.notes:Hide()
-		roll:Hide()
+		bdlc:endRoll(roll.itemUID)
+
 		bdlc:repositionFrames()
 	end
 	
@@ -593,8 +587,6 @@ f.voteFrame.tabs:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMLEFT", 0, 0)
 -- Number of Items
 for i = 1, 10 do
 	local tab = CreateFrame('frame', nil, f.voteFrame.tabs)
-	tab.active = false
-	tab.itemUID = 0
 	tab.selected = false
 	tab:Hide()
 	tab:SetSize(40, 40)
@@ -762,12 +754,9 @@ for i = 1, 10 do
 	for e = 1, 40 do
 		-- Create entry in table
 		local entry = CreateFrame("Button", nil, vote_table.content)
-		entry.itemUID = 0
 		entry.wantLevel = 0
 		entry.rankIndex = 0
-		entry.playerName = ""
 		entry.notes = ""
-		entry.active = false
 		entry:SetSize(vote_table.content:GetWidth(), 22)
 		if (lastframe) then
 			entry:SetPoint("TOPLEFT", lastframe, "BOTTOMLEFT", 0, 2)
@@ -950,7 +939,7 @@ function bdlc:getTab(itemUID)
 
 	-- try to find existing tab
 	for t = 1, #f.tabs do
-		if (f.tabs[t].itemUID = itemUID) then
+		if (f.tabs[t].itemUID == itemUID) then
 			tab = f.tabs[t]
 			tab.itemUID = itemUID
 			break
@@ -960,7 +949,7 @@ function bdlc:getTab(itemUID)
 	if tab then return tab end
 
 	-- if not, return fresh tab
-	for t, = 1, #f.tabs do
+	for t = 1, #f.tabs do
 		if (not f.tabs[t].itemUID) then
 			tab = f.tabs[t]
 			tab.itemUID = itemUID
@@ -975,7 +964,7 @@ function bdlc:getEntry(itemUID, playerName)
 	local entry = nil
 	-- try to find existing one
 	for t = 1, #f.tabs do
-		if (f.tabs[t].itemUID = itemUID) then
+		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (f.entries[t][e].playerName == playerName) then
 					entry = f.entries[t][e]
@@ -991,7 +980,7 @@ function bdlc:getEntry(itemUID, playerName)
 
 	-- if not return fresh
 	for t = 1, #f.tabs do
-		if (f.tabs[t].itemUID = itemUID) then
+		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (not f.entries[t][e].playerName) then
 					entry = f.entries[t][e]
@@ -1010,7 +999,7 @@ end
 
 function bdlc:endTab(itemUID)
 	for t = 1, #f.tabs do
-		if (f.tabs[t].itemUID = itemUID) then
+		if (f.tabs[t].itemUID == itemUID) then
 			local tab = f.tabs[t]
 			tab:Hide()
 			tab:SetAlpha(0.3)
@@ -1039,7 +1028,7 @@ end
 
 function bdlc:endEntry(itemUID, playerName)
 	for t = 1, #f.tabs do
-		if (f.tabs[t].itemUID = itemUID) then
+		if (f.tabs[t].itemUID == itemUID) then
 			f.tabs[t].itemUID = nil
 			for e = 1, #f.entries[t] do
 				if (f.entries[tab][i].playerName == playerName) then

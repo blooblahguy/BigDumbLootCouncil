@@ -251,7 +251,6 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 
 	local currententry = bdlc:getEntry(itemUID, playerName)
-	currententry = f.entries[i][e]
 	currententry.wantLevel = 15
 	currententry.notes = ""
 	
@@ -748,7 +747,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print(data)
 			end
 
-			local param = bdlc:split(data, "\t")
+			local param = bdlc:split(data, "<>")
 			local action = param[0] or data;
 			
 			-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
