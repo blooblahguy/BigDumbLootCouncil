@@ -737,9 +737,16 @@ for i = 1, 10 do
 	vote_table.item.icon.tex:SetPoint("TOPLEFT", vote_table.item.icon, "TOPLEFT", 2, -2)
 	vote_table.item.icon.tex:SetPoint("BOTTOMRIGHT", vote_table.item.icon, "BOTTOMRIGHT", -2, 2)
 	
+	-- num votes left
+	vote_table.numvotes = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.numvotes:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14)
+	vote_table.numvotes:SetText("Votes Remaining: ")
+	vote_table.numvotes:SetJustifyH("RIGHT")
+	vote_table.numvotes:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 40)
+
 	vote_table.endSession = CreateFrame("Button", nil, vote_table)
 	vote_table.endSession:SetSize(100, 25)
-	vote_table.endSession:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 60)
+	vote_table.endSession:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 70)
 	vote_table.endSession:SetText(l["frameEndSession"])
 	bdlc:skinButton(vote_table.endSession,false,"red")
 	vote_table.endSession:SetScript("OnClick", function()
@@ -855,7 +862,7 @@ for i = 1, 10 do
 		bdlc:skinButton(entry.voteUser, true, "blue")
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
-			--bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName)
+			bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName, true)
 			bdlc:sendAction("voteForUser", bdlc.local_player, entry.itemUID, entry.playerName);
 		end)
 		
@@ -910,9 +917,13 @@ for i = 1, 10 do
 				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
 				
 				
-				for k, v in pairs(bdlc.loot_council_votes[entry.itemUID][entry.playerName]) do
-					local name, server = strsplit("-", k)
-					GameTooltip:AddLine(name, 1, 1, 1)
+				for council, ot in pairs(bdlc.loot_council_votes[entry.itemUID]) do
+					for v = 1, #bdlc.loot_council_votes[entry.itemUID][council] do
+						if (bdlc.loot_council_votes[entry.itemUID][council][v] == entry.playerName) then
+							local name, server = strsplit("-", council)
+							GameTooltip:AddLine(name, 1, 1, 1)
+						end
+					end
 				end	
 				
 				GameTooltip:Show()
@@ -995,7 +1006,7 @@ function bdlc:endTab(itemUID)
 			tab.table.item.num_items:SetText("x1")
 
 			for e = 1, #f.entries[t] do
-				local entry = f.entries[tab][i]
+				local entry = f.entries[t][e]
 
 				entry:Hide()
 				entry.user_notes:Hide()
@@ -1015,19 +1026,17 @@ end
 function bdlc:endEntry(itemUID, playerName)
 	for t = 1, #f.tabs do
 		if (f.tabs[t].itemUID == itemUID) then
-			f.tabs[t].itemUID = nil
 			for e = 1, #f.entries[t] do
-				if (f.entries[tab][i].playerName == playerName) then
-					local entry = f.entries[tab][i]
+				if (f.entries[t][e].playerName == playerName) then
 
-					entry:Hide()
-					entry.user_notes:Hide()
-					entry.itemUID = nil
-					entry.playerName = nil
-					entry.notes = ""
-					entry.wantLevel = 0
-					entry.voteUser:Hide()
-					entry.votes.text:SetText("0")
+					f.entries[t][e]:Hide()
+					f.entries[t][e].user_notes:Hide()
+					f.entries[t][e].itemUID = nil
+					f.entries[t][e].playerName = nil
+					f.entries[t][e].notes = ""
+					f.entries[t][e].wantLevel = 0
+					f.entries[t][e].voteUser:Hide()
+					f.entries[t][e].votes.text:SetText("0")
 
 					break
 				end

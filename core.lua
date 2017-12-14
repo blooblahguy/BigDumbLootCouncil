@@ -30,8 +30,8 @@ function bdlc:startSession(itemLink,num)
 			bdlc.loot_sessions[itemUID] = itemUID
 
 			if (bdlc:inLC()) then
-				bdlc:createVoteWindow(itemUID, num)
 				bdlc.loot_council_votes[itemUID] = {}
+				bdlc:createVoteWindow(itemUID, num)
 				f.voteFrame.enchanters:Show()
 			end
 
@@ -95,6 +95,7 @@ function bdlc:startMockSession()
 		
 		for k2, v2 in pairs(demo_players) do
 			bdlc:sendAction("addUserConsidering", itemUID, k2, v2[1], v2[2], v2[3]);
+			bdlc:sendAction("addUserWant", itemUID, k2, 2, 0, 0);
 		end
 	end
 end
@@ -126,6 +127,8 @@ function bdlc:createVoteWindow(itemUID,num)
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
 	currenttab.wfsock:SetText(infostr)
 	currenttab.table.item.wfsock:SetText(infostr)
+
+	bdlc:updateVotesRemaining(itemUID, FetchUnitName('player'))
 	--[[if (wf_tf or socket) then
 		currenttab.wfsock:SetText(infostr)
 		currenttab:SetBackdropBorderColor(0,.7,0,1)
@@ -235,16 +238,19 @@ end
 ----------------------------------------
 -- RemoveUserRoll
 ----------------------------------------
-function bdlc:removeUserRoll(itemUID)
-	bdlc:endRoll(itemUID)
-	bdlc:repositionFrames()
+function bdlc:removeUserRoll(itemUID, playerName)
+	local playerName = FetchUnitName(playerName)
+	if (FetchUnitName('player') == playerName) then
+		bdlc:endRoll(itemUID)
+		bdlc:repositionFrames()
+	end
 end
 
 ----------------------------------------
 -- AddUserConsidering
 ----------------------------------------
 function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerClass)
-	playerName = FetchUnitName(playerName) or playerName
+	local playerName = FetchUnitName(playerName)
 	local itemLink = bdlc.itemMap[itemUID]
 	
 	if not bdlc:inLC() then return false end
@@ -286,9 +292,12 @@ end
 -- RemoveUserConsidering
 ----------------------------------------
 function bdlc:removeUserConsidering(itemUID, playerName)
-	if (not bdlc:inLC()) then return end
+	local playerName = FetchUnitName(playerName)
+	if (playerName == FetchUnitName('player')) then
+		bdlc:removeUserRoll(itemUID, playerName)
+	end
 
-	playerName = FetchUnitName(playerName)
+	if (not bdlc:inLC()) then return end
 	local itemLink = bdlc.itemMap[itemUID]
 	
 	bdlc:debug("removed "..playerName.." considering "..itemLink)
@@ -298,15 +307,19 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 
 	-- reset votes
 	if (bdlc.loot_council_votes[itemUID]) then
-		bdlc.loot_council_votes[itemUID][playerName] = nil
+		for council, tab in pairs(bdlc.loot_council_votes[itemUID]) do
+			for v = 1, #bdlc.loot_council_votes[itemUID][council] do
+				if (bdlc.loot_council_votes[itemUID][council][v] == playerName) then
+					bdlc.loot_council_votes[itemUID][council][v] = false
+				end
+			end
+		end
+
+		bdlc:updateVotesRemaining(itemUID, FetchUnitName("player"))
 	end
 
 	-- tell that user to kill their roll window
-	if (UnitExists(playerName)) then
-		bdlc.overrideChannel = "WHISPER"
-		bdlc.overrideSender = playerName
-		bdlc:sendAction("removeUserRoll", itemUID);
-	end
+	bdlc:sendAction("removeUserRoll", itemUID, playerName);
 	
 	bdlc:repositionFrames()
 end
@@ -315,7 +328,7 @@ end
 -- AddUserWant
 ----------------------------------------
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
-	playerName = FetchUnitName(playerName)
+	local playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemMap[itemUID]
 
@@ -334,7 +347,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	currententry.voteUser:Show()
 	currententry.wantLevel = want
 	
-	if (GetItemInfo(itemLink1)) then
+	if (itemLink1 ~= 0 and GetItemInfo(itemLink1)) then
 		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink1)
 		currententry.gear1:Show()
 		currententry.gear1.tex:SetTexture(texture1)
@@ -382,7 +395,7 @@ end
 -- AddUserNotes
 ----------------------------------------
 function bdlc:addUserNotes(itemUID, playerName, notes)
-	playerName = FetchUnitName(playerName)
+	local playerName = FetchUnitName(playerName)
 
 	bdlc:debug("Add "..playerName.." notes")
 
@@ -500,34 +513,92 @@ end
 	why is this so hard to wrap my head around
 --]]
 ----------------------------------------
-function bdlc:voteForUser(councilName, itemUID, playerName)
+function bdlc:updateVotesRemaining(itemUID, councilName)
+	local itemLink = bdlc.itemMap[itemUID]
+	local numvotes = bdlc.item_drops[itemLink]
+	local currentvotes = 0;
+	local color = "|cff00FF00"
+	local tab = bdlc:getTab(itemUID)
+
+	if (bdlc.loot_council_votes[itemUID][councilName]) then
+		for v = 1, numvotes do
+			if (bdlc.loot_council_votes[itemUID][councilName][v]) then
+				currentvotes = currentvotes + 1
+			end
+		end
+		
+		if (numvotes-currentvotes == 0) then
+			color = "|cffFF0000"
+		end
+	end
+	tab.table.numvotes:SetText("Votes Remaining: "..color..(numvotes-currentvotes).."|r")
+end
+function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (not bdlc.loot_council_votes[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 
 	local playerName = FetchUnitName(playerName)
+
+	if (not lcl and FetchUnitName('player') == councilName) then return end
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = bdlc.item_drops[itemLink]
 	local votes = bdlc.loot_council_votes[itemUID]
-	local voteindex = numvotes -- not used, just for readability
 
 	-- if they haven't voted yet, then give them # votes
 	if (not votes[councilName]) then
 		votes[councilName] = {}
 		for v = 1, numvotes do
-			votes[councilName][v]= {}
+			votes[councilName][v] = false
 		end
 	end
-	
-	-- always append the vote, and then reverse the table
-	votes[councilName][voteindex] = playerName
 
-	-- now shift the array so that most recent vote is at the beginning
-	local new = {}
-	for v = numvotes, 1, -1  do
-		new[#new+1] = votes[councilName][v]
+	-- only let them vote for each player once
+	local hasVotedForPlayer = false
+	for v = 1, numvotes do
+		if (votes[councilName][v] == playerName) then hasVotedForPlayer = v break end
 	end
-	votes[councilName] = new
+		
+	if (hasVotedForPlayer) then
+		votes[councilName][hasVotedForPlayer] = false
+		local entry = bdlc:getEntry(itemUID, playerName)
+		entry.voteUser:SetText(l["frameVote"])
+
+		bdlc:updateVotesRemaining(itemUID, councilName)
+	else
+		-- disable rolling votes? limit at # here
+		local currentvotes = 0;
+		for v = 1, numvotes do
+			if (votes[councilName][v]) then
+				currentvotes = currentvotes + 1
+			end
+		end
+
+		if (currentvotes < numvotes) then
+			-- reset the table
+			local new = {}
+			new[1] = false -- reserve pos 1
+			for v = 1, numvotes do
+				if (votes[councilName][v]) then -- correct any table key gaps
+					new[#new+1] = votes[councilName][v]
+				end
+			end
+			votes[councilName] = new -- reset the tables keys
+
+			-- remove the least recent vote
+			local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
+			entry.voteUser:SetText(l["frameVote"])
+			
+			votes[councilName][numvotes+1] = nil 
+
+			votes[councilName][1] = playerName -- prepend the vote
+
+			local entry = bdlc:getEntry(itemUID, playerName)
+			entry.voteUser:SetText(l["frameVoted"])
+		end
+
+		bdlc:updateVotesRemaining(itemUID, councilName)
+	end
 
 	-- now loop through and tally
 	for itemUID, un in pairs(bdlc.loot_sessions) do
@@ -535,16 +606,18 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 			if (f.tabs[t].itemUID == itemUID) then
 				for e = 1, #f.entries[t] do
 					local entry = f.entries[t][e]
-					local votes = 0
-					for council, v in pairs(bdlc.loot_council_votes[itemUID]) do
-						for v = 1, numvotes do
-							if bdlc.loot_council_votes[itemUID][council][v] == entry.playerName then
-								votes = votes + 1
+					if (entry.itemUID) then
+						local votes = 0
+						for council, v in pairs(bdlc.loot_council_votes[itemUID]) do
+							for v = 1, numvotes do
+								if bdlc.loot_council_votes[itemUID][council][v] == entry.playerName then
+									votes = votes + 1
+								end
 							end
 						end
+						entry.votes.text:SetText(votes)
 					end
 
-					entry.votes.text:SetText(votes)
 				end
 			end
 		end
@@ -840,7 +913,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "voteForUser") then
 				bdlc:voteForUser(param[1], param[2], param[3])
 			elseif (action == "removeUserRoll") then
-				bdlc:removeUserRoll(param[1])
+				bdlc:removeUserRoll(param[1], param[2])
 			elseif (action == "addEnchanter") then
 				bdlc:addEnchanter(param[1], param[2])
 			elseif (action == "findEnchanters") then

@@ -118,6 +118,7 @@ function bdlc:sendAction(action, ...)
 
 	-- compress then send
 	local data = action..delim..paramString
+	--print(bdlc.message_prefix, data, channel, sender)
 	SendAddonMessage(bdlc.message_prefix, data, channel, sender);
 
 	-- unset these, probably shouldn't have them in the first place but it works
