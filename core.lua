@@ -31,8 +31,8 @@ function bdlc:startSession(itemLink,num)
 
 			if (bdlc:inLC()) then
 				bdlc:createVoteWindow(itemUID, num)
-				f.voteFrame.enchanters:Show()
 				bdlc.loot_council_votes[itemUID] = {}
+				f.voteFrame.enchanters:Show()
 			end
 
 			bdlc:createRollWindow(itemUID,num)
@@ -494,17 +494,68 @@ function bdlc:takeWhisperEntry(msg, sender)
 end
 
 ----------------------------------------
--- VoteForUser
+--[[ VoteForUser
+	voting for multiple users... hmmm
+
+	why is this so hard to wrap my head around
+--]]
 ----------------------------------------
 function bdlc:voteForUser(councilName, itemUID, playerName)
-	playerName = FetchUnitName(playerName)
-	
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (not bdlc.loot_council_votes[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
+
+	local playerName = FetchUnitName(playerName)
+	local itemlink = bdlc.itemMap[itemUID] = itemLink
+	local numvotes = bdlc.item_drops[itemLink]
+	local votes = bdlc.loot_council_votes[itemUID]
+	local voteindex = numvotes -- not used, just for readability
+
+	-- if they haven't voted yet, then give them # votes
+	if (not votes[councilName]) then
+		for v = 1, numvotes do
+			votes[councilName][v]= {}
+		end
+	end
 	
+	-- always append the vote, and then reverse the table
+	votes[councilName][voteindex] = playerName
+
+	-- now shift the array so that most recent vote is at the beginning
+	local new = {}
+	for v = numvotes, 1, -1  do
+		new[#new+1] = votes[councilName][v]
+	end
+	votes[councilName] = new
+
+	-- now loop through and tally
+	for itemUID, un in pairs(bdlc.loot_sessions) do
+		for t = 1, #f.tabs do
+			if (f.tabs[t].itemUID == itemUID) then
+				for e = 1, #f.entries[t] do
+					local entry = f.entries[i][e]
+					local votes = 0
+					for council, v in pairs(bdlc.loot_council_votes[itemUID]) do
+						for v = 1, numvotes do
+							if bdlc.loot_council_votes[itemUID][council][v] == playerName then
+								votes = votes + 1
+							end
+						end
+					end
+
+					currententry.votes.text:SetText(votes)
+				end
+			end
+		end
+	end
+
+	--votes[itemUID][councilName][playerName] = nil
+	--local votesleft = numvotes;
+
+	--[[
 	-- make sure theres an array to represent this user in the raid
 	bdlc.loot_council_votes[itemUID][playerName] = bdlc.loot_council_votes[itemUID][playerName] or {}
+
 	-- first, unset this council member on any other user for this item
 	for playerName, v in pairs(bdlc.loot_council_votes[itemUID]) do
 		v[councilName] = nil
@@ -529,7 +580,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 				end
 			end
 		end
-	end
+	end--]]
 	
 end
 --[[

@@ -20,11 +20,12 @@ bdlc.message_prefix = "BDLC";
 bdlc.item_drops = {}
 bdlc.enchanters = {}
 bdlc.award_slot = nil
-bdlc.sendTo = "RAID"
-bdlc.loot_sessions = { --[[[	itemLink] = itemUID	--]]}
-bdlc.loot_council_votes = { --[[	itemLink[playerName] = {councilNames}	--]]}
-bdlc.loot_council = {}
 bdlc.loot_slots = {}
+bdlc.loot_sessions = {}
+
+bdlc.loot_council = {}
+bdlc.loot_council_votes = {}
+bdlc.loot_council_votes.indexhistory = {}
 
 bdlc.items_waiting = {}
 bdlc.player_items_waiting = {}
