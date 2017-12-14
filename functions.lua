@@ -1,9 +1,111 @@
 local bdlc, l, f = select(2, ...):unpack()
 local libc = LibStub:GetLibrary("LibCompress")
 
+-- tooltip scanning
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
+-- return item ID(s) for gear comparison
+function bdlc:fetchUserGear(unit, itemLink)
+	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
+	local isRelic = bdlc:IsRelic(itemLink)
+	local isTier = bdlc:IsTier(itemLink)
+	
+	if (isTier) then
+		if (strfind(name:lower(), l["tierHelm"]:lower())) then
+			equipSlot = "INVTYPE_HEAD"
+		elseif (strfind(name:lower(), l["tierShoulders"]:lower())) then
+			equipSlot = "INVTYPE_SHOULDER"
+		elseif (strfind(name:lower(), l["tierLegs"]:lower())) then
+			equipSlot = "INVTYPE_LEGS"
+		elseif (strfind(name:lower(), l["tierCloak"]:lower())) then
+			equipSlot = "INVTYPE_BACK"
+		elseif (strfind(name:lower(), l["tierChest"]:lower())) then
+			equipSlot = "INVTYPE_CHEST"
+		elseif (strfind(name:lower(), l["tierGloves"]:lower())) then
+			equipSlot = "INVTYPE_HAND"
+		end
+	end
+	
+	local slotID = 0;
+	if (equipSlot == "INVTYPE_HEAD") then slotID = 1 end
+	if (equipSlot == "INVTYPE_NECK") then slotID = 2 end
+	if (equipSlot == "INVTYPE_SHOULDER") then slotID = 3 end
+	if (equipSlot == "INVTYPE_BODY") then slotID = 4 end
+	if (equipSlot == "INVTYPE_CHEST" or equipSlot == "INVTYPE_ROBE") then slotID = 5 end
+	if (equipSlot == "INVTYPE_WAIST") then slotID = 6 end
+	if (equipSlot == "INVTYPE_LEGS") then slotID = 7 end
+	if (equipSlot == "INVTYPE_FEET") then slotID = 8 end
+	if (equipSlot == "INVTYPE_WRIST") then slotID = 9 end
+	if (equipSlot == "INVTYPE_HAND") then slotID = 10 end
+	if (equipSlot == "INVTYPE_BACK") then slotID = 15 end
+	if (equipSlot == "INVTYPE_CLOAK") then slotID = 15 end
+	if (equipSlot == "INVTYPE_OFFHAND") then slotID = 17 end
+	if (equipSlot == "INVTYPE_RANGED") then slotID = 18 end
+	
+	
+	local itemLink1 = GetInventoryItemLink(unit, slotID)
+	local itemLink2 = 0
+
+	if (equipSlot == "INVTYPE_FINGER") then 
+		itemLink1 = GetInventoryItemLink(unit, 11)
+		itemLink2 = GetInventoryItemLink(unit, 12)
+		slotID = 11
+	end
+	if (equipSlot == "INVTYPE_TRINKET") then
+		itemLink1 = GetInventoryItemLink(unit, 13)
+		itemLink2 = GetInventoryItemLink(unit, 14)
+		slotID = 13
+	end
+	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND") then
+		itemLink1 = GetInventoryItemLink(unit, 16)
+		itemLink2 = GetInventoryItemLink(unit, 17)
+		slotID = 16
+	end
+	if (isRelic) then
+		local relicType = bdlc:GetRelicType(itemLink)
+		local relic1, relic2 = bdlc:GetRelics(relicType)
+		
+		if (relic1) then
+			itemLink1 = relic1
+		end
+		if (relic2) then
+			itemLink2 = relic2
+		end
+	end
+	if (not itemLink1) then
+		itemLink1 = 0
+	end
+	if (not itemLink2) then
+		itemLink2 = 0
+	end
+	
+	if (slotID == 0 and not isRelic) then
+		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer know");
+	end
+	
+	return itemLink1, itemLink2
+end
+
+-- returns name-server for any valid unitID
+function FetchUnitName(name)
+	local name, server = strsplit("-", name)
+	
+	local name_server = GetUnitName(name, true)
+	if (name_server) then
+		name = name_server
+	end
+	name, server = strsplit("-", name)
+	if (not server) then
+		server = GetRealmName()
+	end
+	
+	if (not name) then return end
+
+	return name.."-"..server
+end
+
+-- send compressed addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
 	local parameters = {...}
 	local paramString = ""
@@ -16,8 +118,9 @@ function bdlc:sendAction(action, ...)
 	print("postdata:",paramString)
 
 	-- allow the user to whisper through this function
-	local channel = bdlc.sendTo
+	local channel = "WHISPER"
 	local sender = UnitName("player")
+	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
 	if (bdlc.overrideChannel) then channel = bdlc.overrideChannel end
 	if (bdlc.overrideSender) then sender = bdlc.overrideSender end
 
@@ -164,6 +267,7 @@ function bdlc:IsTier(itemLink)
 	
 	return isTier
 end
+
 function bdlc:GetItemValue(itemLink)
 	tts:SetOwner(UIParent, 'ANCHOR_NONE')
 	tts:SetHyperlink(itemLink)
@@ -196,6 +300,7 @@ function bdlc:GetItemValue(itemLink)
 	return ilvl, wf_tf, socket, infostr
 end
 
+-- this used to return a parsed itemstring with only necessary info, but we'll just compress the raw itemLink instead
 function bdlc:GetItemUID(itemLink)
 	return libc:Compress(itemLink)
 
@@ -211,6 +316,7 @@ function bdlc:GetItemUID(itemLink)
 	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue--]]
 end
 
+-- case insensitive search
 function bdlc:SmartSearch(str,ss)
 	local search = {strsplit(" ",ss)} or {ss}
 	local found = true
@@ -225,6 +331,7 @@ function bdlc:SmartSearch(str,ss)
 	return found
 end
 
+-- cast insensitive strip
 function bdlc:SmartStrip(str,ss)
 	local search = {strsplit(" ",ss)} or {ss}
 	str = str:lower()
@@ -238,6 +345,7 @@ function bdlc:SmartStrip(str,ss)
 	return str
 end
 
+-- determines if given string is a relic string
 function bdlc:RelicString(str)
 	local ss = string.format(RELIC_TOOLTIP_TYPE, "")
 	ss = ss:gsub("%W", " ")
@@ -282,6 +390,8 @@ function bdlc:IsRelic(relicLink)
 
 	return isRelic
 end
+
+-- return relic type (life, iron, blood, etc)
 function bdlc:GetRelicType(relicLink)
 	local relicType
 	local ss = EJ_LOOT_SLOT_FILTER_ARTIFACT_RELIC:lower()
@@ -348,31 +458,6 @@ end
 
 function IsRaidLeader()
 	return UnitLeadsAnyGroup("player")
-end
-
-function bdlc:returnEntry(itemUID, playerName)
-	playerName = FetchUnitName(playerName)
-	local current = nil
-	local tab = nil
-
-	for i = 1, #f.tabs do
-		if (f.tabs[i].itemUID and f.tabs[i].itemUID == itemUID) then
-			tab = i
-			break
-		end
-	end
-	
-	if (tab) then
-		for i = 1, #f.entries[tab] do
-			if (f.entries[tab][i].playerName == playerName) then
-				current = f.entries[tab][i]
-				
-				break
-			end
-		end
-	end
-	
-	return current
 end
 
 function bdlc:debug(msg)

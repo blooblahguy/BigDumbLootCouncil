@@ -28,12 +28,11 @@ function bdlc:startSession(itemLink,num)
 		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
 			bdlc:debug("Starting session for "..itemLink)
 			bdlc.loot_sessions[itemUID] = itemUID
+
 			if (bdlc:inLC()) then
-				bdlc:createVoteWindow(itemUID,num)
+				bdlc:createVoteWindow(itemUID, num)
 				f.voteFrame.enchanters:Show()
 				bdlc.loot_council_votes[itemUID] = {}
-				bdlc.loot_considering[itemUID] = {}
-				bdlc.loot_want[itemUID] = {}
 			end
 
 			bdlc:createRollWindow(itemUID,num)
@@ -51,58 +50,12 @@ function bdlc:endSession(itemUID)
 
 	if not itemLink then return end
 
+	bdlc:endTab(itemUID)
+	bdlc:endRoll(itemUID)
+
 	bdlc.item_drops[itemLink] = nil
-	local currententry = nil
-	local currenttab = nil
-	--if bdlc:inLC() then 
-		for i = 1, #f.tabs do
-			if (f.tabs[i].itemUID == itemUID) then
-				for e = 1, #f.entries[i] do
-					if (f.entries[i][e].itemUID == itemUID) then
-						currententry = f.entries[i][e]
-						currententry:Hide()
-						currententry.user_notes:Hide()
-						currententry.active = false
-						currententry.itemUID = 0
-						currententry.votes.text:SetText("0")
-						currententry.playerName = ""
-						currententry.voteUser:Hide()
-						currententry.wantLevel = 0
-						currententry.notes = ""
-					end
-				end
-				currenttab = f.tabs[i]
-				currenttab:Hide()
-				currenttab:SetAlpha(0.3)
-				currenttab.table:Hide()
-				currenttab.active = false
-				currenttab.selected = false
-				currenttab.itemUID = 0
-				currenttab.table.item.num_items:SetText("x1")
-				
-				break
-			end
-		end
-		bdlc.loot_considering[itemUID] = nil
-		bdlc.loot_want[itemUID] = nil
-	--end
-	local currentroll = nil
-	for i = 1, #f.rolls do
-		if (f.rolls[i].itemUID == itemUID) then
-			currentroll = f.rolls[i]
-			currentroll.active = false
-			currentroll.itemUID = 0
-			currentroll.notes = ""
-			currentroll:Hide()
-			
-			break
-		end
-	end
-	
 	bdlc.loot_sessions[itemUID] = nil
 	bdlc.loot_council_votes[itemUID] = nil
-	
-	--bdlc.itemUID_Map[itemUID] = nil
 	
 	bdlc:repositionFrames()
 end
@@ -155,18 +108,8 @@ function bdlc:createVoteWindow(itemUID,num)
 	
 	f.voteFrame:Show()
 	
-	local currenttab = nil
-	for i = 1, #f.tabs do
-		if (not currenttab and not f.tabs[i].active) then
-			currenttab = f.tabs[i]
-			currenttab.active = true
-			currenttab.itemUID = itemUID
-			
-			break
-		end
-	end
+	local currenttab = bdlc:getTab(itemUID)
 	
-	if (not currenttab) then bdlc:debug("couldn't find currenttab") return false end
 	-- Set Up tab and item info
 	currenttab:Show()
 	currenttab.icon:SetTexture(texture)
@@ -219,18 +162,8 @@ function bdlc:createRollWindow(itemUID,num)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	rollFrame:Show()
 	
-	local currentroll = nil
-	for i = 1, #f.rolls do
-		if (not currentroll and not f.rolls[i].active) then
-			currentroll = f.rolls[i]
-			currentroll.active = true
-			currentroll.itemUID = itemUID
-			
-			break
-		end
-	end
-	
-	if (not currentroll) then bdlc:debug("couldn't find currentroll") return false end
+	local currentroll = bdlc:getRoll(itemUID)
+
 	currentroll:Show()
 	currentroll.item.icon.tex:SetTexture(texture)
 	currentroll.item.item_text:SetText(itemLink)
@@ -293,18 +226,7 @@ function bdlc:createRollWindow(itemUID,num)
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		
 		--bdlc:sendAction("removeUserConsidering", itemUID, bdlc.local_player);
-		local currentroll = nil
-		for i = 1, #f.rolls do
-			if (f.rolls[i].itemUID == itemUID) then
-				currentroll = f.rolls[i]
-				currentroll.active = false
-				currentroll.itemUID = 0
-				currentroll.notes = ""
-				currentroll:Hide()
-				
-				break
-			end
-		end
+		bdlc:endRoll(itemUID)
 	end
 	bdlc:repositionFrames()
 	
@@ -314,19 +236,7 @@ end
 -- RemoveUserRoll
 ----------------------------------------
 function bdlc:removeUserRoll(itemUID)
-	local currentroll = nil
-	for i = 1, #f.rolls do
-		if (f.rolls[i].itemUID == itemUID) then
-			currentroll = f.rolls[i]
-			currentroll.active = false
-			currentroll.itemUID = 0
-			currentroll.notes = ""
-			currentroll:Hide()
-			
-			break
-		end
-	end
-	
+	bdlc:endRoll(itemUID)
 	bdlc:repositionFrames()
 end
 
@@ -340,46 +250,12 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	if not bdlc:inLC() then return false end
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 
-	local currententry = nil
-	local found = nil
-	for i = 1, #f.tabs do
-		if (f.tabs[i].itemUID == itemUID) then
-			for e = 1, #f.entries[i] do
-				if (f.entries[i][e].playerName == playerName) then
-					currententry = f.entries[i][e]
-					currententry.active = true
-					currententry.itemUID = itemUID
-					currententry.wantLevel = 15
-					currententry.notes = ""
-					currententry.playerName = playerName
-					
-					found = true
-					
-					break
-				end
-			end
-			
-			if (not found) then
-				for e = 1, #f.entries[i] do
-					if (not f.entries[i][e].active) then
-						currententry = f.entries[i][e]
-						currententry.active = true
-						currententry.itemUID = itemUID
-						currententry.wantLevel = 15
-						currententry.notes = ""
-						currententry.playerName = playerName
-						
-						break
-					end
-				end
-			end
-		end
-	end
-	
-	if (not currententry) then return false end
+	local currententry = bdlc:getEntry(itemUID, playerName)
+	currententry = f.entries[i][e]
+	currententry.wantLevel = 15
+	currententry.notes = ""
 	
 	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
-	--local guildName, guildRankName, guildRankIndex = GetGuildInfo(name)
 	local name, server = strsplit("-", playerName)
 
 	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
@@ -403,14 +279,6 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	else
 		currententry.removeUser:Hide()
 	end
-	
-	bdlc.loot_considering[itemUID] = bdlc.loot_considering[itemUID] or {}
-	bdlc.loot_considering[itemUID][playerName] = {}
-	bdlc.loot_considering[itemUID][playerName].itemUID = itemUID
-	bdlc.loot_considering[itemUID][playerName].playerName = playerName
-	bdlc.loot_considering[itemUID][playerName].iLvL = iLvL
-	bdlc.loot_considering[itemUID][playerName].guildRank = guildRank
-	bdlc.loot_considering[itemUID][playerName].frame = currententry
 
 	bdlc:repositionFrames()
 end
@@ -421,43 +289,20 @@ end
 function bdlc:removeUserConsidering(itemUID, playerName)
 	if (not bdlc:inLC()) then return end
 
+	playerName = FetchUnitName(playerName)
 	local itemLink = libc:Decompress(itemUID)
-	if (not itemLink) then return end
-	playerName = FetchUnitName(playerName) or playerName
 	
 	bdlc:debug("removed "..playerName.." considering "..itemLink)
 	
-	--print("considering", itemUID, playerName)
-	
-	bdlc.loot_considering[itemUID] = bdlc.loot_considering[itemUID] or {}
-	local currententry = bdlc.loot_considering[itemUID][playerName]
-	if (currententry) then
-		currententry = currententry.frame
-	else
-		return
-	end
+	-- reset frame
+	bdlc:endEntry(itemUID, playerName)
 
-	if (currententry) then
-		currententry:Hide()
-		currententry.user_notes:Hide()
-		currententry.active = false
-		currententry.itemUID = 0
-		currententry.notes = ""
-		currententry.playerName = ""
-		currententry.wantLevel = 0
-		currententry.voteUser:Hide()
-		currententry.votes.text:SetText("0")
-	end
-
+	-- reset votes
 	if (bdlc.loot_council_votes[itemUID]) then
 		bdlc.loot_council_votes[itemUID][playerName] = nil
 	end
-	if (bdlc.loot_considering[itemUID]) then
-		bdlc.loot_considering[itemUID][playerName] = nil
-	end
-	if (bdlc.loot_want[itemUID]) then
-		bdlc.loot_want[itemUID][playerName] = nil
-	end
+
+	-- tell that user to kill their roll window
 	if (UnitExists(playerName)) then
 		bdlc.overrideChannel = "WHISPER"
 		bdlc.overrideSender = playerName
@@ -475,15 +320,10 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	
 	local itemLink = libc:Decompress(itemUID)
 
-	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return false end
+	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
 	if (not bdlc:inLC()) then return false end
 	
-	local currententry = bdlc.loot_considering[itemUID][playerName].frame
-	
-	if (not currententry) then 
-		print("BDLC: "..playerName.."rolled on item, but BDLC couldn't find the vote window entry")
-		return false 
-	end
+	local currententry = bdlc:getEntry(itemUID, playerName)
 	
 	local wantText = bdlc.wantTable[want][1]
 	local wantColor = bdlc.wantTable[want][2]
@@ -536,9 +376,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 		end
 	end
 	
-	--print("want", itemUID, playerName)
-	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2}
-	
 	bdlc:repositionFrames()
 end
 
@@ -549,12 +386,11 @@ function bdlc:addUserNotes(itemUID, playerName, notes)
 	playerName = FetchUnitName(playerName)
 
 	bdlc:debug("Add "..playerName.." notes")
+
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 	
-	local currententry = bdlc:returnEntry(itemUID,playerName)
-	
-	if (not currententry) then return false end
+	local currententry = bdlc:getEntry(itemUID,playerName)
 	
 	currententry.notes = notes
 	currententry.user_notes:Show()
@@ -743,7 +579,7 @@ function bdlc:parseLoot()
 	end
 end
 
-function bdlc:addLootHistory(itemUID, playerName, enchanter)
+--[[function bdlc:addLootHistory(itemUID, playerName, enchanter)
 	local datetimestamp = time().."."..GetTime()
 	local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][playerName])
 	
@@ -763,18 +599,7 @@ function bdlc:addLootHistory(itemUID, playerName, enchanter)
 		entry.itemLink1 = itemLink1
 		entry.itemLink2 = itemLink2
 	end
-end
-
-function determineLC()
-
-end
-function determineScope()
-	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
-		bdlc.sendTo = "RAID"
-	else
-		bdlc.sendTo = "WHISPER"
-	end
-end
+end--]]
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
@@ -876,16 +701,13 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	end
 	
 	if (event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED") then
-		determineScope()
 		bdlc:sendAction("fetchLC");
 	end
 	
 	if (event == "ENCOUNTER_END") then
-		determineScope()
 		bdlc:buildLC()
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		determineScope()
 		bdlc:buildLC()
 	end
 	

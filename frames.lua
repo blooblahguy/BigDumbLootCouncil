@@ -5,90 +5,6 @@ f.rolls = {}
 f.tabs = {}
 f.entries = {}
 
-function bdlc:fetchUserGear(unit, itemLink)
-	
-	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
-	
-	local isRelic = bdlc:IsRelic(itemLink)
-	
-	local isTier = bdlc:IsTier(itemLink)
-	
-	if (isTier) then
-		if (strfind(name:lower(), l["tierHelm"]:lower())) then
-			equipSlot = "INVTYPE_HEAD"
-		elseif (strfind(name:lower(), l["tierShoulders"]:lower())) then
-			equipSlot = "INVTYPE_SHOULDER"
-		elseif (strfind(name:lower(), l["tierLegs"]:lower())) then
-			equipSlot = "INVTYPE_LEGS"
-		elseif (strfind(name:lower(), l["tierCloak"]:lower())) then
-			equipSlot = "INVTYPE_BACK"
-		elseif (strfind(name:lower(), l["tierChest"]:lower())) then
-			equipSlot = "INVTYPE_CHEST"
-		elseif (strfind(name:lower(), l["tierGloves"]:lower())) then
-			equipSlot = "INVTYPE_HAND"
-		end
-	end
-	
-	local slotID = 0;
-	if (equipSlot == "INVTYPE_HEAD") then slotID = 1 end
-	if (equipSlot == "INVTYPE_NECK") then slotID = 2 end
-	if (equipSlot == "INVTYPE_SHOULDER") then slotID = 3 end
-	if (equipSlot == "INVTYPE_BODY") then slotID = 4 end
-	if (equipSlot == "INVTYPE_CHEST" or equipSlot == "INVTYPE_ROBE") then slotID = 5 end
-	if (equipSlot == "INVTYPE_WAIST") then slotID = 6 end
-	if (equipSlot == "INVTYPE_LEGS") then slotID = 7 end
-	if (equipSlot == "INVTYPE_FEET") then slotID = 8 end
-	if (equipSlot == "INVTYPE_WRIST") then slotID = 9 end
-	if (equipSlot == "INVTYPE_HAND") then slotID = 10 end
-	if (equipSlot == "INVTYPE_BACK") then slotID = 15 end
-	if (equipSlot == "INVTYPE_CLOAK") then slotID = 15 end
-	if (equipSlot == "INVTYPE_OFFHAND") then slotID = 17 end
-	if (equipSlot == "INVTYPE_RANGED") then slotID = 18 end
-	
-	
-	local itemLink1 = GetInventoryItemLink(unit, slotID)
-	local itemLink2 = 0
-
-	if (equipSlot == "INVTYPE_FINGER") then 
-		itemLink1 = GetInventoryItemLink(unit, 11)
-		itemLink2 = GetInventoryItemLink(unit, 12)
-		slotID = 11
-	end
-	if (equipSlot == "INVTYPE_TRINKET") then
-		itemLink1 = GetInventoryItemLink(unit, 13)
-		itemLink2 = GetInventoryItemLink(unit, 14)
-		slotID = 13
-	end
-	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND") then
-		itemLink1 = GetInventoryItemLink(unit, 16)
-		itemLink2 = GetInventoryItemLink(unit, 17)
-		slotID = 16
-	end
-	if (isRelic) then
-		local relicType = bdlc:GetRelicType(itemLink)
-		local relic1, relic2 = bdlc:GetRelics(relicType)
-		
-		if (relic1) then
-			itemLink1 = relic1
-		end
-		if (relic2) then
-			itemLink2 = relic2
-		end
-	end
-	if (not itemLink1) then
-		itemLink1 = 0
-	end
-	if (not itemLink2) then
-		itemLink2 = 0
-	end
-	
-	if (slotID == 0 and not isRelic) then
-		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer know");
-	end
-	
-	return itemLink1, itemLink2
-end
-
 function bdlc:repositionFrames()
 	-- Loop through tabs and entries, sort by want level
 	local lasttab = nil
@@ -111,7 +27,7 @@ function bdlc:repositionFrames()
 		
 		for e = 1, #f.entries[t] do
 			local currententry = f.entries[t][e]
-			if (currententry.active) then
+			if (currententry.itemUID) then
 				if (lastentry) then
 					currententry:SetPoint("TOPLEFT", lastentry, "BOTTOMLEFT", 0, 1)
 				else
@@ -121,7 +37,7 @@ function bdlc:repositionFrames()
 			end
 		end
 		
-		if (currenttab.active) then
+		if (currenttab.itemUID) then
 			if (lasttab) then
 				currenttab:SetPoint("TOPRIGHT", lasttab, "BOTTOMRIGHT", 0, 2)
 			else
@@ -135,7 +51,7 @@ function bdlc:repositionFrames()
 	for r = 1, #f.rolls do
 		local currentroll = f.rolls[r]
 		
-		if (currentroll.active) then
+		if (currentroll.itemUID) then
 			if (lastroll) then
 				currentroll:SetPoint("TOPLEFT", lastroll, "BOTTOMLEFT", 0, 1)
 			else
@@ -167,7 +83,7 @@ function bdlc:repositionFrames()
 	if (not tabselect) then
 		local currenttab = nil
 		for i = 1, #f.tabs do
-			if (not currenttab and f.tabs[i].active) then
+			if (not currenttab and f.tabs[i].itemUID) then
 				currenttab = f.tabs[i]
 				currenttab:SetAlpha(1)
 				currenttab.selected = true
@@ -180,8 +96,7 @@ function bdlc:repositionFrames()
 	end
 end
 
-local function awardLoot(...)
-	local name, dropdown, itemUID, enchanter = ...
+local function awardLoot(name, dropdown, itemUID, enchanter)
 	if (not enchanter) then enchanter = false end
 	bdlc.award_slot = nil
 	local name = FetchUnitName(name)
@@ -221,6 +136,7 @@ local function awardLoot(...)
 				--print(wantInfo)
 
 				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name)
+				SendChatMessage("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name, "RAID")
 				
 				--[[local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
 				
@@ -520,8 +436,6 @@ for i = 1, 10 do
 	roll.buttons.submit = function(wantLevel)
 		local itemLink = libc:Decompress(itemUID)
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
-		
-		determineScope()
 
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);
 		
@@ -1029,3 +943,162 @@ for i = 1, 10 do
 end
 f.tabs[1]:SetAlpha(1)
 f.tabs[1].table:Show()
+
+-- function to handle frame returning and releasing
+function bdlc:getTab(itemUID)
+	local tab = nil
+
+	-- try to find existing tab
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID = itemUID) then
+			tab = f.tabs[t]
+			tab.itemUID = itemUID
+			break
+		end
+	end
+
+	if tab then return tab end
+
+	-- if not, return fresh tab
+	for t, = 1, #f.tabs do
+		if (not f.tabs[t].itemUID) then
+			tab = f.tabs[t]
+			tab.itemUID = itemUID
+			break
+		end
+	end
+
+	return tab
+end
+
+function bdlc:getEntry(itemUID, playerName)
+	local entry = nil
+	-- try to find existing one
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID = itemUID) then
+			for e = 1, #f.entries[t] do
+				if (f.entries[t][e].playerName == playerName) then
+					entry = f.entries[t][e]
+					break
+				end
+			end
+
+			break
+		end
+	end
+
+	if entry then return entry end
+
+	-- if not return fresh
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID = itemUID) then
+			for e = 1, #f.entries[t] do
+				if (not f.entries[t][e].playerName) then
+					entry = f.entries[t][e]
+					entry.itemUID = itemUID
+					entry.playerName = playerName
+					break
+				end
+			end
+
+			break
+		end
+	end
+
+	return entry
+end
+
+function bdlc:endTab(itemUID)
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID = itemUID) then
+			local tab = f.tabs[t]
+			tab:Hide()
+			tab:SetAlpha(0.3)
+			tab.table:Hide()
+			tab.selected = false
+			tab.itemUID = nil
+			tab.table.item.num_items:SetText("x1")
+
+			for e = 1, #f.entries[t] do
+				local entry = f.entries[tab][i]
+
+				entry:Hide()
+				entry.user_notes:Hide()
+				entry.itemUID = nil
+				entry.playerName = nil
+				entry.notes = ""
+				entry.wantLevel = 0
+				entry.voteUser:Hide()
+				entry.votes.text:SetText("0")
+			end
+
+			break
+		end
+	end
+end
+
+function bdlc:endEntry(itemUID, playerName)
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID = itemUID) then
+			f.tabs[t].itemUID = nil
+			for e = 1, #f.entries[t] do
+				if (f.entries[tab][i].playerName == playerName) then
+					local entry = f.entries[tab][i]
+
+					entry:Hide()
+					entry.user_notes:Hide()
+					entry.itemUID = nil
+					entry.playerName = nil
+					entry.notes = ""
+					entry.wantLevel = 0
+					entry.voteUser:Hide()
+					entry.votes.text:SetText("0")
+
+					break
+				end
+			end
+
+			break
+		end
+	end
+end
+function bdlc:getRoll(itemUID)
+	local roll = nil
+	-- try to find existing one
+	for i = 1, #f.rolls do
+		if (f.rolls[i].itemUID == itemUID) then
+			roll = f.rolls[i]
+			roll.itemUID = itemUID
+			break
+		end
+	end
+
+	if roll then return roll end
+
+	-- if not return fresh
+	for i = 1, #f.rolls do
+		if (not f.rolls[i].itemUID) then
+			roll = f.rolls[i]
+			roll.itemUID = itemUID
+			break
+		end
+	end
+
+	return roll
+end
+
+function bdlc:endRoll(itemUID)
+	for i = 1, #f.rolls do
+		if (f.rolls[i].itemUID == itemUID) then
+			local roll = f.rolls[i]
+			roll.itemUID = nil
+			roll.notes = ""
+			roll:Hide()
+			
+			break
+		end
+	end
+end
+
+
+

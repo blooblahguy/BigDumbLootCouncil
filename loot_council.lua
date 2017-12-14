@@ -3,40 +3,6 @@ local bdlc, l, f = select(2, ...):unpack()
 ----------------------------------------
 -- Get/add/remove
 ----------------------------------------
-function FetchUnitName(name)
-	local name, server = strsplit("-", name)
-	-- local n, blank = strsplit("-", name)
-	-- local realname, server = UnitFullName(n)
-	
-	-- if (not server or string.len(server) == 0) then
-		-- server = GetRealmName()
-	-- end
-	
-	-- if (not realname) then
-		-- --print("Error! can't find any player named either:")
-		-- --print(name)
-		-- --print(realname)
-		
-		-- return n.."-"..server;
-	-- end
-	
-	-- return realname.."-"..server
-	
-	server_name = GetUnitName(name,true)
-	if (server_name) then
-		name = server_name
-	end
-	name, server = strsplit("-", name)
-	if (not server) then
-		server = GetRealmName()
-	end
-	
-	if (name) then
-		return name.."-"..server
-	else
-		return nil
-	end
-end
 
 function bdlc:addToLC(playerName)
 	playerName = FetchUnitName(playerName)
@@ -161,7 +127,7 @@ function bdlc:buildLC()
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
 				bdlc.loot_council[k] = true
-				bdlc:sendAction("addToLC");
+				bdlc:sendAction("addToLC", k);
 			end
 		end
 		
