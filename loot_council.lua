@@ -38,10 +38,6 @@ function FetchUnitName(name)
 	end
 end
 
-function bdlc:fetchLC()
-	bdlc:buildLC()
-end
-
 function bdlc:addToLC(playerName)
 	playerName = FetchUnitName(playerName)
 	bdlc.loot_council[playerName] = true
@@ -64,7 +60,7 @@ function bdlc:addremoveLC(msg, name)
 		bdlc_config.custom_council[targetname] = true
 		if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
 			bdlc.loot_council[targetname] = true
-			SendAddonMessage(bdlc.message_prefix, "addToLC><"..targetname, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("addToLC", targetname);
 			print("bdlc: Adding "..targetname.." to loot council.")
 			SendChatMessage("bdlc: You've been added to loot council for this raid", "WHISPER", nil, targetname)
 		else
@@ -74,7 +70,7 @@ function bdlc:addremoveLC(msg, name)
 		bdlc_config.custom_council[targetname] = nil
 		if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
 			bdlc.loot_council[targetname] = nil
-			SendAddonMessage(bdlc.message_prefix, "removeFromLC><"..targetname, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("removeFromLC", targetname);
 			print("bdlc: Removing "..targetname.." from loot council.")
 		else
 			print("bdlc: Since you are not group leader or loot master, the player has been removed from your own loot council, not the group's as a whole.")
@@ -105,7 +101,7 @@ function bdlc:findEnchanters()
 				local guildName, guildRankName, guildRankIndex = GetGuildInfo("player")
 				
 				if (mlguildName == guildName or not IsInRaid()) then
-					SendAddonMessage(bdlc.message_prefix, "addEnchanter><"..bdlc.local_player.."><"..guildRankIndex, "WHISPER", masterLooter);
+					bdlc:sendAction("addEnchanter", bdlc.local_player, guildRankIndex);
 					--bdlc:addEnchanter(bdlc.local_player, guildRankIndex)
 				else
 					bdlc:debug("Since this enchanter isn't from the same guild, we're going to ignore them")
@@ -134,7 +130,7 @@ function bdlc:buildLC()
 		bdlc.loot_council[playerName] = true
 		bdlc:debug(playerName..' added to lc')
 		
-		SendAddonMessage(bdlc.message_prefix, "findEnchanters", bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("findEnchanters");
 		bdlc:debug("building LC")
 		
 		local autocouncil = {}
@@ -165,19 +161,19 @@ function bdlc:buildLC()
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
 				bdlc.loot_council[k] = true
-				SendAddonMessage(bdlc.message_prefix, "addToLC><"..k, bdlc.sendTo, GetUnitName("player",true),true);
+				bdlc:sendAction("addToLC");
 			end
 		end
 		
 		-- People who are added via rank
 		for k, v in pairs (autocouncil) do
-			SendAddonMessage(bdlc.message_prefix, "addToLC><"..k, bdlc.sendTo, GetUnitName("player",true));
+			bdlc:sendAction("addToLC", k);
 		end
 		
 		-- Quick notes
-		SendAddonMessage(bdlc.message_prefix, "wipeQN", bdlc.sendTo, GetUnitName("player",true));
+		bdlc:sendAction("wipeQN");
 		for k, v in pairs(bdlc_config.custom_qn) do
-			SendAddonMessage(bdlc.message_prefix, "customQN><"..k, bdlc.sendTo, GetUnitName("player",true));
+			bdlc:sendAction("customQN", k);
 		end
 	end
 end

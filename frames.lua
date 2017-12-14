@@ -1,4 +1,6 @@
 local bdlc, l, f = select(2, ...):unpack()
+local libc = LibStub:GetLibrary("LibCompress")
+
 f.rolls = {}
 f.tabs = {}
 f.entries = {}
@@ -194,7 +196,7 @@ local function awardLoot(...)
 			end
 		end
 	end
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
 	bdlc:debug("Award "..itemLink.." to "..name)
 	
 	for slot = 1, GetNumLootItems() do
@@ -238,19 +240,19 @@ end
 --	Create all the necessary frames now, use them forever. 
 -------------------------------------------------------
 bdlc.font_small = CreateFont("BDLC_FONT_SMALL")
-bdlc.font_small:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 12)
+bdlc.font_small:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 12)
 bdlc.font_small:SetShadowColor(0, 0, 0)
 bdlc.font_small:SetShadowOffset(1, -1)
 bdlc.font = CreateFont("BDLC_FONT")
-bdlc.font:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 13)
+bdlc.font:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 13)
 bdlc.font:SetShadowColor(0, 0, 0)
 bdlc.font:SetShadowOffset(1, -1)
 bdlc.font_large = CreateFont("BDLC_FONT_LARGE")
-bdlc.font_large:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14)
+bdlc.font_large:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14)
 bdlc.font_large:SetShadowColor(0, 0, 0)
 bdlc.font_large:SetShadowOffset(1, -1)
 bdlc.normal_text = CreateFont("bdlc_button")
-bdlc.normal_text:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 13)
+bdlc.normal_text:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 13)
 bdlc.normal_text:SetTextColor(1,1,1,1)
 bdlc.normal_text:SetShadowColor(0, 0, 0)
 bdlc.normal_text:SetShadowOffset(1, -1)
@@ -482,7 +484,7 @@ for i = 1, 10 do
 	bdlc:skinBackdrop(roll.item.icon, 0,0,0,.8);
 	
 	roll.item.icon.wfsock = roll.item.icon:CreateFontString(nil, "ARTWORK")
-	roll.item.icon.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	roll.item.icon.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
 	roll.item.icon.wfsock:SetText("")
 	roll.item.icon.wfsock:SetTextColor(0.7,0.7,0.7)
 	roll.item.icon.wfsock:SetPoint("CENTER", roll.item.icon, "CENTER", 0, 0)
@@ -516,12 +518,12 @@ for i = 1, 10 do
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
 	
 	roll.buttons.submit = function(wantLevel)
-		local itemLink = bdlc.itemUID_Map[roll.itemUID]
+		local itemLink = libc:Decompress(itemUID)
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		
 		determineScope()
 
-		SendAddonMessage(bdlc.message_prefix, "addUserWant><"..roll.itemUID.."><"..bdlc.local_player.."><"..wantLevel.."><"..itemLink1.."><"..itemLink2, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);
 		
 		local notes = roll.notes
 		if (string.len(roll.qn) > 0) then
@@ -533,7 +535,7 @@ for i = 1, 10 do
 			end
 		end
 		if (string.len(notes) > 0) then
-			SendAddonMessage(bdlc.message_prefix, "addUserNotes><"..roll.itemUID.."><"..bdlc.local_player.."><"..notes, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("addUserNotes", roll.itemUID, bdlc.local_player, notes);
 		end
 
 		roll.itemUID = 0
@@ -633,7 +635,7 @@ for i = 1, 10 do
 	roll.buttons.pass:SetText(l["framePass"])
 	bdlc:skinButton(roll.buttons.pass,false,"red")
 	roll.buttons.pass:SetScript("OnClick", function()
-		SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..roll.itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("removeUserConsidering", roll.itemUID, bdlc.local_player);
 		roll.itemUID = 0
 		roll.active = false
 		roll.notes = ""
@@ -711,7 +713,7 @@ for i = 1, 10 do
 	tab.icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -2, 2)
 	
 	tab.wfsock = tab:CreateFontString(nil, "ARTWORK")
-	tab.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	tab.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
 	tab.wfsock:SetText("")
 	tab.wfsock:SetTextColor(0.7,0.7,0.7)
 	tab.wfsock:SetPoint("CENTER", tab, "CENTER", 0, 0)
@@ -816,7 +818,7 @@ for i = 1, 10 do
 	bdlc:skinBackdrop(vote_table.item.icon, 0,0,0,.8);
 	
 	vote_table.item.wfsock = vote_table.item.icon:CreateFontString(nil, "ARTWORK")
-	vote_table.item.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\font.ttf", 14,"OUTLINE")
+	vote_table.item.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
 	vote_table.item.wfsock:SetText("")
 	vote_table.item.wfsock:SetTextColor(0.7,0.7,0.7)
 	vote_table.item.wfsock:SetPoint("CENTER", vote_table.item.icon, "CENTER", 0, 0)
@@ -835,7 +837,7 @@ for i = 1, 10 do
 	vote_table.endSession:SetText(l["frameEndSession"])
 	bdlc:skinButton(vote_table.endSession,false,"red")
 	vote_table.endSession:SetScript("OnClick", function()
-		SendAddonMessage(bdlc.message_prefix, "endSession><"..f.tabs[i].itemUID, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("endSession", f.tabs[i].itemUID);
 		bdlc:endSession(f.tabs[i].itemUID)
 	end)
 	
@@ -951,7 +953,7 @@ for i = 1, 10 do
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
 			bdlc:voteForUser(bdlc.local_player, entry.itemUID, entry.playerName)
-			SendAddonMessage(bdlc.message_prefix, "voteForUser><"..bdlc.local_player.."><"..entry.itemUID.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("voteForUser", bdlc.local_player, entry.itemUID, entry.playerName);
 		end)
 		
 		entry.removeUser = CreateFrame("Button", nil, entry)
@@ -961,7 +963,7 @@ for i = 1, 10 do
 		entry.removeUser:Hide()
 		bdlc:skinButton(entry.removeUser,true,"red")
 		entry.removeUser:SetScript("OnClick", function()
-			SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..entry.itemUID.."><"..entry.playerName, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("removeUserConsidering", entry.itemUID, entry.playerName);
 			bdlc:removeUserConsidering(entry.itemUID, entry.playerName)
 		end)
 		

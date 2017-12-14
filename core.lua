@@ -1,4 +1,6 @@
 local bdlc, l, f = select(2, ...):unpack()
+local libc = LibStub:GetLibrary("LibCompress")
+
 local demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
 	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
@@ -11,12 +13,11 @@ local demo_samples = {
 function bdlc:startSession(itemLink,num)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
-	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue, wf_tf  = string.split(":", itemString)
+	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 	
 	if (GetItemInfo(itemLink)) then
-	
 		local itemUID = bdlc:GetItemUID(itemLink)
-		bdlc.itemUID_Map[itemUID] = itemLink
+
 		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
 		if (not num) then num = bdlc.item_drops[itemLink] or 1 end
 	
@@ -34,9 +35,8 @@ function bdlc:startSession(itemLink,num)
 				bdlc.loot_considering[itemUID] = {}
 				bdlc.loot_want[itemUID] = {}
 			end
-			C_Timer.After(1, function()
-				bdlc:createRollWindow(itemUID,num)
-			end)
+
+			bdlc:createRollWindow(itemUID,num)
 		end
 	else
 		bdlc.items_waiting[itemID] = {itemLink,num}
@@ -47,9 +47,10 @@ end
 -- EndSession
 ----------------------------------------
 function bdlc:endSession(itemUID)
-	if not itemUID then return end
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
+
 	if not itemLink then return end
+
 	bdlc.item_drops[itemLink] = nil
 	local currententry = nil
 	local currenttab = nil
@@ -137,10 +138,10 @@ function bdlc:startMockSession()
 
 	for k, v in pairs(bdlc.item_drops) do
 		local itemUID = bdlc:GetItemUID(k)
-		SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("startSession", k, v);
 		
 		for k2, v2 in pairs(demo_players) do
-			SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemUID.."><"..k2.."><"..v2[1].."><"..v2[2].."><"..v2[3], bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("addUserConsidering", itemUID, k2, v2[1], v2[2], v2[3]);
 		end
 	end
 end
@@ -149,12 +150,10 @@ end
 -- CreateVoteWindow
 ----------------------------------------
 function bdlc:createVoteWindow(itemUID,num)
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	
 	f.voteFrame:Show()
-	
-	local itemID, gem, bonus1, bonus2 = string.split(":", itemUID)
 	
 	local currenttab = nil
 	for i = 1, #f.tabs do
@@ -216,11 +215,9 @@ end
 -- CreateRollWindow
 ----------------------------------------
 function bdlc:createRollWindow(itemUID,num)
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	rollFrame:Show()
-	
-	local itemID, gem, bonus1, bonus2 = string.split(":", itemUID)
 	
 	local currentroll = nil
 	for i = 1, #f.rolls do
@@ -290,12 +287,12 @@ function bdlc:createRollWindow(itemUID,num)
 	
 	if bdlc:itemEquippable(itemUID) then
 		bdlc:debug("turns out I can use this, doing nothing.")
-		SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemUID.."><"..bdlc.local_player.."><"..player_itemlvl.."><"..guildRank, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("addUserConsidering", itemUID, bdlc.local_player, player_itemlvl, guildRank);
 	else
 		bdlc:debug("I guess I can't use this, autopassing")
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		
-		--SendAddonMessage(bdlc.message_prefix, "removeUserConsidering><"..itemUID.."><"..bdlc.local_player, bdlc.sendTo, UnitName("player"));
+		--bdlc:sendAction("removeUserConsidering", itemUID, bdlc.local_player);
 		local currentroll = nil
 		for i = 1, #f.rolls do
 			if (f.rolls[i].itemUID == itemUID) then
@@ -338,7 +335,7 @@ end
 ----------------------------------------
 function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerClass)
 	playerName = FetchUnitName(playerName) or playerName
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
 	
 	if not bdlc:inLC() then return false end
 	if (not bdlc.loot_sessions[itemUID]) then return false end
@@ -424,7 +421,7 @@ end
 function bdlc:removeUserConsidering(itemUID, playerName)
 	if (not bdlc:inLC()) then return end
 
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
 	if (not itemLink) then return end
 	playerName = FetchUnitName(playerName) or playerName
 	
@@ -462,7 +459,9 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 		bdlc.loot_want[itemUID][playerName] = nil
 	end
 	if (UnitExists(playerName)) then
-		SendAddonMessage(bdlc.message_prefix, "removeUserRoll><"..itemUID, "WHISPER", playerName);
+		bdlc.overrideChannel = "WHISPER"
+		bdlc.overrideSender = playerName
+		bdlc:sendAction("removeUserRoll", itemUID);
 	end
 	
 	bdlc:repositionFrames()
@@ -474,7 +473,8 @@ end
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	playerName = FetchUnitName(playerName)
 	
-	local itemLink = bdlc.itemUID_Map[itemUID]
+	local itemLink = libc:Decompress(itemUID)
+
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return false end
 	if (not bdlc:inLC()) then return false end
 	
@@ -564,9 +564,6 @@ end
 -- UpdateUserItem
 ----------------------------------------
 function bdlc:updateUserItem(itemLink, frame)
-	--local itemLink = bdlc.itemUID_Map[itemUID]
-
-	--local link = select(2, GetItemInfo(itemLink))
 	local texture = select(10, GetItemInfo(itemLink))
 	frame:Show()
 	frame.tex:SetTexture(texture)
@@ -579,7 +576,6 @@ function bdlc:updateUserItem(itemLink, frame)
 	frame:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
-	
 end
 
 function bdlc:wipeQN(note)
@@ -650,8 +646,8 @@ function bdlc:takeWhisperEntry(msg, sender)
 					print(itemLink1)
 					print(itemLink2)
 					
-					SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..itemLink.."><"..raidIndex.."><"..ilvl.."><"..guildRank, bdlc.sendTo, UnitName("player"));
-					SendAddonMessage(bdlc.message_prefix, "addUserWant><"..itemID.."><"..raidIndex.."><1><"..itemLink1.."><"..itemLink2, bdlc.sendTo, UnitName("player"));
+					bdlc:sendAction("addUserConsidering", itemLink, raidIndex, ilvl, guildRank);
+					bdlc:sendAction("addUserWant", itemID, raidIndex, 1, itemLink1, itemLink2);
 					
 					ClearInspectPlayer()
 				end
@@ -701,7 +697,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 	end
 	
 end
-
+--[[
 function bdlc:fetchSessions()
 	if (IsMasterLooter()) then
 		if (GetNumLootItems() > 0) then
@@ -713,19 +709,19 @@ function bdlc:fetchSessions()
 				
 				if (not num) then return end
 				
-				SendAddonMessage(bdlc.message_prefix, "startSession><"..itemLink.."><"..num, bdlc.sendTo, UnitName("player"));
+				bdlc:sendAction("startSession", itemLink, num);
 				
 				for playerName, data in pairs(bdlc.loot_want[itemUID]) do
-					SendAddonMessage(bdlc.message_prefix, "addUserWant><"..data[1].."><"..data[2].."><"..data[3].."><"..data[4].."><"..data[5], bdlc.sendTo, UnitName("player"));
+					bdlc:sendAction("addUserWant", data[1], data[2], data[3], data[4], data[5]);
 				end
 				
 				for playerName, data in pairs(bdlc.loot_considering[itemUID]) do
-					SendAddonMessage(bdlc.message_prefix, "addUserConsidering><"..data[1].."><"..data[2].."><"..data[3].."><"..data[4], bdlc.sendTo, UnitName("player"));
+					bdlc:sendAction("addUserConsidering", data[1], data[2], data[3], data[4]);
 				end
 			end
 		end
 	end
-end
+end--]]
 
 function bdlc:parseLoot()
 	f.voteFrame.enchanters:Show()
@@ -743,7 +739,7 @@ function bdlc:parseLoot()
 		end
 	end
 	for k, v in pairs(bdlc.item_drops) do
-		SendAddonMessage(bdlc.message_prefix, "startSession><"..k.."><"..v, bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("startSession", k, v);
 	end
 end
 
@@ -812,6 +808,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		--------------------------------------------------------------------------------
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
 		RegisterAddonMessagePrefix(bdlc.message_prefix);
+
 		bdlc_config = bdlc_config or bdlc.defaults
 		bdlc_history = bdlc_history or {}
 		for k, v in pairs(bdlc.defaults) do
@@ -849,7 +846,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				
 				if (IsMasterLooter() or IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
 					bdlc:debug(newmsg)
-					SendAddonMessage(bdlc.message_prefix, "startSession><"..newmsg.."><"..1, bdlc.sendTo, UnitName("player"));
+					bdlc:sendAction("startSession", newmsg, 1);
 				else
 					print("bdlc: You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
@@ -880,12 +877,12 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	
 	if (event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED") then
 		determineScope()
-		SendAddonMessage(bdlc.message_prefix, "fetchLC", bdlc.sendTo, UnitName("player"));
+		bdlc:sendAction("fetchLC");
 	end
 	
 	if (event == "ENCOUNTER_END") then
 		determineScope()
-		bdlc:buildLC() -- don't think we need to do this here
+		bdlc:buildLC()
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
 		determineScope()
@@ -894,13 +891,6 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
 		bdlc:parseLoot()
-	end
-	
-	
-	if (event == "CHAT_MSG_WHISPER") then
-		if (IsMasterLooter()) then
-			--bdlc:takeWhisperEntry(arg1, arg2)
-		end
 	end
 	
 	-- Auto close sessions when loot is awarded from the body
@@ -918,7 +908,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		if (bdlc.item_drops[itemLink] == 0) then
 			local itemUID = bdlc:GetItemUID(itemLink)
 		
-			SendAddonMessage(bdlc.message_prefix, "endSession><"..itemUID, bdlc.sendTo, UnitName("player"));
+			bdlc:sendAction("endSession", itemUID);
 			bdlc:endSession(itemUID)
 		end
 		
@@ -930,8 +920,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "CHAT_MSG_ADDON" and arg1 == bdlc.message_prefix) then
 		local method, partyMaster, raidMaster = GetLootMethod()
 		if (method == "master" or not IsInRaid()) then
-			local param = bdlc:split(arg2, "><")
-			local action = param[0] or arg2;
+			local data = libc:Decompress(arg2)
+			if (string.len(arg2) == 255) then
+				print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer").
+				print(data)
+			end
+
+			local param = bdlc:split(data, "\t")
+			local action = param[0] or data;
 			
 			-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
 			for p = 0, #param do
@@ -944,12 +940,12 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				end
 			end
 			
-			bdlc:debug(arg2)
+			bdlc:debug(data)
 			
 			if (action == "startSession") then
 				bdlc:startSession(param[1],param[2])
 			elseif (action == "fetchLC") then
-				bdlc:fetchLC()
+				bdlc:buildLC()
 			elseif (action == "sendVersion") then
 				bdlc:sendVersion(param[1], param[2])
 			elseif (action == "versionCheck") then
@@ -985,7 +981,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addLootHistory") then
 				bdlc:addLootHistory(param[1], param[2], param[3])
 			else
-				print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..arg2);
+				print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
 			end
 		end
 	end

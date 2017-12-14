@@ -1,4 +1,5 @@
 local bdlc, l, f = select(2, ...):unpack()
+local libc = LibStub:GetLibrary("LibCompress")
 
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
@@ -6,11 +7,27 @@ tts:SetOwner(UIParent, 'ANCHOR_NONE')
 function bdlc:sendAction(action, ...)
 	local parameters = {...}
 	local paramString = ""
+	local delim = "\t"
+
+	print("predata:", ...)
 	for k, v in pairs(parameters) do
-		paramString = paramString.."><"..v
+		paramString = paramString..delim..v
 	end
-	
-	SendAddonMessage(bdlc.message_prefix, action.."><"..paramString, bdlc.sendTo, UnitName("player"));
+	print("postdata:",paramString)
+
+	-- allow the user to whisper through this function
+	local channel = bdlc.sendTo
+	local sender = UnitName("player")
+	if (bdlc.overrideChannel) then channel = bdlc.overrideChannel end
+	if (bdlc.overrideSender) then sender = bdlc.overrideSender end
+
+	-- compress then send
+	local data = libc:Compress(action..delim..paramString)
+	SendAddonMessage(bdlc.message_prefix, data, channel, sender;
+
+	-- unset these, probably shouldn't have them in the first place but it works
+	bdlc.overrideChannel = nil
+	bdlc.overrideSender = nil
 end
 
 local function searchArray(arr, val)
@@ -151,8 +168,8 @@ function bdlc:GetItemValue(itemLink)
 	tts:SetOwner(UIParent, 'ANCHOR_NONE')
 	tts:SetHyperlink(itemLink)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
-	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue, wf_tf  = string.split(":", itemString)
-	
+
+	local gem1 = select(4, string.split(":", itemString))
 	local ilvl = select(4, GetItemInfo(itemLink))
 	local wf_tf = false;
 	local socket = tonumber(gem1) and true or false
@@ -180,7 +197,9 @@ function bdlc:GetItemValue(itemLink)
 end
 
 function bdlc:GetItemUID(itemLink)
-	local itemString = string.match(itemLink, "item[%-?%d:]+")
+	return libc:Compress(itemLink)
+
+	--[[local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return false end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue, wf_tf  = string.split(":", itemString)
 	
@@ -189,7 +208,7 @@ function bdlc:GetItemUID(itemLink)
 	bonusID2 = string.len(bonusID2) > 0 and bonusID2 or 0
 	upgradeValue = string.len(upgradeValue) > 0 and upgradeValue or 0
 	
-	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue
+	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue--]]
 end
 
 function bdlc:SmartSearch(str,ss)
@@ -329,18 +348,6 @@ end
 
 function IsRaidLeader()
 	return UnitLeadsAnyGroup("player")
-	--[[local rl = nil
-	local num = GetNumGroupMembers()
-	local player = UnitName("player")
-	for i = 1, num do
-		local rank = select(2, GetRaidRosterInfo(i))
-		local name = select(1, GetRaidRosterInfo(i))
-		if (rank == 2 and name == player) then
-			rl = true
-			break
-		end
-	end
-	return rl--]]
 end
 
 function bdlc:returnEntry(itemUID, playerName)
@@ -351,7 +358,6 @@ function bdlc:returnEntry(itemUID, playerName)
 	for i = 1, #f.tabs do
 		if (f.tabs[i].itemUID and f.tabs[i].itemUID == itemUID) then
 			tab = i
-			
 			break
 		end
 	end

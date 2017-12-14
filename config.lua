@@ -85,9 +85,9 @@ end
 
 local media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
-	font = "Interface\\Addons\\BigDumbLootCouncil\\font.ttf",
-	arrowup = "Interface\\Addons\\BigDumbLootCouncil\\arrowup.blp",
-	arrowdown = "Interface\\Addons\\BigDumbLootCouncil\\arrowdown.blp",
+	font = "Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf",
+	arrowup = "Interface\\Addons\\BigDumbLootCouncil\\media\\arrowup.blp",
+	arrowdown = "Interface\\Addons\\BigDumbLootCouncil\\media\\arrowdown.blp",
 	border = {.06, .08, .09, 1},
 	backdrop = {.11,.15,.18, 1},
 	red = {.62,.17,.18,1},

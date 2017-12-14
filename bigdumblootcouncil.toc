@@ -1,12 +1,21 @@
-## Interface: 72000
+## Interface: 73000
 ## Title: |cffA02C2FBig|r Dumb Loot Council
 ## Version: @project-version@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: bdlc_config, bdlc_history
 
+# Init
 init.lua
 localization.lua
+
+# Libs
+\libs\LibStub.lua
+\libs\LibCompress.lua
+#\libs\ChatThrottleLib.lua
+#\libs\AceComm-3.0.lua
+
+# core
 functions.lua
 versions.lua
 loot_council.lua
