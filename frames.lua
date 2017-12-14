@@ -218,7 +218,7 @@ local function awardLoot(...)
 				--local wantInfo = bdlc.wantTable[want]
 				--print(wantInfo)
 
-				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..playerName)
+				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name)
 				
 				--[[local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
 				

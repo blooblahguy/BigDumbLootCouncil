@@ -669,6 +669,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName)
 	playerName = FetchUnitName(playerName)
 	
 	if (not bdlc.loot_sessions[itemUID]) then return false end
+	if (not bdlc.loot_council_votes[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 	
 	-- make sure theres an array to represent this user in the raid
@@ -884,7 +885,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	
 	if (event == "ENCOUNTER_END") then
 		determineScope()
-		--bdlc:buildLC() -- don't think we need to do this here
+		bdlc:buildLC() -- don't think we need to do this here
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
 		determineScope()
