@@ -106,7 +106,7 @@ end
 
 -- send compressed addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
-	local delim = "<>"
+	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
 	-- allow the user to whisper through this function

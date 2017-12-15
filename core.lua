@@ -370,7 +370,7 @@ end
 ----------------------------------------
 -- AddUserWant
 ----------------------------------------
-function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
+function bdlc:addUserWant(itemUID, playerName, want)
 	local playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemMap[itemUID]
@@ -899,7 +899,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print(data)
 			end
 
-			local param = bdlc:split(data, "<>")
+			local param = bdlc:split(data, "><")
 			local action = param[0] or data;
 			
 			-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
