@@ -436,7 +436,11 @@ for i = 1, 10 do
 		local itemLink = bdlc.itemMap[roll.itemUID]
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
-		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2);
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel);
+		bdlc:sendAction("addUserItem", roll.itemUID, bdlc.local_player, itemLink1);
+		if (itemLink2) then
+			bdlc:sendAction("addUserItem", roll.itemUID, bdlc.local_player, itemLink2);
+		end
 		
 		local notes = roll.notes
 		if (string.len(roll.qn) > 0) then
@@ -739,9 +743,10 @@ for i = 1, 10 do
 	
 	-- num votes left
 	vote_table.numvotes = vote_table:CreateFontString(nil, "OVERLAY")
-	vote_table.numvotes:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14)
+	vote_table.numvotes:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 13)
 	vote_table.numvotes:SetText("Votes Remaining: ")
 	vote_table.numvotes:SetJustifyH("RIGHT")
+	vote_table.numvotes:SetTextColor(.8,.8,.8)
 	vote_table.numvotes:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 40)
 
 	vote_table.endSession = CreateFrame("Button", nil, vote_table)

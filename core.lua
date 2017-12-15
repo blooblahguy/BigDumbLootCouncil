@@ -85,7 +85,7 @@ function bdlc:startMockSession()
 	bdlc.item_drops = {}
 	for i = 1, 4 do
 		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(3,5)
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(2,4)
 		table.remove(itemslots,index)
 	end
 
@@ -324,6 +324,49 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc:repositionFrames()
 end
 
+function bdlc:addUserItem(itemUID, playerName, itemLink)
+	local currententry = bdlc:getEntry(itemUID, playerName)
+	if (not currententry) then return end
+	
+	if (GetItemInfo(itemLink)) then
+		if (not currententry.gear1:IsShown()) then
+			-- item slot 1
+			local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink)
+			currententry.gear1:Show()
+			currententry.gear1.tex:SetTexture(texture1)
+			currententry.gear1:SetScript("OnEnter", function()
+				ShowUIPanel(GameTooltip)
+				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+				GameTooltip:SetHyperlink(link1)
+				GameTooltip:Show()
+			end)
+			currententry.gear1:SetScript("OnLeave", function()
+				GameTooltip:Hide()
+			end)
+
+		else
+			-- item slot 2
+			local itemName, link2, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture2, vendorPrice = GetItemInfo(itemLink)
+			currententry.gear2:Show()
+			currententry.gear2.tex:SetTexture(texture2)
+			currententry.gear2:SetScript("OnEnter", function()
+				ShowUIPanel(GameTooltip)
+				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+				GameTooltip:SetHyperlink(link2)
+				GameTooltip:Show()
+			end)
+			currententry.gear2:SetScript("OnLeave", function()
+				GameTooltip:Hide()
+			end)
+		end
+	else
+		local itemID = select(2, strsplit(":", itemLink))
+		if (itemID) then
+			bdlc.player_items_waiting[itemID] = {itemLink, currententry.gear1}
+		end
+	end
+end
+
 ----------------------------------------
 -- AddUserWant
 ----------------------------------------
@@ -346,47 +389,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2)
 	currententry.interest:SetTextColor(unpack(wantColor));
 	currententry.voteUser:Show()
 	currententry.wantLevel = want
-	
-	if (itemLink1 ~= 0 and GetItemInfo(itemLink1)) then
-		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink1)
-		currententry.gear1:Show()
-		currententry.gear1.tex:SetTexture(texture1)
-		currententry.gear1:SetScript("OnEnter", function()
-			ShowUIPanel(GameTooltip)
-			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-			GameTooltip:SetHyperlink(link1)
-			GameTooltip:Show()
-		end)
-		currententry.gear1:SetScript("OnLeave", function()
-			GameTooltip:Hide()
-		end)
-	else
-		local itemID = select(2, strsplit(":", itemLink1))
-		if (itemID) then
-			bdlc.player_items_waiting[itemID] = {itemLink1, currententry.gear1}
-		end
-	end
-	if (itemLink2 ~= 0) then
-		if (GetItemInfo(itemLink2)) then
-			local itemName, link2, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture2, vendorPrice = GetItemInfo(itemLink2)
-			currententry.gear2:Show()
-			currententry.gear2.tex:SetTexture(texture2)
-			currententry.gear2:SetScript("OnEnter", function()
-				ShowUIPanel(GameTooltip)
-				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-				GameTooltip:SetHyperlink(link2)
-				GameTooltip:Show()
-			end)
-			currententry.gear2:SetScript("OnLeave", function()
-				GameTooltip:Hide()
-			end)
-		else
-			local itemID = select(2, strsplit(":", itemLink2))
-			if (itemID) then
-				bdlc.player_items_waiting[itemID] = {itemLink2, currententry.gear2}
-			end
-		end
-	end
 	
 	bdlc:repositionFrames()
 end
@@ -514,6 +516,8 @@ end
 --]]
 ----------------------------------------
 function bdlc:updateVotesRemaining(itemUID, councilName)
+	if (councilName ~= FetchUnitName('player')) then return end
+
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = bdlc.item_drops[itemLink]
 	local currentvotes = 0;
@@ -531,7 +535,28 @@ function bdlc:updateVotesRemaining(itemUID, councilName)
 			color = "|cffFF0000"
 		end
 	end
-	tab.table.numvotes:SetText("Votes Remaining: "..color..(numvotes-currentvotes).."|r")
+	tab.table.numvotes:SetText("Your Votes Remaining: "..color..(numvotes-currentvotes).."|r")
+	for t = 1, #f.tabs do
+		if (f.tabs[t].itemUID == itemUID) then
+			local tab = f.tabs[t]
+
+			for e = 1, #f.entries[t] do
+				local entry = f.entries[t][e]
+				if (numvotes-currentvotes == 0) then
+					if (entry.voteUser:GetText() == l['frameVote']) then
+						bdlc:skinButton(entry.voteUser,true,'dark')
+					else
+						bdlc:skinButton(entry.voteUser,true,'blue')
+					end
+				else
+					bdlc:skinButton(entry.voteUser,true,'blue')
+				end
+			end
+
+			break
+		end
+	end
+
 end
 function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if (not bdlc.loot_sessions[itemUID]) then return false end
@@ -561,10 +586,10 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 		
 	if (hasVotedForPlayer) then
 		votes[councilName][hasVotedForPlayer] = false
-		local entry = bdlc:getEntry(itemUID, playerName)
-		entry.voteUser:SetText(l["frameVote"])
-
-		bdlc:updateVotesRemaining(itemUID, councilName)
+		if (FetchUnitName('player') == councilName) then
+			local entry = bdlc:getEntry(itemUID, playerName)
+			entry.voteUser:SetText(l["frameVote"])
+		end
 	else
 		-- disable rolling votes? limit at # here
 		local currentvotes = 0;
@@ -586,19 +611,21 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 			votes[councilName] = new -- reset the tables keys
 
 			-- remove the least recent vote
-			local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
-			entry.voteUser:SetText(l["frameVote"])
-			
+			if (FetchUnitName('player') == councilName) then
+				local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
+				entry.voteUser:SetText(l["frameVote"])
+			end
 			votes[councilName][numvotes+1] = nil 
 
 			votes[councilName][1] = playerName -- prepend the vote
-
-			local entry = bdlc:getEntry(itemUID, playerName)
-			entry.voteUser:SetText(l["frameVoted"])
+			if (FetchUnitName('player') == councilName) then
+				local entry = bdlc:getEntry(itemUID, playerName)
+				entry.voteUser:SetText(l["frameVoted"])
+			end
 		end
 
-		bdlc:updateVotesRemaining(itemUID, councilName)
 	end
+	bdlc:updateVotesRemaining(itemUID, councilName)
 
 	-- now loop through and tally
 	for itemUID, un in pairs(bdlc.loot_sessions) do
@@ -867,8 +894,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		local method, partyMaster, raidMaster = GetLootMethod()
 		if (method == "master" or not IsInRaid()) then
 			local data = arg2
-			if (string.len(data) == 255) then
-				print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer").
+			if (string.len(data) >= 255) then
+				print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer")
 				print(data)
 			end
 
@@ -905,7 +932,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addUserConsidering") then
 				bdlc:addUserConsidering(param[1], param[2], param[3], param[4], param[5])
 			elseif (action == "addUserWant") then
-				bdlc:addUserWant(param[1], param[2], param[3], param[4], param[5])
+				bdlc:addUserWant(param[1], param[2], param[3])
 			elseif (action == "addUserNotes") then
 				bdlc:addUserNotes(param[1], param[2], param[3])
 			elseif (action == "fetchSessions") then
@@ -924,6 +951,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				bdlc:customQN(param[1])
 			elseif (action == "wipeQN") then
 				bdlc:wipeQN()
+			elseif (action == "addUserItem") then
+				bdlc:addUserItem(param[1], param[2], param[3])
 			elseif (action == "addLootHistory") then
 				bdlc:addLootHistory(param[1], param[2], param[3])
 			else
