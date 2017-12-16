@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-local libc = LibStub:GetLibrary("LibCompress")
 
 f.rolls = {}
 f.tabs = {}
