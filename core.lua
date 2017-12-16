@@ -327,42 +327,35 @@ end
 function bdlc:addUserItem(itemUID, playerName, itemLink)
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
-	
-	if (GetItemInfo(itemLink)) then
-		if (not currententry.gear1:IsShown()) then
-			-- item slot 1
-			local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink)
-			currententry.gear1:Show()
-			currententry.gear1.tex:SetTexture(texture1)
-			currententry.gear1:SetScript("OnEnter", function()
-				ShowUIPanel(GameTooltip)
-				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-				GameTooltip:SetHyperlink(link1)
-				GameTooltip:Show()
-			end)
-			currententry.gear1:SetScript("OnLeave", function()
-				GameTooltip:Hide()
-			end)
 
-		else
-			-- item slot 2
-			local itemName, link2, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture2, vendorPrice = GetItemInfo(itemLink)
-			currententry.gear2:Show()
-			currententry.gear2.tex:SetTexture(texture2)
-			currententry.gear2:SetScript("OnEnter", function()
-				ShowUIPanel(GameTooltip)
-				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-				GameTooltip:SetHyperlink(link2)
-				GameTooltip:Show()
-			end)
-			currententry.gear2:SetScript("OnLeave", function()
-				GameTooltip:Hide()
-			end)
-		end
+	local itemID = select(2, strsplit(":", itemLink))
+	local frame
+	
+	if (not currententry.gear1:IsShown()) then
+		-- item slot 1
+		frame = currententry.gear1
+	else
+		-- item slot 2
+		frame = currententry.gear2
+	end
+
+	if (GetItemInfo(itemLink)) then
+		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink)
+		frame:Show()
+		frame.tex:SetTexture(texture1)
+		frame:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(link1)
+			GameTooltip:Show()
+		end)
+		frame:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
 	else
 		local itemID = select(2, strsplit(":", itemLink))
 		if (itemID) then
-			bdlc.player_items_waiting[itemID] = {itemLink, currententry.gear1}
+			bdlc.player_items_waiting[itemID] = {itemLink, frame}
 		end
 	end
 end
