@@ -547,13 +547,14 @@ for i = 1, 10 do
 	bdlc:skinButton(roll.buttons.pass,false,"red")
 	roll.buttons.pass:SetScript("OnClick", function()
 		bdlc:sendAction("removeUserConsidering", roll.itemUID, bdlc.local_player);
-		roll.itemUID = 0
+		bdlc:removeUserRoll(roll.itemUID, bdlc.local_player)
+		--[[roll.itemUID = 0
 		roll.active = false
 		roll.notes = ""
 		roll.buttons.notes:SetText("")
 		roll.buttons.notes:Hide()
 		roll:Hide()
-		bdlc:repositionFrames()
+		bdlc:repositionFrames()--]]
 	end)
 	
 	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons)
