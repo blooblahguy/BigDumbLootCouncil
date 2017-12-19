@@ -296,7 +296,7 @@ end
 
 -- a hash value is fine here, because we don't actually care whats in the UID, we just need something shorter than a full link
 function bdlc:GetItemUID(itemLink)
-	local text = string.match(itemLink, "item[%-?%d:]+")
+	--[[local text = string.match(itemLink, "item[%-?%d:]+")
 	local counter = 1
 	local len = string.len(text)
 	for i = 1, len, 3 do 
@@ -304,7 +304,7 @@ function bdlc:GetItemUID(itemLink)
 		(string.byte(text,i)*16776193) +
 		((string.byte(text,i+1) or (len-i+256))*8372226) +
 		((string.byte(text,i+2) or (len-i+256))*3932164)
-	end
+	end--]]
 	--return math.fmod(counter, 4294967291)
 
 	--print((counter, 4294967291))
