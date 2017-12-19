@@ -293,17 +293,13 @@ end
 ----------------------------------------
 function bdlc:removeUserConsidering(itemUID, playerName)
 	local playerName = FetchUnitName(playerName)
-	if (playerName == FetchUnitName('player')) then
-		bdlc:removeUserRoll(itemUID, playerName)
-	end
 
 	if (not bdlc:inLC()) then return end
-	local itemLink = bdlc.itemMap[itemUID]
-	
-	bdlc:debug("removed "..playerName.." considering "..itemLink)
-	
 	-- reset frame
 	bdlc:endEntry(itemUID, playerName)
+
+	-- stop if no session exists
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 
 	-- reset votes
 	if (bdlc.loot_council_votes[itemUID]) then
@@ -319,9 +315,16 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	end
 
 	-- tell that user to kill their roll window
+	bdlc.overrideChannel = "WHISPER"
+	bdlc.overrideSemder = playerName
 	bdlc:sendAction("removeUserRoll", itemUID, playerName);
 	
 	bdlc:repositionFrames()
+
+	--local itemLink = bdlc.itemMap[itemUID]
+	--if (not itemLink) then return end
+	
+	bdlc:debug("removed "..playerName.." considering "..itemUID)
 end
 
 function bdlc:addUserItem(itemUID, playerName, itemLink)
@@ -643,40 +646,8 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 		end
 	end
 
-	--votes[itemUID][councilName][playerName] = nil
-	--local votesleft = numvotes;
-
-	--[[
-	-- make sure theres an array to represent this user in the raid
-	bdlc.loot_council_votes[itemUID][playerName] = bdlc.loot_council_votes[itemUID][playerName] or {}
-
-	-- first, unset this council member on any other user for this item
-	for playerName, v in pairs(bdlc.loot_council_votes[itemUID]) do
-		v[councilName] = nil
-	end
-	
-	-- now add this council member as a vote for this raid member and this itemLink
-	bdlc.loot_council_votes[itemUID][playerName][councilName] = true
-	
-	-- now lets loop through open sessions, and their entries while tallying votes for said item>entry
-	for itemUID, un in pairs(bdlc.loot_sessions) do
-		for i = 1, #f.tabs do
-			if (f.tabs[i].itemUID == itemUID) then
-				for e = 1, #f.entries[i] do
-					local currententry = f.entries[i][e]
-					if (currententry.itemUID and bdlc.loot_council_votes[itemUID][currententry.playerName]) then
-						local votes = 0
-						for k, v in pairs(bdlc.loot_council_votes[itemUID][currententry.playerName]) do
-							votes = votes + 1
-						end
-						currententry.votes.text:SetText(votes)
-					end
-				end
-			end
-		end
-	end--]]
-	
 end
+
 --[[
 function bdlc:fetchSessions()
 	if (IsMasterLooter()) then

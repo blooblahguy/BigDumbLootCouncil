@@ -305,12 +305,19 @@ function bdlc:GetItemUID(itemLink)
 		((string.byte(text,i+1) or (len-i+256))*8372226) +
 		((string.byte(text,i+2) or (len-i+256))*3932164)
 	end
-	return math.fmod(counter, 4294967291)
+	--return math.fmod(counter, 4294967291)
+
+	print((counter, 4294967291))
+
+	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+
+	print(uniqueID)
+
 
 	--return libc:Compress(itemLink)
 
 	--local itemString = string.match(itemLink, "item[%-?%d:]+")
-	--local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+	--
 
 	--[[local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return false end
