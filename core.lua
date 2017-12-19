@@ -257,6 +257,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 
 	local currententry = bdlc:getEntry(itemUID, playerName)
+	if (not currententry) then return end
 	currententry.wantLevel = 15
 	currententry.notes = ""
 	
@@ -375,6 +376,7 @@ function bdlc:addUserWant(itemUID, playerName, want)
 	if (not bdlc:inLC()) then return false end
 	
 	local currententry = bdlc:getEntry(itemUID, playerName)
+	if (not currententry) then return end
 	
 	local wantText = bdlc.wantTable[want][1]
 	local wantColor = bdlc.wantTable[want][2]
@@ -397,10 +399,12 @@ function bdlc:addUserNotes(itemUID, playerName, notes)
 
 	bdlc:debug("Add "..playerName.." notes")
 
-	if (not bdlc.loot_sessions[itemUID]) then return false end
-	if not bdlc:inLC() then return false end
+	if (not bdlc.loot_sessions[itemUID]) then return end
+	if not bdlc:inLC() then return end
 	
-	local currententry = bdlc:getEntry(itemUID,playerName)
+	local currententry = bdlc:getEntry(itemUID, playerName)
+
+	if (not currententry) then return end
 	
 	currententry.notes = notes
 	currententry.user_notes:Show()
