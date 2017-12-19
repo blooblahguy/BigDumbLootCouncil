@@ -819,15 +819,15 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:Config()
 	end
 	
-	if (event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED") then
+	if (event == "PLAYER_ENTERING_WORLD") then
 		bdlc:sendAction("fetchLC");
 	end
 	
 	if (event == "ENCOUNTER_END") then
-		bdlc:buildLC()
+		bdlc:sendAction("fetchLC");
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		bdlc:buildLC()
+		bdlc:sendAction("fetchLC");
 	end
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
