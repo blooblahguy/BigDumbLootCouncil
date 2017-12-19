@@ -891,6 +891,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				bdlc:sendVersion(param[1], param[2])
 			elseif (action == "versionCheck") then
 				bdlc:versionCheck(param[1])
+			elseif (action == "clearLC") then
+				bdlc:clearLC()
 			elseif (action == "addToLC") then
 				bdlc:addToLC(param[1])
 			elseif (action == "removeFromLC") then

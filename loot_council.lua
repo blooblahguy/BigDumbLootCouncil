@@ -4,6 +4,11 @@ local bdlc, l, f = select(2, ...):unpack()
 -- Get/add/remove
 ----------------------------------------
 
+function bdlc:clearLC()
+	bdlc.enchanters = {}
+	bdlc.loot_council = {}
+end
+
 function bdlc:addToLC(playerName)
 	playerName = FetchUnitName(playerName)
 	bdlc.loot_council[playerName] = true
@@ -81,23 +86,18 @@ end
 -- BuildLC
 ----------------------------------------
 function bdlc:buildLC()
-	bdlc.enchanters = {}
-	bdlc.loot_council = {}
-	local min_rank
-	if (bdlc_config.lc_rank) then
-		min_rank = strsplit(": ",bdlc_config.lc_rank)
-	else
-		min_rank = bdlc_config.council_min_rank
-	end
-	min_rank = tonumber(min_rank)
+	local playerName = FetchUnitName('player')
 
-	if (IsMasterLooter() or not IsInRaid()) then
-		playerName = FetchUnitName('player')
-		bdlc.loot_council[playerName] = true
-		bdlc:debug(playerName..' added to lc')
-		
-		bdlc:sendAction("findEnchanters");
+	if (IsMasterLooter() or not IsInRaid()) then		
 		bdlc:debug("building LC")
+
+		local min_rank
+		if (bdlc_config.lc_rank) then
+			min_rank = strsplit(": ",bdlc_config.lc_rank)
+		else
+			min_rank = bdlc_config.council_min_rank
+		end
+		min_rank = tonumber(min_rank)
 		
 		local autocouncil = {}
 		local numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
@@ -123,6 +123,12 @@ function bdlc:buildLC()
 			end
 		end
 
+
+		-- now send actions all at once to reduce gap
+		bdlc:sendAction("clearLC");
+		bdlc:sendAction("wipeQN");
+		bdlc:sendAction("findEnchanters");
+
 		-- People who are in your custom loot council
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
@@ -137,7 +143,6 @@ function bdlc:buildLC()
 		end
 		
 		-- Quick notes
-		bdlc:sendAction("wipeQN");
 		for k, v in pairs(bdlc_config.custom_qn) do
 			bdlc:sendAction("customQN", k);
 		end
