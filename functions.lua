@@ -4,6 +4,8 @@ local bdlc, l, f = select(2, ...):unpack()
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
+local AceComm = LibStub:GetLibrary("AceComm-3.0")
+
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
@@ -105,6 +107,7 @@ function FetchUnitName(name)
 end
 
 -- send compressed addon message with paramaters automatically deliminated
+
 function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
@@ -119,7 +122,7 @@ function bdlc:sendAction(action, ...)
 	-- compress then send
 	local data = action..delim..paramString
 	--print(bdlc.message_prefix, data, channel, sender)
-	ChatThrottleLib:SendAddonMessage("NORMAL", bdlc.message_prefix, data, channel, sender)
+	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, "NORMAL")
 	--SendAddonMessage();
 	--print("sendAction", bdlc.message_prefix, data, channel, sender)
 

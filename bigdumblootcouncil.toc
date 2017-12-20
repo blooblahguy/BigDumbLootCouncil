@@ -10,10 +10,11 @@ init.lua
 localization.lua
 
 # Libs
-#\libs\LibStub.lua
-#\libs\LibCompress.lua
-\libs\ChatThrottleLib.lua
-#\libs\AceComm-3.0.lua
+#libs\LibCompress.lua
+libs\LibStub.lua
+libs\ChatThrottleLib.lua
+libs\CallbackHandler-1.0.lua
+libs\AceComm-3.0.lua
 
 # core
 functions.lua

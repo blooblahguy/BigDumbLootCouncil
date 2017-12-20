@@ -1,5 +1,7 @@
 local bdlc, l, f = select(2, ...):unpack()
 
+local AceComm = LibStub:GetLibrary("AceComm-3.0")
+
 local demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
 	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
@@ -713,6 +715,81 @@ end
 	end
 end--]]
 
+function bdlc:mainCallback(data)
+	print(data)
+
+	local method, partyMaster, raidMaster = GetLootMethod()
+	if (method == "master" or not IsInRaid()) then
+		--local data = arg2
+		if (string.len(data) >= 255) then
+			--print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer")
+			--print(data)
+		end
+
+		local param = bdlc:split(data, "><")
+		local action = param[0] or data;
+		
+		-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
+		for p = 0, #param do
+			local test = param[p]
+			if (tonumber(test)) then
+				param[p] = tonumber(param[p])
+			end
+			if (test == nil or test == "") then
+				param[p] = ""
+			end
+		end
+		
+		bdlc:debug(data)
+		
+		if (action == "startSession") then
+			bdlc:startSession(param[1],param[2])
+		elseif (action == "fetchLC") then
+			bdlc:buildLC()
+		elseif (action == "sendVersion") then
+			bdlc:sendVersion(param[1], param[2])
+		elseif (action == "versionCheck") then
+			bdlc:versionCheck(param[1])
+		elseif (action == "clearLC") then
+			bdlc:clearLC()
+		elseif (action == "addToLC") then
+			bdlc:addToLC(param[1])
+		elseif (action == "removeFromLC") then
+			bdlc:removeFromLC(param[1])
+		elseif (action == "removeUserConsidering") then
+			bdlc:removeUserConsidering(param[1], param[2])
+		elseif (action == "addUserConsidering") then
+			bdlc:addUserConsidering(param[1], param[2], param[3], param[4], param[5])
+		elseif (action == "addUserWant") then
+			bdlc:addUserWant(param[1], param[2], param[3])
+		elseif (action == "addUserNotes") then
+			bdlc:addUserNotes(param[1], param[2], param[3])
+		elseif (action == "fetchSessions") then
+			bdlc:fetchSessions()
+		elseif (action == "voteForUser") then
+			bdlc:voteForUser(param[1], param[2], param[3])
+		elseif (action == "removeUserRoll") then
+			bdlc:removeUserRoll(param[1], param[2])
+		elseif (action == "addEnchanter") then
+			bdlc:addEnchanter(param[1], param[2])
+		elseif (action == "findEnchanters") then
+			bdlc:findEnchanters()
+		elseif (action == "endSession") then
+			bdlc:endSession(param[1])
+		elseif (action == "customQN") then
+			bdlc:customQN(param[1])
+		elseif (action == "wipeQN") then
+			bdlc:wipeQN()
+		elseif (action == "addUserItem") then
+			bdlc:addUserItem(param[1], param[2], param[3])
+		elseif (action == "addLootHistory") then
+			bdlc:addLootHistory(param[1], param[2], param[3])
+		else
+			--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+		end
+	end
+end
+
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
 		bdlc:UnregisterEvent("ADDON_LOADED")
@@ -744,7 +821,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- Load configuration or set bdlc.defaults
 		--------------------------------------------------------------------------------
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
-		RegisterAddonMessagePrefix(bdlc.message_prefix);
+		--RegisterAddonMessagePrefix(bdlc.message_prefix);
+		AceComm:RegisterComm(bdlc.message_prefix, function(prefix, text, channel, sender) bdlc:mainCallback(text) end)
 
 		bdlc_config = bdlc_config or bdlc.defaults
 		bdlc_history = bdlc_history or {}
@@ -848,80 +926,6 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		
 		bdlc.award_slot = {}
 		bdlc.loot_slots[arg1] = nil
-	end
-	
-	
-	if (event == "CHAT_MSG_ADDON" and arg1 == bdlc.message_prefix) then
-		local method, partyMaster, raidMaster = GetLootMethod()
-		if (method == "master" or not IsInRaid()) then
-			local data = arg2
-			if (string.len(data) >= 255) then
-				print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer")
-				print(data)
-			end
-
-			local param = bdlc:split(data, "><")
-			local action = param[0] or data;
-			
-			-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
-			for p = 0, #param do
-				local test = param[p]
-				if (tonumber(test)) then
-					param[p] = tonumber(param[p])
-				end
-				if (test == nil or test == "") then
-					param[p] = ""
-				end
-			end
-			
-			bdlc:debug(data)
-			
-			if (action == "startSession") then
-				bdlc:startSession(param[1],param[2])
-			elseif (action == "fetchLC") then
-				bdlc:buildLC()
-			elseif (action == "sendVersion") then
-				bdlc:sendVersion(param[1], param[2])
-			elseif (action == "versionCheck") then
-				bdlc:versionCheck(param[1])
-			elseif (action == "clearLC") then
-				bdlc:clearLC()
-			elseif (action == "addToLC") then
-				bdlc:addToLC(param[1])
-			elseif (action == "removeFromLC") then
-				bdlc:removeFromLC(param[1])
-			elseif (action == "removeUserConsidering") then
-				bdlc:removeUserConsidering(param[1], param[2])
-			elseif (action == "addUserConsidering") then
-				bdlc:addUserConsidering(param[1], param[2], param[3], param[4], param[5])
-			elseif (action == "addUserWant") then
-				bdlc:addUserWant(param[1], param[2], param[3])
-			elseif (action == "addUserNotes") then
-				bdlc:addUserNotes(param[1], param[2], param[3])
-			elseif (action == "fetchSessions") then
-				bdlc:fetchSessions()
-			elseif (action == "voteForUser") then
-				bdlc:voteForUser(param[1], param[2], param[3])
-			elseif (action == "removeUserRoll") then
-				bdlc:removeUserRoll(param[1], param[2])
-			elseif (action == "addEnchanter") then
-				bdlc:addEnchanter(param[1], param[2])
-			elseif (action == "findEnchanters") then
-				bdlc:findEnchanters()
-			elseif (action == "endSession") then
-				bdlc:endSession(param[1])
-			elseif (action == "customQN") then
-				bdlc:customQN(param[1])
-			elseif (action == "wipeQN") then
-				bdlc:wipeQN()
-			elseif (action == "addUserItem") then
-				bdlc:addUserItem(param[1], param[2], param[3])
-			elseif (action == "addLootHistory") then
-				bdlc:addLootHistory(param[1], param[2], param[3])
-			else
-				--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
-			end
-		end
 	end
 		
 	
