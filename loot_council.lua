@@ -4,9 +4,19 @@ local bdlc, l, f = select(2, ...):unpack()
 -- Get/add/remove
 ----------------------------------------
 
-function bdlc:clearLC()
+function bdlc:clearMLSettings()
 	bdlc.enchanters = {}
 	bdlc.loot_council = {}
+	bdlc.master_looter_qn = {}
+end
+
+function bdlc:wipeQN(note)
+end
+function bdlc:customQN(...)
+	local notes = {...}
+	for k, v in pairs(notes) do
+		bdlc.master_looter_qn[v] = true
+	end
 end
 
 function bdlc:addToLC(playerName)
@@ -126,8 +136,7 @@ function bdlc:buildLC()
 
 		-- now send actions all at once to reduce gap
 		--bdlc:sendAction("clearLC");
-		bdlc:clearLC();
-		bdlc:sendAction("wipeQN");
+		bdlc:sendAction("clearMLSettings");
 		bdlc:sendAction("findEnchanters");
 
 		-- People who are in your custom loot council

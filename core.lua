@@ -428,16 +428,6 @@ function bdlc:updateUserItem(itemLink, frame)
 	end)
 end
 
-function bdlc:wipeQN(note)
-	bdlc.master_looter_qn = {}
-end
-function bdlc:customQN(...)
-	local notes = {...}
-	for k, v in pairs(notes) do
-		bdlc.master_looter_qn[v] = true
-	end
-end
-
 ----------------------------------------
 -- TakeWhisperEntry
 ----------------------------------------
@@ -929,7 +919,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (action == "addLootHistory") then
 				bdlc:addLootHistory(param[1], param[2], param[3])
 			else
-				print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+				--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
 			end
 		end
 	end
