@@ -146,8 +146,8 @@ function bdlc:buildLC()
 		-- Quick notes
 		local notes = {}
 		for k, v in pairs(bdlc_config.custom_qn) do
-			table.insert(notes, k)
+			--table.insert(notes, k)
+			bdlc:sendAction("customQN", unpack(k));
 		end
-		bdlc:sendAction("customQN", unpack(notes));
 	end
 end
