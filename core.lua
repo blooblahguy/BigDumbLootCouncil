@@ -716,7 +716,7 @@ end
 end--]]
 
 function bdlc:mainCallback(data)
-	print(data)
+	--print(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
 	if (method == "master" or not IsInRaid()) then
