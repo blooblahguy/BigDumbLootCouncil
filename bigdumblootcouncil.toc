@@ -12,7 +12,7 @@ localization.lua
 # Libs
 #\libs\LibStub.lua
 #\libs\LibCompress.lua
-#\libs\ChatThrottleLib.lua
+\libs\ChatThrottleLib.lua
 #\libs\AceComm-3.0.lua
 
 # core

@@ -431,8 +431,11 @@ end
 function bdlc:wipeQN(note)
 	bdlc.master_looter_qn = {}
 end
-function bdlc:customQN(note)
-	bdlc.master_looter_qn[note] = true
+function bdlc:customQN(...)
+	local notes = {...}
+	for k, v in pairs(notes) do
+		bdlc.master_looter_qn[v] = true
+	end
 end
 
 ----------------------------------------
