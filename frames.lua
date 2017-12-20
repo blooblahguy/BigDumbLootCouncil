@@ -104,7 +104,7 @@ local function awardLoot(name, dropdown, itemUID, enchanter)
 
 	if (not itemUID) then
 		for t = 1, #f.tabs do
-			if (f.tabs[t].active) then
+			if (f.tabs[t].selected) then
 				itemUID = f.tabs[t].itemUID
 				break
 			end
