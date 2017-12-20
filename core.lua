@@ -330,46 +330,18 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc:debug("removed "..playerName.." considering "..itemUID)
 end
 
+--[[
 function bdlc:addUserItem(itemUID, playerName, itemLink)
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
 
-	local itemID = select(2, strsplit(":", itemLink))
-	local frame
 	
-	if (not currententry.gear1:IsShown()) then
-		-- item slot 1
-		frame = currententry.gear1
-	else
-		-- item slot 2
-		frame = currententry.gear2
-	end
-
-	if (GetItemInfo(itemLink)) then
-		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink)
-		frame:Show()
-		frame.tex:SetTexture(texture1)
-		frame:SetScript("OnEnter", function()
-			ShowUIPanel(GameTooltip)
-			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-			GameTooltip:SetHyperlink(link1)
-			GameTooltip:Show()
-		end)
-		frame:SetScript("OnLeave", function()
-			GameTooltip:Hide()
-		end)
-	else
-		local itemID = select(2, strsplit(":", itemLink))
-		if (itemID) then
-			bdlc.player_items_waiting[itemID] = {itemLink, frame}
-		end
-	end
-end
+end--]]
 
 ----------------------------------------
 -- AddUserWant
 ----------------------------------------
-function bdlc:addUserWant(itemUID, playerName, want)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes)
 	local playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemMap[itemUID]
@@ -377,6 +349,7 @@ function bdlc:addUserWant(itemUID, playerName, want)
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
 	if (not bdlc:inLC()) then return false end
 	
+	-- actual want text
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
 	
@@ -389,13 +362,63 @@ function bdlc:addUserWant(itemUID, playerName, want)
 	currententry.interest:SetTextColor(unpack(wantColor));
 	currententry.voteUser:Show()
 	currententry.wantLevel = want
+
+	-- player items
+	if (GetItemInfo(itemLink1)) then
+		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink1)
+		currententry.gear1:Show()
+		currententry.gear1.tex:SetTexture(texture1)
+		currententry.gear1:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(link1)
+			GameTooltip:Show()
+		end)
+		currententry.gear1:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	else
+		local itemID = select(2, strsplit(":", itemLink1))
+		if (itemID) then
+			bdlc.player_items_waiting[itemID] = {itemLink1, currententry.gear1}
+		end
+	end
+
+	if (GetItemInfo(itemLink2)) then
+		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink2)
+		currententry.gear2:Show()
+		currententry.gear2.tex:SetTexture(texture1)
+		currententry.gear2:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(link1)
+			GameTooltip:Show()
+		end)
+		currententry.gear2:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	else
+		local itemID = select(2, strsplit(":", itemLink2))
+		if (itemID) then
+			bdlc.player_items_waiting[itemID] = {itemLink2, currententry.gear2}
+		end
+	end
 	
 	bdlc:repositionFrames()
+
+	-- notes
+	bdlc:debug("Add "..playerName.." notes")
+
+	if (notes and string.len(notes) > 0) then
+		currententry.notes = notes
+		currententry.user_notes:Show()
+	end
 end
 
 ----------------------------------------
 -- AddUserNotes
 ----------------------------------------
+--[[
 function bdlc:addUserNotes(itemUID, playerName, notes)
 	local playerName = FetchUnitName(playerName)
 
@@ -410,7 +433,7 @@ function bdlc:addUserNotes(itemUID, playerName, notes)
 	
 	currententry.notes = notes
 	currententry.user_notes:Show()
-end
+end--]]
 
 ----------------------------------------
 -- UpdateUserItem
@@ -716,19 +739,16 @@ end
 end--]]
 
 function bdlc:mainCallback(data)
-	--print(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
 	if (method == "master" or not IsInRaid()) then
-		--local data = arg2
-		if (string.len(data) >= 255) then
-			--print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer")
-			--print(data)
-		end
 
-		local param = bdlc:split(data, "><")
-		local action = param[0] or data;
+		--print(data)
 		
+		local param = bdlc:split(data,"><")
+		local action = param[0] or data
+		if (param[0]) then param[0] = nil end
+
 		-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
 		for p = 0, #param do
 			local test = param[p]
@@ -739,54 +759,53 @@ function bdlc:mainCallback(data)
 				param[p] = ""
 			end
 		end
-		
-		bdlc:debug(data)
-		
-		if (action == "startSession") then
-			bdlc:startSession(param[1],param[2])
-		elseif (action == "fetchLC") then
-			bdlc:buildLC()
-		elseif (action == "sendVersion") then
-			bdlc:sendVersion(param[1], param[2])
-		elseif (action == "versionCheck") then
-			bdlc:versionCheck(param[1])
-		elseif (action == "clearLC") then
-			bdlc:clearLC()
-		elseif (action == "addToLC") then
-			bdlc:addToLC(param[1])
-		elseif (action == "removeFromLC") then
-			bdlc:removeFromLC(param[1])
-		elseif (action == "removeUserConsidering") then
-			bdlc:removeUserConsidering(param[1], param[2])
-		elseif (action == "addUserConsidering") then
-			bdlc:addUserConsidering(param[1], param[2], param[3], param[4], param[5])
-		elseif (action == "addUserWant") then
-			bdlc:addUserWant(param[1], param[2], param[3])
-		elseif (action == "addUserNotes") then
-			bdlc:addUserNotes(param[1], param[2], param[3])
-		elseif (action == "fetchSessions") then
-			bdlc:fetchSessions()
-		elseif (action == "voteForUser") then
-			bdlc:voteForUser(param[1], param[2], param[3])
-		elseif (action == "removeUserRoll") then
-			bdlc:removeUserRoll(param[1], param[2])
-		elseif (action == "addEnchanter") then
-			bdlc:addEnchanter(param[1], param[2])
-		elseif (action == "findEnchanters") then
-			bdlc:findEnchanters()
-		elseif (action == "endSession") then
-			bdlc:endSession(param[1])
-		elseif (action == "customQN") then
-			bdlc:customQN(param[1])
-		elseif (action == "wipeQN") then
-			bdlc:wipeQN()
-		elseif (action == "addUserItem") then
-			bdlc:addUserItem(param[1], param[2], param[3])
-		elseif (action == "addLootHistory") then
-			bdlc:addLootHistory(param[1], param[2], param[3])
-		else
-			--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
-		end
+
+		--[[if (bdlc[action]) then
+			print(action, unpack(param))
+			--bdlc[action](unpack(param))
+		else--]]
+			if (action == "startSession") then
+				bdlc:startSession(unpack(param))
+			elseif (action == "buildLC") then
+				bdlc:buildLC()
+			elseif (action == "sendVersion") then
+				bdlc:sendVersion(unpack(param))
+			elseif (action == "versionCheck") then
+				bdlc:versionCheck(unpack(param))
+			elseif (action == "clearMLSettings") then
+				bdlc:clearMLSettings()
+			elseif (action == "addToLC") then
+				bdlc:addToLC(unpack(param))
+			elseif (action == "removeFromLC") then
+				bdlc:removeFromLC(unpack(param))
+			elseif (action == "removeUserConsidering") then
+				bdlc:removeUserConsidering(unpack(param))
+			elseif (action == "addUserConsidering") then
+				bdlc:addUserConsidering(unpack(param))
+			elseif (action == "addUserWant") then
+				bdlc:addUserWant(unpack(param))
+			elseif (action == "addUserNotes") then
+				bdlc:addUserNotes(unpack(param))
+			elseif (action == "fetchSessions") then
+				bdlc:fetchSessions()
+			elseif (action == "voteForUser") then
+				bdlc:voteForUser(unpack(param))
+			elseif (action == "removeUserRoll") then
+				bdlc:removeUserRoll(unpack(param))
+			elseif (action == "addEnchanter") then
+				bdlc:addEnchanter(unpack(param))
+			elseif (action == "findEnchanters") then
+				bdlc:findEnchanters()
+			elseif (action == "endSession") then
+				bdlc:endSession(unpack(param))
+			elseif (action == "customQN") then
+				bdlc:customQN(unpack(param))
+			elseif (action == "addLootHistory") then
+				bdlc:addLootHistory(unpack(param))
+			else
+				--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+			end
+		--end
 	end
 end
 
@@ -891,14 +910,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	end
 	
 	if (event == "PLAYER_ENTERING_WORLD") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	
 	if (event == "ENCOUNTER_END") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then

@@ -10,8 +10,6 @@ function bdlc:clearMLSettings()
 	bdlc.master_looter_qn = {}
 end
 
-function bdlc:wipeQN(note)
-end
 function bdlc:customQN(...)
 	local notes = {...}
 	for k, v in pairs(notes) do
@@ -19,10 +17,17 @@ function bdlc:customQN(...)
 	end
 end
 
-function bdlc:addToLC(playerName)
-	playerName = FetchUnitName(playerName)
-	bdlc.loot_council[playerName] = true
-	bdlc:debug(playerName..' added to lc')
+function bdlc:addToLC(...)
+	print(...)
+	for k, v in pairs(...) do
+		local playerName = FetchUnitName(v)
+
+		bdlc.loot_council[playerName] = true
+		bdlc:debug(playerName..' added to lc')
+		print(playerName)
+	end
+	
+	
 end
 
 function bdlc:removeFromLC(playerName)
@@ -129,7 +134,7 @@ function bdlc:buildLC()
 			if (online and rankIndex <= min_rank) then
 				local name = FetchUnitName(fullName)
 				autocouncil[name] = true
-				bdlc.loot_council[name] = true
+				bdlc.loot_council[name] = name
 			end
 		end
 
@@ -139,24 +144,35 @@ function bdlc:buildLC()
 		bdlc:sendAction("clearMLSettings");
 		bdlc:sendAction("findEnchanters");
 
+		bdlc.loot_council[playerName] = playerName
+
 		-- People who are in your custom loot council
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
-				bdlc.loot_council[k] = true
-				bdlc:sendAction("addToLC", k);
+				--table.insert(council, k)
+				bdlc.loot_council[k] = k
+				--bdlc:sendAction("addToLC", k);
 			end
 		end
 		
 		-- People who are added via rank
 		for k, v in pairs (autocouncil) do
-			bdlc:sendAction("addToLC", k);
+			--table.insert(council, k)
+			bdlc.loot_council[k] = k
+			--bdlc:sendAction("addToLC", k);
+		end
+
+		if (#bdlc.loot_council > 0) then
+			bdlc:sendAction("addToLC", unpack(bdlc.loot_council) )
 		end
 		
 		-- Quick notes
-		local notes = {}
+		local quicknotes = {}
 		for k, v in pairs(bdlc_config.custom_qn) do
-			--table.insert(notes, k)
-			bdlc:sendAction("customQN", k);
+			table.insert(quicknotes, k)
+		end
+		if (#quicknotes > 0) then
+			bdlc:sendAction("customQN", unpack(quicknotes));
 		end
 	end
 end

@@ -435,13 +435,7 @@ for i = 1, 10 do
 		local itemLink = bdlc.itemMap[roll.itemUID]
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
-		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel);
-		bdlc:sendAction("addUserItem", roll.itemUID, bdlc.local_player, itemLink1);
-		if (itemLink2) then
-			bdlc:sendAction("addUserItem", roll.itemUID, bdlc.local_player, itemLink2);
-		end
-		
-		local notes = roll.notes
+		local notes = roll.notes or ''
 		if (string.len(roll.qn) > 0) then
 			roll.qn = string.sub(roll.qn, 0, -3)
 			if (string.len(notes) > 0) then
@@ -450,9 +444,8 @@ for i = 1, 10 do
 				notes = roll.qn
 			end
 		end
-		if (string.len(notes) > 0) then
-			bdlc:sendAction("addUserNotes", roll.itemUID, bdlc.local_player, notes);
-		end
+
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2, notes);
 
 		bdlc:endRoll(roll.itemUID)
 
