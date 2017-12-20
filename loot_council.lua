@@ -125,7 +125,8 @@ function bdlc:buildLC()
 
 
 		-- now send actions all at once to reduce gap
-		bdlc:sendAction("clearLC");
+		--bdlc:sendAction("clearLC");
+		bdlc:clearLC();
 		bdlc:sendAction("wipeQN");
 		bdlc:sendAction("findEnchanters");
 

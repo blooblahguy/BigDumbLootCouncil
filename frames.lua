@@ -110,7 +110,7 @@ local function awardLoot(name, dropdown, itemUID, enchanter)
 			end
 		end
 	end
-	local itemLink = bdlc.itemMap(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 	bdlc:debug("Award "..itemLink.." to "..name)
 	
 	for slot = 1, GetNumLootItems() do
@@ -128,7 +128,7 @@ local function awardLoot(name, dropdown, itemUID, enchanter)
 			
 			if (candidate == name or candidate == name.."-"..server) then
 				GiveMasterLoot(bdlc.award_slot, i)
-				local name = UnitName("raid"..i)
+				--local name = UnitName("raid"..i)
 				local datetimestamp = time().."."..GetTime()
 				
 				--local wantInfo = bdlc.wantTable[want]
