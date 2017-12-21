@@ -114,7 +114,9 @@ function bdlc:buildLC()
 		inraid[playerName] = true
 		for i = 1, numRaid do
 			local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
-			inraid[name] = true
+			if (name) then
+				inraid[name] = true
+			end
 		end
 
 		-- add players automatically via guild rank
