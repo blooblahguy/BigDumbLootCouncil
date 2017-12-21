@@ -276,6 +276,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
+
 	currententry.wantLevel = 15
 	currententry.notes = ""
 	
@@ -361,6 +362,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	local playerName = FetchUnitName(playerName)
 	
 	local itemLink = bdlc.itemMap[itemUID]
+
+	print(playerName)
 
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
 	if (not bdlc:inLC()) then return false end
