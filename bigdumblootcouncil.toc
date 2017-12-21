@@ -10,7 +10,6 @@ init.lua
 localization.lua
 
 # Libs
-#libs\LibCompress.lua
 libs\LibStub.lua
 libs\ChatThrottleLib.lua
 libs\CallbackHandler-1.0.lua

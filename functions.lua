@@ -82,7 +82,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 	end
 	
 	if (slotID == 0 and not isRelic) then
-		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer know");
+		bdlc.print("Can't find compare for slot: "..equipSlot..". Let the developer know");
 	end
 	
 	return itemLink1, itemLink2
@@ -91,8 +91,12 @@ end
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
 	local name, server = strsplit("-", name)
-	
-	local name_server = GetUnitName(name, true)
+	local name_server = false
+
+	if (UnitExists(name) and UnitIsConnected(name)) then
+		name_server = GetUnitName(name, true)
+	end
+
 	if (name_server) then
 		name = name_server
 	end
@@ -106,25 +110,22 @@ function FetchUnitName(name)
 	return name.."-"..server
 end
 
--- send compressed addon message with paramaters automatically deliminated
-
+-- send addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
+
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
-	local sender = UnitName("player")
+	local sender = bdlc.overrideSender or UnitName("player")
+	local priority = bdlc.overridePriority or "NORMAL"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
-	if (bdlc.overrideChannel) then channel = bdlc.overrideChannel end
-	if (bdlc.overrideSender) then sender = bdlc.overrideSender end
+	channel = bdlc.overrideChannel or channel
 
-	-- compress then send
+	-- merge then send
 	local data = action..delim..paramString
-	--print(bdlc.message_prefix, data, channel, sender)
-	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, "NORMAL")
-	--SendAddonMessage();
-	--print("sendAction", bdlc.message_prefix, data, channel, sender)
+	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil
@@ -473,16 +474,12 @@ function bdlc:GetRelics(rt)
 	return relic1, relic2
 end
 
-function bdlc:inLC()
-	return bdlc.loot_council[FetchUnitName("player")] or IsMasterLooter() or not IsInRaid()
-end
-
 function IsRaidLeader()
 	return UnitLeadsAnyGroup("player")
 end
 
 function bdlc:debug(msg)
-	if (bdlc.config.debug) then print("|cff3399FFBCLC:|r "..msg) end
+	if (bdlc.config.debug) then bdlc.print(msg) end
 end
 
 function bdlc:skinBackdrop(frame, ...)

@@ -1,17 +1,13 @@
 local bdlc, l, f = select(2, ...):unpack()
 
+function bdlc:inLC()
+	return bdlc.loot_council[FetchUnitName("player")] or IsMasterLooter() or not IsInRaid()
+end
+
 ----------------------------------------
 -- Get/add/remove
 ----------------------------------------
 
-function bdlc:clearMLSettings()
-	bdlc.enchanters = {}
-	bdlc.loot_council = {}
-	bdlc.master_looter_qn = {}
-end
-
-function bdlc:wipeQN(note)
-end
 function bdlc:customQN(...)
 	local notes = {...}
 	for k, v in pairs(notes) do
@@ -19,43 +15,35 @@ function bdlc:customQN(...)
 	end
 end
 
-function bdlc:addToLC(playerName)
-	playerName = FetchUnitName(playerName)
-	bdlc.loot_council[playerName] = true
-	bdlc:debug(playerName..' added to lc')
+function bdlc:addToLC(...)
+	local council = {...}
+	for k, v in pairs(council) do
+		local playerName = FetchUnitName(v)
+
+		bdlc.loot_council[playerName] = true
+		bdlc:debug(playerName..' added to lc')
+	end
 end
 
-function bdlc:removeFromLC(playerName)
-	bdlc.loot_council[playerName] = nil
-	bdlc:debug(playerName..' removed from lc')
-end
-
+-- this will add/remove the player from your custom council. If you're group leader it'll then rebuild the council list and redistribute it to the raid
 function bdlc:addremoveLC(msg, name)
-	if (not name) then print("bdlc: Please provide a name to add to the loot council") return false end
+	if (not name) then bdlc.print("Please provide a name to add to the loot council") return end
 	
+	-- always add them by name-server format
 	local targetname = FetchUnitName(name)
-	if (not targetname) then print("bdlc: Couldn't find any player named "..name..". (they must be in the same group as you) ") return false end
+	if (not targetname) then bdlc.print("Couldn't find any player named "..name..". (they must be in the same group as you) ") return end
 	
-
-	if (msg == "addtolc") then
+	if (msg == "addtolc") then -- add
 		bdlc_config.custom_council[targetname] = true
-		if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
-			bdlc.loot_council[targetname] = true
-			bdlc:sendAction("addToLC", targetname);
-			print("bdlc: Adding "..targetname.." to loot council.")
-			SendChatMessage("bdlc: You've been added to loot council for this raid", "WHISPER", nil, targetname)
-		else
-			print("bdlc: Since you are not group leader or loot master, the player has been added to your own loot council for the next time that you are.")
-		end
-	else
+		bdlc.print("Adding "..targetname.." to loot council.")
+	else -- remove
 		bdlc_config.custom_council[targetname] = nil
-		if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
-			bdlc.loot_council[targetname] = nil
-			bdlc:sendAction("removeFromLC", targetname);
-			print("bdlc: Removing "..targetname.." from loot council.")
-		else
-			print("bdlc: Since you are not group leader or loot master, the player has been removed from your own loot council, not the group's as a whole.")
-		end
+		bdlc.print("Removing "..targetname.." from your loot council.")
+	end
+
+	-- rebuild and redistribute your list if you're LM or leader
+	if (IsMasterLooter() or not IsInRaid()) then
+		bdlc:sendAction("buildLC", targetname);
 	end
 end
 
@@ -98,9 +86,16 @@ end
 function bdlc:buildLC()
 	local playerName = FetchUnitName('player')
 
+	-- clear all the settings since we're rebuilding here
+	bdlc.enchanters = {}
+	bdlc.loot_council = {}
+	bdlc.master_looter_qn = {}
+
+	-- only 1 person needs to make these actions
 	if (IsMasterLooter() or not IsInRaid()) then		
 		bdlc:debug("building LC")
 
+		-- get the saved min_rank
 		local min_rank
 		if (bdlc_config.lc_rank) then
 			min_rank = strsplit(": ",bdlc_config.lc_rank)
@@ -110,53 +105,65 @@ function bdlc:buildLC()
 		min_rank = tonumber(min_rank)
 		
 		local autocouncil = {}
+		local inraid = {}
 		local numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
 		local numRaid = GetNumGroupMembers()
-		if (numRaid == 0) then
-			numRaid = 1
-		end
-		local inraid = {}
-		inraid[playerName] = true
+		if (numRaid == 0) then numRaid = 1 end
 
+		-- generate a list of players who are in the raid
+		inraid[playerName] = true
 		for i = 1, numRaid do
 			local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
-			inraid[name] = true
+			if (name) then
+				inraid[name] = true
+			end
 		end
 
+		-- add players automatically via guild rank
 		for i = 1, numGuildMembers do
 			local fullName, rank, rankIndex, level, class, zone, note, officernote, online, status, classFileName, achievementPoints, achievementRank, isMobile, canSoR, reputation = GetGuildRosterInfo(i)
 
 			if (online and rankIndex <= min_rank) then
 				local name = FetchUnitName(fullName)
+				if (not inraid[name]) then return end
 				autocouncil[name] = true
-				bdlc.loot_council[name] = true
+				bdlc.loot_council[name] = name
 			end
 		end
 
-
 		-- now send actions all at once to reduce gap
-		--bdlc:sendAction("clearLC");
-		bdlc:sendAction("clearMLSettings");
 		bdlc:sendAction("findEnchanters");
 
 		-- People who are in your custom loot council
+		local council = {}
+		bdlc.loot_council[playerName] = playerName
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
+				table.insert(council, k)
 				bdlc.loot_council[k] = true
-				bdlc:sendAction("addToLC", k);
 			end
 		end
 		
 		-- People who are added via rank
 		for k, v in pairs (autocouncil) do
-			bdlc:sendAction("addToLC", k);
+			table.insert(council, k)
+			bdlc.loot_council[k] = true
+		end
+
+		-- send these all at once in 1 string
+		if (#council > 0) then
+			bdlc:sendAction("addToLC", unpack(council) )
 		end
 		
 		-- Quick notes
-		local notes = {}
+		local quicknotes = {}
 		for k, v in pairs(bdlc_config.custom_qn) do
-			--table.insert(notes, k)
-			bdlc:sendAction("customQN", k);
+			table.insert(quicknotes, k)
+		end
+
+		-- send these all at once in 1 string
+		if (#quicknotes > 0) then
+			bdlc:sendAction("customQN", unpack(quicknotes));
 		end
 	end
 end

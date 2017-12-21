@@ -2,12 +2,6 @@ local bdlc, l, f = select(2, ...):unpack()
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
-local demo_samples = {
-	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
-	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
-	names = {"OReilly","Billy","Tìncan","Mango","Ugh","Onebutton","Thor","Deadpool","Atlas","Edgelord","Yeah"}
-}
-
 ----------------------------------------
 -- StartSession
 ----------------------------------------
@@ -29,7 +23,8 @@ function bdlc:startSession(itemLink,num)
 		
 		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
 			bdlc:debug("Starting session for "..itemLink)
-			bdlc.loot_sessions[itemUID] = itemUID
+			bdlc.loot_sessions[itemUID] = itemUID 
+			bdlc.loot_want[itemUID] = {} -- will be used to track loot log and also refresh sessions if someone relogs
 
 			if (bdlc:inLC()) then
 				bdlc.loot_council_votes[itemUID] = {}
@@ -58,6 +53,7 @@ function bdlc:endSession(itemUID)
 	bdlc.item_drops[itemLink] = nil
 	bdlc.loot_sessions[itemUID] = nil
 	bdlc.loot_council_votes[itemUID] = nil
+	bdlc.loot_want[itemUID] = nil
 	
 	bdlc:repositionFrames()
 end
@@ -67,38 +63,58 @@ end
 ----------------------------------------
 function bdlc:startMockSession()
 	bdlc:debug("Starting mock session")
-	
-	
-	local demo_players = {
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+
+	local demo_samples = {
+		classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
+		ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot", "King"},
+		names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Atlas", "Edgelord", "Yeah", "Arranum", "Witts"}
 	}
 	
+	local function rando_name()
+		return demo_samples.names[math.random(#demo_samples.names)]
+	end
+	local function rando_ilvl()
+		return math.random(900, 980)
+	end
+	local function rando_rank()
+		return demo_samples.ranks[math.random(#demo_samples.ranks)]
+	end
+	local function rando_class()
+		return demo_samples.classes[math.random(#demo_samples.classes)]
+	end
+	
+	-- add random people, up to a whole raid worth of fakers
+	local demo_players = {}
+	for i = 5, math.random(6, 30) do
+		demo_players[rando_name()] = {rando_ilvl(), rando_rank(), rando_class()}
+	end
+	
+	-- fake build an LC
 	bdlc:buildLC()
 	local itemslots = {1,2,3,5,8,9,10,11,12,13,14,15}
 	bdlc.item_drops = {}
 	for i = 1, 4 do
 		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(2,4)
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(1,4)
 		table.remove(itemslots,index)
 	end
 
+	-- now lets start fake sessions
 	for k, v in pairs(bdlc.item_drops) do
 		local itemUID = bdlc:GetItemUID(k)
 		bdlc:sendAction("startSession", k, v);
-		
-		for k2, v2 in pairs(demo_players) do
-			bdlc:sendAction("addUserConsidering", itemUID, k2, v2[1], v2[2], v2[3]);
-			bdlc:sendAction("addUserWant", itemUID, k2, 2, 0, 0);
+
+		-- add our demo players in 
+		for name, data in pairs(demo_players) do
+			bdlc:sendAction("addUserConsidering", itemUID, name, unpack(data));
 		end
+
+		-- send a random "want" after 2-5s, something like a real person
+		C_Timer.After(math.random(2, 5), function()
+			for name, data in pairs(demo_players) do
+				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0);
+			end
+		end)
 	end
 end
 
@@ -260,6 +276,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
+
 	currententry.wantLevel = 15
 	currententry.notes = ""
 	
@@ -268,8 +285,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 
 	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName]
-	if (not color) then print(playerName.." not found") return false end
-	name = GetUnitName(name,true) or name
+	name = GetUnitName(name, true) or name
 	
 	currententry:Show()
 	currententry.name:SetText(name)
@@ -321,6 +337,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc.overrideChannel = "WHISPER"
 	bdlc.overrideSemder = playerName
 	bdlc:sendAction("removeUserRoll", itemUID, playerName);
+	bdlc.loot_want[itemUID][playerName] = nil
 	
 	bdlc:repositionFrames()
 
@@ -330,55 +347,30 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc:debug("removed "..playerName.." considering "..itemUID)
 end
 
+--[[
 function bdlc:addUserItem(itemUID, playerName, itemLink)
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
 
-	local itemID = select(2, strsplit(":", itemLink))
-	local frame
 	
-	if (not currententry.gear1:IsShown()) then
-		-- item slot 1
-		frame = currententry.gear1
-	else
-		-- item slot 2
-		frame = currententry.gear2
-	end
-
-	if (GetItemInfo(itemLink)) then
-		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink)
-		frame:Show()
-		frame.tex:SetTexture(texture1)
-		frame:SetScript("OnEnter", function()
-			ShowUIPanel(GameTooltip)
-			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-			GameTooltip:SetHyperlink(link1)
-			GameTooltip:Show()
-		end)
-		frame:SetScript("OnLeave", function()
-			GameTooltip:Hide()
-		end)
-	else
-		local itemID = select(2, strsplit(":", itemLink))
-		if (itemID) then
-			bdlc.player_items_waiting[itemID] = {itemLink, frame}
-		end
-	end
-end
+end--]]
 
 ----------------------------------------
 -- AddUserWant
 ----------------------------------------
-function bdlc:addUserWant(itemUID, playerName, want)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes)
 	local playerName = FetchUnitName(playerName)
-	
+	if (not notes) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
 
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
 	if (not bdlc:inLC()) then return false end
 	
+	-- actual want text
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
+
+	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText = bdlc.wantTable[want][1]
 	local wantColor = bdlc.wantTable[want][2]
@@ -389,13 +381,63 @@ function bdlc:addUserWant(itemUID, playerName, want)
 	currententry.interest:SetTextColor(unpack(wantColor));
 	currententry.voteUser:Show()
 	currententry.wantLevel = want
+
+	-- player items
+	if (GetItemInfo(itemLink1)) then
+		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink1)
+		currententry.gear1:Show()
+		currententry.gear1.tex:SetTexture(texture1)
+		currententry.gear1:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(link1)
+			GameTooltip:Show()
+		end)
+		currententry.gear1:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	else
+		local itemID = select(2, strsplit(":", itemLink1))
+		if (itemID) then
+			bdlc.player_items_waiting[itemID] = {itemLink1, currententry.gear1}
+		end
+	end
+
+	if (GetItemInfo(itemLink2)) then
+		local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture1, vendorPrice = GetItemInfo(itemLink2)
+		currententry.gear2:Show()
+		currententry.gear2.tex:SetTexture(texture1)
+		currententry.gear2:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(link1)
+			GameTooltip:Show()
+		end)
+		currententry.gear2:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	else
+		local itemID = select(2, strsplit(":", itemLink2))
+		if (itemID) then
+			bdlc.player_items_waiting[itemID] = {itemLink2, currententry.gear2}
+		end
+	end
 	
 	bdlc:repositionFrames()
+
+	-- notes
+	bdlc:debug("Add "..playerName.." notes")
+
+	if (notes and string.len(notes) > 0) then
+		currententry.notes = notes
+		currententry.user_notes:Show()
+	end
 end
 
 ----------------------------------------
 -- AddUserNotes
 ----------------------------------------
+--[[
 function bdlc:addUserNotes(itemUID, playerName, notes)
 	local playerName = FetchUnitName(playerName)
 
@@ -410,7 +452,7 @@ function bdlc:addUserNotes(itemUID, playerName, notes)
 	
 	currententry.notes = notes
 	currententry.user_notes:Show()
-end
+end--]]
 
 ----------------------------------------
 -- UpdateUserItem
@@ -693,42 +735,41 @@ function bdlc:parseLoot()
 	end
 end
 
---[[function bdlc:addLootHistory(itemUID, playerName, enchanter)
-	local datetimestamp = time().."."..GetTime()
-	local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][playerName])
+
+-- logging where loot has gone
+function bdlc:addLootHistory(itemUID, playerName, enchanter)
+	local playerName = FetchUnitName(playerName)
+	if not(playerName) then return end
+
+	-- fetch some data
+	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
+	local itemLink = bdlc.itemMap(itemUID)
+
+	-- compile the entry
+	local data = {itemLink, itemUID, playerName, want, itemLink1, itemLink2, notes, time(), enchanter}
 	
+	-- get unqiue index of day/time
 	local today = date("%m/%d/%Y")
+	local hour, minute = GetGameTime()
+	local t = hour..":"..minute
+
+	-- setup our tables
 	bdlc_history[today] = bdlc_history[today] or {}
+	bdlc_history[today][t] = bdlc_history[today][t] or {}
 	
-	if (playerName) then
-		-- log the history
-		local index = #bdlc_history[today] + 1
-		bdlc_history[today][index] = {}
-		local entry = bdlc_history[today][index] 
-		entry.stamp = time()
-		entry.playerName = playerName
-		entry.itemLink = itemLink
-		entry.disenchanter = enchanter
-		entry.want = want
-		entry.itemLink1 = itemLink1
-		entry.itemLink2 = itemLink2
-	end
-end--]]
+	-- log the history
+	table.insert(bdlc_history[today][t], data)
+end
 
 function bdlc:mainCallback(data)
-	--print(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
 	if (method == "master" or not IsInRaid()) then
-		--local data = arg2
-		if (string.len(data) >= 255) then
-			--print("big warning: bdlc send an addon message that was 255 characters, this probably means it was truncated and data was lost. Please send the following to the developer")
-			--print(data)
-		end
-
-		local param = bdlc:split(data, "><")
-		local action = param[0] or data;
 		
+		local param = bdlc:split(data,"><")
+		local action = param[0] or data
+		if (param[0]) then param[0] = nil end
+
 		-- the numbers were made strings by the chat_msg_addon, lets find our numbers and convert them tonumbers
 		for p = 0, #param do
 			local test = param[p]
@@ -739,53 +780,16 @@ function bdlc:mainCallback(data)
 				param[p] = ""
 			end
 		end
-		
-		bdlc:debug(data)
-		
-		if (action == "startSession") then
-			bdlc:startSession(param[1],param[2])
-		elseif (action == "fetchLC") then
-			bdlc:buildLC()
-		elseif (action == "sendVersion") then
-			bdlc:sendVersion(param[1], param[2])
-		elseif (action == "versionCheck") then
-			bdlc:versionCheck(param[1])
-		elseif (action == "clearLC") then
-			--bdlc:clearLC()
-		elseif (action == "addToLC") then
-			bdlc:addToLC(param[1])
-		elseif (action == "removeFromLC") then
-			bdlc:removeFromLC(param[1])
-		elseif (action == "removeUserConsidering") then
-			bdlc:removeUserConsidering(param[1], param[2])
-		elseif (action == "addUserConsidering") then
-			bdlc:addUserConsidering(param[1], param[2], param[3], param[4], param[5])
-		elseif (action == "addUserWant") then
-			bdlc:addUserWant(param[1], param[2], param[3])
-		elseif (action == "addUserNotes") then
-			bdlc:addUserNotes(param[1], param[2], param[3])
-		elseif (action == "fetchSessions") then
-			bdlc:fetchSessions()
-		elseif (action == "voteForUser") then
-			bdlc:voteForUser(param[1], param[2], param[3])
-		elseif (action == "removeUserRoll") then
-			bdlc:removeUserRoll(param[1], param[2])
-		elseif (action == "addEnchanter") then
-			bdlc:addEnchanter(param[1], param[2])
-		elseif (action == "findEnchanters") then
-			bdlc:findEnchanters()
-		elseif (action == "endSession") then
-			bdlc:endSession(param[1])
-		elseif (action == "customQN") then
-			bdlc:customQN(param[1])
-		elseif (action == "wipeQN") then
-			bdlc:wipeQN()
-		elseif (action == "addUserItem") then
-			bdlc:addUserItem(param[1], param[2], param[3])
-		elseif (action == "addLootHistory") then
-			bdlc:addLootHistory(param[1], param[2], param[3])
+
+		-- auto methods have to force a self param
+		if (bdlc[action]) then
+			if (param and unpack(param)) then -- if params arne't blank
+				bdlc[action](self, unpack(param))
+			else
+				bdlc[action](self)
+			end
 		else
-			--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+			bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
 		end
 	end
 end
@@ -842,7 +846,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local param = bdlc:split(origmsg," ")
 			local msg = param[0] or origmsg;
 			if (msg == "" or msg == " ") then
-				print("|cff3399FFBDLC|r Options:")
+				bdlc.print("Options:")
 				print("  /bdlc test - Tests the addon (must be in raid)")
 				print("  /bdlc config - Shows the configuration window")
 				print("  /bdlc show - Shows the vote window (if you're in the LC)")
@@ -863,7 +867,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 					bdlc:debug(newmsg)
 					bdlc:sendAction("startSession", newmsg, 1);
 				else
-					print("bdlc: You must be in the loot council and be either the loot master or the raid leader to do that");
+					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
 			elseif (msg == "addtolc" or msg == "removefromlc") then
 				bdlc:addremoveLC(msg, param[1])
@@ -891,14 +895,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	end
 	
 	if (event == "PLAYER_ENTERING_WORLD") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	
 	if (event == "ENCOUNTER_END") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		bdlc:sendAction("fetchLC");
+		bdlc:sendAction("buildLC");
 	end
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
