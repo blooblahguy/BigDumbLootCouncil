@@ -751,7 +751,7 @@ function bdlc:mainCallback(data)
 		elseif (action == "versionCheck") then
 			bdlc:versionCheck(param[1])
 		elseif (action == "clearLC") then
-			bdlc:clearLC()
+			--bdlc:clearLC()
 		elseif (action == "addToLC") then
 			bdlc:addToLC(param[1])
 		elseif (action == "removeFromLC") then
