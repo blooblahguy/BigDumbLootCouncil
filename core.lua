@@ -1,6 +1,7 @@
 local bdlc, l, f = select(2, ...):unpack()
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
+local LibCompress = LibStub:GetLibrary("LibCompress")
 
 local demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
@@ -760,52 +761,54 @@ function bdlc:mainCallback(data)
 			end
 		end
 
-		--[[if (bdlc[action]) then
-			print(action, unpack(param))
-			--bdlc[action](unpack(param))
-		else--]]
-			if (action == "startSession") then
-				bdlc:startSession(unpack(param))
-			elseif (action == "buildLC") then
-				bdlc:buildLC()
-			elseif (action == "sendVersion") then
-				bdlc:sendVersion(unpack(param))
-			elseif (action == "versionCheck") then
-				bdlc:versionCheck(unpack(param))
-			elseif (action == "clearMLSettings") then
-				bdlc:clearMLSettings()
-			elseif (action == "addToLC") then
-				bdlc:addToLC(unpack(param))
-			elseif (action == "removeFromLC") then
-				bdlc:removeFromLC(unpack(param))
-			elseif (action == "removeUserConsidering") then
-				bdlc:removeUserConsidering(unpack(param))
-			elseif (action == "addUserConsidering") then
-				bdlc:addUserConsidering(unpack(param))
-			elseif (action == "addUserWant") then
-				bdlc:addUserWant(unpack(param))
-			elseif (action == "addUserNotes") then
-				bdlc:addUserNotes(unpack(param))
-			elseif (action == "fetchSessions") then
-				bdlc:fetchSessions()
-			elseif (action == "voteForUser") then
-				bdlc:voteForUser(unpack(param))
-			elseif (action == "removeUserRoll") then
-				bdlc:removeUserRoll(unpack(param))
-			elseif (action == "addEnchanter") then
-				bdlc:addEnchanter(unpack(param))
-			elseif (action == "findEnchanters") then
-				bdlc:findEnchanters()
-			elseif (action == "endSession") then
-				bdlc:endSession(unpack(param))
-			elseif (action == "customQN") then
-				bdlc:customQN(unpack(param))
-			elseif (action == "addLootHistory") then
-				bdlc:addLootHistory(unpack(param))
+		-- manually adding options for now - can probably automate this with unapck
+		if (bdlc[action]) then
+			if (param and #param > 0 and unpack(param)) then -- if params arne't blank
+				bdlc[action](unpack(param))
 			else
-				--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+				bdlc[action]()
 			end
-		--end
+		else
+			print("bdlc can't find any function for "..action.." - this usually means someone is out of date");
+		end
+		--[[if (action == "startSession") then
+			bdlc:startSession(unpack(param))
+		elseif (action == "buildLC") then
+			bdlc:buildLC()
+		elseif (action == "sendVersion") then
+			bdlc:sendVersion(unpack(param))
+		elseif (action == "versionCheck") then
+			bdlc:versionCheck(unpack(param))
+		elseif (action == "clearMLSettings") then
+			bdlc:clearMLSettings()
+		elseif (action == "addToLC") then
+			bdlc:addToLC(unpack(param))
+		elseif (action == "removeUserConsidering") then
+			bdlc:removeUserConsidering(unpack(param))
+		elseif (action == "addUserConsidering") then
+			bdlc:addUserConsidering(unpack(param))
+		elseif (action == "addUserWant") then
+			bdlc:addUserWant(unpack(param))
+		elseif (action == "fetchSessions") then
+			bdlc:fetchSessions()
+		elseif (action == "voteForUser") then
+			bdlc:voteForUser(unpack(param))
+		elseif (action == "removeUserRoll") then
+			bdlc:removeUserRoll(unpack(param))
+		elseif (action == "addEnchanter") then
+			bdlc:addEnchanter(unpack(param))
+		elseif (action == "findEnchanters") then
+			bdlc:findEnchanters()
+		elseif (action == "endSession") then
+			bdlc:endSession(unpack(param))
+		elseif (action == "customQN") then
+			bdlc:customQN(unpack(param))
+		elseif (action == "addLootHistory") then
+			bdlc:addLootHistory(unpack(param))
+		else
+			--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
+		end--]]
+
 	end
 end
 

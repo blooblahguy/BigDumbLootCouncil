@@ -5,6 +5,7 @@ local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameToolti
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
+local LibCompress = LibStub:GetLibrary("LibCompress")
 
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
@@ -123,10 +124,9 @@ function bdlc:sendAction(action, ...)
 
 	-- compress then send
 	local data = action..delim..paramString
-	--print(bdlc.message_prefix, data, channel, sender)
+	print(data)
+	print(LibCompress:Compress(data))
 	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, "NORMAL")
-	--SendAddonMessage();
-	--print("sendAction", bdlc.message_prefix, data, channel, sender)
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil

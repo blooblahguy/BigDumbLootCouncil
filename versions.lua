@@ -21,9 +21,9 @@ function bdlc:checkVersions()
 		noaddon[name] = true
 	end
 
-	print("BDLC: Building version list, waiting 2s for responses");
+	print("BDLC: Building version list, waiting 3s for responses");
 
-	C_Timer.After(2, function()
+	C_Timer.After(3, function()
 		for version, players in pairs(bdlc.versions) do
 			local printString = version..": " 
 			for name, _ in pairs (players) do
