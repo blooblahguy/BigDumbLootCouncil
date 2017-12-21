@@ -116,7 +116,7 @@ function bdlc:sendAction(action, ...)
 
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
-	local sender = or bdlc.overrideSender UnitName("player")
+	local sender = bdlc.overrideSender or UnitName("player")
 	local priority = bdlc.overridePriority or "Normal"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
 	channel = bdlc.overrideChannel or channel
