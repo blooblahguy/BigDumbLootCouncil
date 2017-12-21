@@ -762,9 +762,13 @@ function bdlc:mainCallback(data)
 
 		-- manually adding options for now - can probably automate this with unapck
 		if (bdlc[action]) then
-			if (param and #param > 0 and unpack(param)) then -- if params arne't blank
+			print(param)
+			print(unpack(param))
+			if (param and unpack(param)) then -- if params arne't blank
 				bdlc[action](unpack(param))
+				print("sending", action, unpack(param))
 			else
+				print("sending", action, "blank")
 				bdlc[action]()
 			end
 		else
