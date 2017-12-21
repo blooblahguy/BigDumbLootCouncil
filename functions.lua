@@ -5,7 +5,6 @@ local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameToolti
 tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
-local LibCompress = LibStub:GetLibrary("LibCompress")
 
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
@@ -113,8 +112,6 @@ function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
-	print(action, ...)
-
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
 	local sender = UnitName("player")
@@ -124,8 +121,6 @@ function bdlc:sendAction(action, ...)
 
 	-- compress then send
 	local data = action..delim..paramString
-	print(data)
-	print(LibCompress:Compress(data))
 	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, "NORMAL")
 
 	-- unset these, probably shouldn't have them in the first place but it works
