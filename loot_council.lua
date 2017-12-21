@@ -27,18 +27,18 @@ end
 
 -- this will add/remove the player from your custom council. If you're group leader it'll then rebuild the council list and redistribute it to the raid
 function bdlc:addremoveLC(msg, name)
-	if (not name) then print("bdlc: Please provide a name to add to the loot council") return end
+	if (not name) then bdlc.print("Please provide a name to add to the loot council") return end
 	
 	-- always add them by name-server format
 	local targetname = FetchUnitName(name)
-	if (not targetname) then print("bdlc: Couldn't find any player named "..name..". (they must be in the same group as you) ") return end
+	if (not targetname) then bdlc.print("Couldn't find any player named "..name..". (they must be in the same group as you) ") return end
 	
 	if (msg == "addtolc") then -- add
 		bdlc_config.custom_council[targetname] = true
-		print("bdlc: Adding "..targetname.." to loot council.")
+		bdlc.print("Adding "..targetname.." to loot council.")
 	else -- remove
 		bdlc_config.custom_council[targetname] = nil
-		print("bdlc: Removing "..targetname.." from your loot council.")
+		bdlc.print("Removing "..targetname.." from your loot council.")
 	end
 
 	-- rebuild and redistribute your list if you're LM or leader
@@ -149,8 +149,6 @@ function bdlc:buildLC()
 		end
 
 		-- send these all at once in 1 string
-		print(unpack(council))
-		print(#council)
 		if (#council > 0) then
 			bdlc:sendAction("addToLC", unpack(council) )
 		end

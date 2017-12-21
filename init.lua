@@ -17,11 +17,18 @@ bdlc.player_realm = GetRealmName()
 bdlc.local_player = UnitName("player").."-"..bdlc.player_realm
 
 bdlc.message_prefix = "BDLC";
+bdlc.colorName = "|cff3399FFBDLC|r: "
+function bdlc.print(msg)
+	print(bdlc.colorName..msg)
+end
 bdlc.item_drops = {}
 bdlc.enchanters = {}
 bdlc.award_slot = nil
+
 bdlc.loot_slots = {}
 bdlc.loot_sessions = {}
+
+bdlc.loot_want = {}
 
 bdlc.loot_council = {}
 bdlc.loot_council_votes = {}

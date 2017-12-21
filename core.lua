@@ -23,7 +23,8 @@ function bdlc:startSession(itemLink,num)
 		
 		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
 			bdlc:debug("Starting session for "..itemLink)
-			bdlc.loot_sessions[itemUID] = itemUID
+			bdlc.loot_sessions[itemUID] = itemUID 
+			bdlc.loot_want[itemUID] = itemUID -- will be used to track loot log and also refresh sessions if someone relogs
 
 			if (bdlc:inLC()) then
 				bdlc.loot_council_votes[itemUID] = {}
@@ -52,6 +53,7 @@ function bdlc:endSession(itemUID)
 	bdlc.item_drops[itemLink] = nil
 	bdlc.loot_sessions[itemUID] = nil
 	bdlc.loot_council_votes[itemUID] = nil
+	bdlc.loot_want[itemUID] = nil
 	
 	bdlc:repositionFrames()
 end
@@ -271,6 +273,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	
 	if not bdlc:inLC() then return false end
 	if (not bdlc.loot_sessions[itemUID]) then return false end
+	if (not playerName) then return end
 
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
@@ -282,8 +285,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 
 	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName]
-	if (not color) then print(playerName.." not found") return false end
-	name = GetUnitName(name,true) or name
+	name = GetUnitName(name, true) or name
 	
 	currententry:Show()
 	currententry.name:SetText(name)
@@ -335,6 +337,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc.overrideChannel = "WHISPER"
 	bdlc.overrideSemder = playerName
 	bdlc:sendAction("removeUserRoll", itemUID, playerName);
+	bdlc.loot_want[itemUID][playerName] = nil
 	
 	bdlc:repositionFrames()
 
@@ -366,6 +369,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	-- actual want text
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
+
+	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText = bdlc.wantTable[want][1]
 	local wantColor = bdlc.wantTable[want][2]
@@ -730,27 +735,31 @@ function bdlc:parseLoot()
 	end
 end
 
---[[function bdlc:addLootHistory(itemUID, playerName, enchanter)
-	local datetimestamp = time().."."..GetTime()
-	local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][playerName])
+
+-- logging where loot has gone
+function bdlc:addLootHistory(itemUID, playerName, enchanter)
+	local playerName = FetchUnitName(playerName)
+	if not(playerName) then return end
+
+	-- fetch some data
+	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
+	local itemLink = bdlc.itemMap(itemUID)
+
+	-- compile the entry
+	local data = {itemLink, itemUID, playerName, want, itemLink1, itemLink2, notes, time(), enchanter}
 	
+	-- get unqiue index of day/time
 	local today = date("%m/%d/%Y")
+	local hour, minute = GetGameTime()
+	local t = hour..":"..minute
+
+	-- setup our tables
 	bdlc_history[today] = bdlc_history[today] or {}
+	bdlc_history[today][t] = bdlc_history[today][t] or {}
 	
-	if (playerName) then
-		-- log the history
-		local index = #bdlc_history[today] + 1
-		bdlc_history[today][index] = {}
-		local entry = bdlc_history[today][index] 
-		entry.stamp = time()
-		entry.playerName = playerName
-		entry.itemLink = itemLink
-		entry.disenchanter = enchanter
-		entry.want = want
-		entry.itemLink1 = itemLink1
-		entry.itemLink2 = itemLink2
-	end
-end--]]
+	-- log the history
+	table.insert(bdlc_history[today][t], data)
+end
 
 function bdlc:mainCallback(data)
 
@@ -780,7 +789,7 @@ function bdlc:mainCallback(data)
 				bdlc[action](self)
 			end
 		else
-			print("bdlc can't find any function for "..action.." - this usually means someone is out of date");
+			bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
 		end
 		--[[if (action == "startSession") then
 			bdlc:startSession(unpack(param))
@@ -875,7 +884,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local param = bdlc:split(origmsg," ")
 			local msg = param[0] or origmsg;
 			if (msg == "" or msg == " ") then
-				print("|cff3399FFBDLC|r Options:")
+				bdlc.print("Options:")
 				print("  /bdlc test - Tests the addon (must be in raid)")
 				print("  /bdlc config - Shows the configuration window")
 				print("  /bdlc show - Shows the vote window (if you're in the LC)")
@@ -896,7 +905,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 					bdlc:debug(newmsg)
 					bdlc:sendAction("startSession", newmsg, 1);
 				else
-					print("bdlc: You must be in the loot council and be either the loot master or the raid leader to do that");
+					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
 			elseif (msg == "addtolc" or msg == "removefromlc") then
 				bdlc:addremoveLC(msg, param[1])

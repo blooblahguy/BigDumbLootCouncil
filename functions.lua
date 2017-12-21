@@ -82,7 +82,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 	end
 	
 	if (slotID == 0 and not isRelic) then
-		print("bdlc can't find compare for slot: "..equipSlot..". Let the developer know");
+		bdlc.print("Can't find compare for slot: "..equipSlot..". Let the developer know");
 	end
 	
 	return itemLink1, itemLink2
@@ -90,9 +90,11 @@ end
 
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
-	local name, server = strsplit("-", name)
+	if (not UnitExists(name) or not UnitIsConnected(name)) then return end
 	
+	local name, server = strsplit("-", name)
 	local name_server = GetUnitName(name, true)
+
 	if (name_server) then
 		name = name_server
 	end
@@ -106,13 +108,10 @@ function FetchUnitName(name)
 	return name.."-"..server
 end
 
--- send compressed addon message with paramaters automatically deliminated
-
+-- send addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
-
-	print(action, ...)
 
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
@@ -121,7 +120,7 @@ function bdlc:sendAction(action, ...)
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
 	channel = bdlc.overrideChannel or channel
 
-	-- compress then send
+	-- merge then send
 	local data = action..delim..paramString
 	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, priority)
 
@@ -477,7 +476,7 @@ function IsRaidLeader()
 end
 
 function bdlc:debug(msg)
-	if (bdlc.config.debug) then print("|cff3399FFBCLC:|r "..msg) end
+	if (bdlc.config.debug) then bdlc.print(msg) end
 end
 
 function bdlc:skinBackdrop(frame, ...)

@@ -15,11 +15,11 @@ function bdlc:repositionFrames()
 		table.sort(f.entries[t], function(a, b)
 			a.wantLevel = a.wantLevel or 0
 			b.wantLevel = b.wantLevel or 0
-			if a.rankIndex ~= b.rankIndex then
-				return a.rankIndex > b.rankIndex
-			end
 			if a.wantLevel ~= b.wantLevel then
 				return a.wantLevel < b.wantLevel
+			end
+			if a.rankIndex ~= b.rankIndex then
+				return a.rankIndex > b.rankIndex
 			end
 			return a.name:GetText() > b.name:GetText()
 		end)
@@ -66,7 +66,7 @@ function bdlc:repositionFrames()
 		f.voteFrame:Hide()
 	end
 	
-	-- if no tab is selected, select the first tab
+	-- find out which tab is selected and make it facy
 	local tabselect = nil
 	for tabs = 1, #f.tabs do
 		if (f.tabs[tabs]:GetAlpha() == 1) then
@@ -79,6 +79,7 @@ function bdlc:repositionFrames()
 		end
 	end
 	
+	-- if no tab is selected, select the first tab
 	if (not tabselect) then
 		local currenttab = nil
 		for i = 1, #f.tabs do
@@ -95,59 +96,45 @@ function bdlc:repositionFrames()
 	end
 end
 
-local function awardLoot(name, dropdown, itemUID, enchanter)
+-- this function sends out the master loot and then logs it
+local function awardLoot(playerName, dropdown, itemUID, enchanter)
 	if (not enchanter) then enchanter = false end
-	bdlc.award_slot = nil
-	local name = FetchUnitName(name)
-	name, server = strsplit("-",name)
-	server = server or bdlc.player_realm;
+	local playerName = FetchUnitName(playerName)
 
-	if (not itemUID) then
-		for t = 1, #f.tabs do
-			if (f.tabs[t].selected) then
-				itemUID = f.tabs[t].itemUID
-				break
-			end
-		end
-	end
+	local award_slot = nil
+	local name, server = strsplit("-", playerName)
+
+	if (not itemUID) then return end
 	local itemLink = bdlc.itemMap[itemUID]
-	bdlc:debug("Award "..itemLink.." to "..name)
+	if (not itemLink) then return end
 	
+	-- find which loot slot has this itemLink
 	for slot = 1, GetNumLootItems() do
 		local slot_itemLink = GetLootSlotLink(slot)
 		
 		if (slot_itemLink == itemLink) then
-			bdlc.award_slot = slot
+			award_slot = slot
 			break
 		end
 	end
 	
-	if (bdlc.award_slot) then
+	-- Now find the candidate index of this same player
+	if (award_slot) then
 		for i = 1, 40 do
 			local candidate = GetMasterLootCandidate(bdlc.award_slot,i)
 			
 			if (candidate == name or candidate == name.."-"..server) then
 				GiveMasterLoot(bdlc.award_slot, i)
-				--local name = UnitName("raid"..i)
-				local datetimestamp = time().."."..GetTime()
-				
-				--local wantInfo = bdlc.wantTable[want]
-				--print(wantInfo)
 
-				print("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name)
 				SendChatMessage("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name, "RAID")
-				
-				--[[local itemUID, playerName, want, itemLink1, itemLink2 = unpack(bdlc.loot_want[itemUID][name])
-				
-				
-				
-				if (playerName) then					
-					bdlc:sendAction("addLootHistory", itemUID, playerName, enchanter)
-				end--]]
+				bdlc:debug("Award "..itemLink.." to "..name)
+				bdlc:sendAction("addLootHistory", itemUID, name, enchanter)
+
 				break
 			end
 		end
 	end
+
 	dropdown:Hide()
 end
 
@@ -1019,6 +1006,8 @@ function bdlc:endTab(itemUID)
 			break
 		end
 	end
+
+	bdlc:endRoll(itemUID)
 end
 
 function bdlc:endEntry(itemUID, playerName)
