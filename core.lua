@@ -791,44 +791,6 @@ function bdlc:mainCallback(data)
 		else
 			bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
 		end
-		--[[if (action == "startSession") then
-			bdlc:startSession(unpack(param))
-		elseif (action == "buildLC") then
-			bdlc:buildLC()
-		elseif (action == "sendVersion") then
-			bdlc:sendVersion(unpack(param))
-		elseif (action == "versionCheck") then
-			bdlc:versionCheck(unpack(param))
-		elseif (action == "clearMLSettings") then
-			bdlc:clearMLSettings()
-		elseif (action == "addToLC") then
-			bdlc:addToLC(unpack(param))
-		elseif (action == "removeUserConsidering") then
-			bdlc:removeUserConsidering(unpack(param))
-		elseif (action == "addUserConsidering") then
-			bdlc:addUserConsidering(unpack(param))
-		elseif (action == "addUserWant") then
-			bdlc:addUserWant(unpack(param))
-		elseif (action == "fetchSessions") then
-			bdlc:fetchSessions()
-		elseif (action == "voteForUser") then
-			bdlc:voteForUser(unpack(param))
-		elseif (action == "removeUserRoll") then
-			bdlc:removeUserRoll(unpack(param))
-		elseif (action == "addEnchanter") then
-			bdlc:addEnchanter(unpack(param))
-		elseif (action == "findEnchanters") then
-			bdlc:findEnchanters()
-		elseif (action == "endSession") then
-			bdlc:endSession(unpack(param))
-		elseif (action == "customQN") then
-			bdlc:customQN(unpack(param))
-		elseif (action == "addLootHistory") then
-			bdlc:addLootHistory(unpack(param))
-		else
-			--print("BDLC: Failed to find action for "..action..". Please post this on Curse or Wowinterface addon thread. info: "..data);
-		end--]]
-
 	end
 end
 
