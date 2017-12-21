@@ -12,6 +12,7 @@ local demo_samples = {
 -- StartSession
 ----------------------------------------
 function bdlc:startSession(itemLink,num)
+	print("start session", itemLink, num)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
@@ -762,13 +763,9 @@ function bdlc:mainCallback(data)
 
 		-- manually adding options for now - can probably automate this with unapck
 		if (bdlc[action]) then
-			print(param)
-			print(unpack(param))
 			if (param and unpack(param)) then -- if params arne't blank
 				bdlc[action](unpack(param))
-				print("sending", action, unpack(param))
 			else
-				print("sending", action, "blank")
 				bdlc[action]()
 			end
 		else
