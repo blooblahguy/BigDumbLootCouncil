@@ -103,19 +103,19 @@ function bdlc:startMockSession()
 	for k, v in pairs(bdlc.item_drops) do
 		local itemUID = bdlc:GetItemUID(k)
 		bdlc:sendAction("startSession", k, v);
-		
-		-- add our demo players in 
-		for k2, v2 in pairs(demo_players) do
-			bdlc:sendAction("addUserConsidering", itemUID, k2, v2[1], v2[2], v2[3]);
-		end
-
-		-- send a random "want" after 2-5s, similar to a real person
-		C_Timer.After(math.random(2, 5), function()
-			for k2, v2 in pairs(demo_players) do
-				bdlc:sendAction("addUserWant", itemUID, k2, math.random(1, 4), 0, 0);
-			end
-		end)
 	end
+
+	-- add our demo players in 
+	for name, data in pairs(demo_players) do
+		bdlc:sendAction("addUserConsidering", itemUID, name, unpack(data));
+	end
+
+	-- send a random "want" after 2-5s, something like a real person
+	C_Timer.After(math.random(2, 5), function()
+		for name, data in pairs(demo_players) do
+			bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0);
+		end
+	end)
 end
 
 ----------------------------------------

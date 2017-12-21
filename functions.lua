@@ -91,7 +91,7 @@ end
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
 	local name, server = strsplit("-", name)
-	local nameserver
+	local nameserver = false
 
 	if (UnitExists(name) and UnitIsConnected(name)) then
 		name_server = GetUnitName(name, true)
@@ -115,6 +115,8 @@ function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
+	print(action, ...)
+	
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
 	local sender = bdlc.overrideSender or UnitName("player")
