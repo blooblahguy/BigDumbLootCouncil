@@ -141,8 +141,9 @@ function bdlc:buildLC()
 		end
 
 		-- send these all at once in 1 string
-		print(bdlc.loot_council)
-		print(unpack(bdlc.loot_council))
+		for k, v in pairs(bdlc.loot_council) do
+			print(k, v)
+		end
 		if (#bdlc.loot_council > 0) then
 			bdlc:sendAction("addToLC", unpack(bdlc.loot_council) )
 		end
