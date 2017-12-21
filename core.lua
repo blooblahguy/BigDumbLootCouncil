@@ -2,17 +2,10 @@ local bdlc, l, f = select(2, ...):unpack()
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
-local demo_samples = {
-	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
-	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot"},
-	names = {"OReilly","Billy","Tìncan","Mango","Ugh","Onebutton","Thor","Deadpool","Atlas","Edgelord","Yeah"}
-}
-
 ----------------------------------------
 -- StartSession
 ----------------------------------------
 function bdlc:startSession(itemLink,num)
-	print("start session", itemLink, num)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
@@ -68,38 +61,58 @@ end
 ----------------------------------------
 function bdlc:startMockSession()
 	bdlc:debug("Starting mock session")
-	
-	
-	local demo_players = {
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
-		[demo_samples.names[math.random(#demo_samples.names)]] = {math.random(795,880), demo_samples.ranks[math.random(#demo_samples.ranks)], demo_samples.classes[math.random(#demo_samples.classes)]},
+
+	local demo_samples = {
+		classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
+		ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot", "King"},
+		names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Atlas", "Edgelord", "Yeah", "Arranum", "Witts"}
 	}
 	
+	local function rando_name()
+		return demo_samples.names[math.random(#demo_samples.names)]
+	end
+	local function rando_ilvl()
+		return math.random(900, 980)
+	end
+	local function rando_rank()
+		return demo_samples.ranks[math.random(#demo_samples.ranks)]
+	end
+	local function rando_class()
+		return demo_samples.classes[math.random(#demo_samples.classes)]
+	end
+	
+	-- add random people, up to a whole raid worth of fakers
+	local demo_players = {}
+	for i = 5, math.random(6, 30) do
+		demo_players[rando_name()] = {rando_ilvl(), rando_rank(), rando_class()}
+	end
+	
+	-- fake build an LC
 	bdlc:buildLC()
 	local itemslots = {1,2,3,5,8,9,10,11,12,13,14,15}
 	bdlc.item_drops = {}
 	for i = 1, 4 do
 		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(2,4)
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(1,4)
 		table.remove(itemslots,index)
 	end
 
+	-- now lets start fake sessions
 	for k, v in pairs(bdlc.item_drops) do
 		local itemUID = bdlc:GetItemUID(k)
 		bdlc:sendAction("startSession", k, v);
 		
+		-- add our demo players in 
 		for k2, v2 in pairs(demo_players) do
 			bdlc:sendAction("addUserConsidering", itemUID, k2, v2[1], v2[2], v2[3]);
-			bdlc:sendAction("addUserWant", itemUID, k2, 2, 0, 0);
 		end
+
+		-- send a random "want" after 2-5s, similar to a real person
+		C_Timer.After(math.random(2, 5), function()
+			for k2, v2 in pairs(demo_players) do
+				bdlc:sendAction("addUserWant", itemUID, k2, math.random(1, 4), 0, 0);
+			end
+		end)
 	end
 end
 
@@ -743,8 +756,6 @@ function bdlc:mainCallback(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
 	if (method == "master" or not IsInRaid()) then
-
-		--print(data)
 		
 		local param = bdlc:split(data,"><")
 		local action = param[0] or data
@@ -761,7 +772,7 @@ function bdlc:mainCallback(data)
 			end
 		end
 
-		-- manually adding options for now - can probably automate this with unapck
+		-- auto methods have to force a self param
 		if (bdlc[action]) then
 			if (param and unpack(param)) then -- if params arne't blank
 				bdlc[action](self, unpack(param))

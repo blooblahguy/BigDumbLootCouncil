@@ -112,6 +112,8 @@ function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
+	print(action, ...)
+
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
 	local sender = UnitName("player")
