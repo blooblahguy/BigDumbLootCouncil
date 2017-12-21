@@ -8,6 +8,8 @@ function bdlc:clearMLSettings()
 	bdlc.enchanters = {}
 	bdlc.loot_council = {}
 	bdlc.master_looter_qn = {}
+
+	if (IsMasterLooter() or not IsInRaid()) then
 end
 
 function bdlc:customQN(...)
@@ -144,6 +146,8 @@ function bdlc:buildLC()
 		end
 
 		-- send these all at once in 1 string
+		print(bdlc.loot_council)
+		print(unpack(bdlc.loot_council))
 		if (#bdlc.loot_council > 0) then
 			bdlc:sendAction("addToLC", unpack(bdlc.loot_council) )
 		end
