@@ -57,7 +57,7 @@ ChatThrottleLib.version = CTL_VERSION
 
 ------------------ TWEAKABLES -----------------
 
-ChatThrottleLib.MAX_CPS = 800			  -- 2000 seems to be safe if NOTHING ELSE is happening. let's call it 800.
+ChatThrottleLib.MAX_CPS = 1200			  -- 2000 seems to be safe if NOTHING ELSE is happening. let's call it 800.
 ChatThrottleLib.MSG_OVERHEAD = 40		-- Guesstimate overhead for sending a message; source+dest+chattype+protocolstuff
 
 ChatThrottleLib.BURST = 4000				-- WoW's server buffer seems to be about 32KB. 8KB should be safe, but seen disconnects on _some_ servers. Using 4KB now.

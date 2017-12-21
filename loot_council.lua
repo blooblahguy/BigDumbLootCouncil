@@ -1,5 +1,9 @@
 local bdlc, l, f = select(2, ...):unpack()
 
+function bdlc:inLC()
+	return bdlc.loot_council[FetchUnitName("player")] or IsMasterLooter() or not IsInRaid()
+end
+
 ----------------------------------------
 -- Get/add/remove
 ----------------------------------------
@@ -13,7 +17,7 @@ end
 
 function bdlc:addToLC(...)
 	local council = {...}
-	for k, v in pairs(...) do
+	for k, v in pairs(council) do
 		local playerName = FetchUnitName(v)
 
 		bdlc.loot_council[playerName] = true

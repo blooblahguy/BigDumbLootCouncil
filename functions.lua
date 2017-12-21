@@ -116,14 +116,14 @@ function bdlc:sendAction(action, ...)
 
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
-	local sender = UnitName("player")
+	local sender = or bdlc.overrideSender UnitName("player")
+	local priority = bdlc.overridePriority or "Normal"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
-	if (bdlc.overrideChannel) then channel = bdlc.overrideChannel end
-	if (bdlc.overrideSender) then sender = bdlc.overrideSender end
+	channel = bdlc.overrideChannel or channel
 
 	-- compress then send
 	local data = action..delim..paramString
-	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, "NORMAL")
+	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil
@@ -470,10 +470,6 @@ function bdlc:GetRelics(rt)
 	HideUIPanel(ArtifactFrame)
 
 	return relic1, relic2
-end
-
-function bdlc:inLC()
-	return bdlc.loot_council[FetchUnitName("player")] or IsMasterLooter() or not IsInRaid()
 end
 
 function IsRaidLeader()
