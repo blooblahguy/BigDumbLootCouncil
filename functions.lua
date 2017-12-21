@@ -112,11 +112,11 @@ end
 
 -- send addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
+	print(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
-	print(action, ...)
-	
+
 	-- allow the user to whisper through this function
 	local channel = "WHISPER"
 	local sender = bdlc.overrideSender or UnitName("player")
