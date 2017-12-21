@@ -112,7 +112,6 @@ end
 
 -- send addon message with paramaters automatically deliminated
 function bdlc:sendAction(action, ...)
-	print(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
