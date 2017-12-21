@@ -12,6 +12,7 @@ function bdlc:customQN(...)
 end
 
 function bdlc:addToLC(...)
+	local council = {...}
 	for k, v in pairs(...) do
 		local playerName = FetchUnitName(v)
 
