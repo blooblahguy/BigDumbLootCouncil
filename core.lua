@@ -369,6 +369,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	-- actual want text
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
+	if (not playerName) then return end
 
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
