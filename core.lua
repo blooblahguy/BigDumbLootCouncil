@@ -24,7 +24,7 @@ function bdlc:startSession(itemLink,num)
 		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
 			bdlc:debug("Starting session for "..itemLink)
 			bdlc.loot_sessions[itemUID] = itemUID 
-			bdlc.loot_want[itemUID] = itemUID -- will be used to track loot log and also refresh sessions if someone relogs
+			bdlc.loot_want[itemUID] = {} -- will be used to track loot log and also refresh sessions if someone relogs
 
 			if (bdlc:inLC()) then
 				bdlc.loot_council_votes[itemUID] = {}
@@ -369,9 +369,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	-- actual want text
 	local currententry = bdlc:getEntry(itemUID, playerName)
 	if (not currententry) then return end
-	if (not playerName) then return end
 
-	print(itemUID, playerName, want, itemLink1, itemLink2, notes)
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText = bdlc.wantTable[want][1]
