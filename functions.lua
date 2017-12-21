@@ -90,10 +90,12 @@ end
 
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
-	if (not UnitExists(name) or not UnitIsConnected(name)) then return end
-	
 	local name, server = strsplit("-", name)
-	local name_server = GetUnitName(name, true)
+	local nameserver
+
+	if (UnitExists(name) and UnitIsConnected(name)) then
+		name_server = GetUnitName(name, true)
+	end
 
 	if (name_server) then
 		name = name_server
