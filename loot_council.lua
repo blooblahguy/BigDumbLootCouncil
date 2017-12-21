@@ -4,14 +4,6 @@ local bdlc, l, f = select(2, ...):unpack()
 -- Get/add/remove
 ----------------------------------------
 
-function bdlc:clearMLSettings()
-	bdlc.enchanters = {}
-	bdlc.loot_council = {}
-	bdlc.master_looter_qn = {}
-
-	if (IsMasterLooter() or not IsInRaid()) then
-end
-
 function bdlc:customQN(...)
 	local notes = {...}
 	for k, v in pairs(notes) do
@@ -89,6 +81,11 @@ end
 function bdlc:buildLC()
 	local playerName = FetchUnitName('player')
 
+	-- clear all the settings since we're rebuilding here
+	bdlc.enchanters = {}
+	bdlc.loot_council = {}
+	bdlc.master_looter_qn = {}
+
 	-- only 1 person needs to make these actions
 	if (IsMasterLooter() or not IsInRaid()) then		
 		bdlc:debug("building LC")
@@ -128,12 +125,10 @@ function bdlc:buildLC()
 		end
 
 		-- now send actions all at once to reduce gap
-		bdlc:sendAction("clearMLSettings");
 		bdlc:sendAction("findEnchanters");
 
-		bdlc.loot_council[playerName] = playerName
-
 		-- People who are in your custom loot council
+		bdlc.loot_council[playerName] = playerName
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
 				bdlc.loot_council[k] = k
