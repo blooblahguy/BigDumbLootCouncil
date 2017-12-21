@@ -128,24 +128,26 @@ function bdlc:buildLC()
 		bdlc:sendAction("findEnchanters");
 
 		-- People who are in your custom loot council
+		local council = {}
 		bdlc.loot_council[playerName] = playerName
 		for k, v in pairs (bdlc_config.custom_council) do
 			if (inraid[k]) then
-				bdlc.loot_council[k] = k
+				table.insert(council, k)
+				bdlc.loot_council[k] = true
 			end
 		end
 		
 		-- People who are added via rank
 		for k, v in pairs (autocouncil) do
-			bdlc.loot_council[k] = k
+			table.insert(council, k)
+			bdlc.loot_council[k] = true
 		end
 
 		-- send these all at once in 1 string
-		for k, v in pairs(bdlc.loot_council) do
-			print(k, v)
-		end
-		if (#bdlc.loot_council > 0) then
-			bdlc:sendAction("addToLC", unpack(bdlc.loot_council) )
+		print(unpack(council))
+		print(#council)
+		if (#council > 0) then
+			bdlc:sendAction("addToLC", unpack(council) )
 		end
 		
 		-- Quick notes
