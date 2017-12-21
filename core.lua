@@ -764,9 +764,9 @@ function bdlc:mainCallback(data)
 		-- manually adding options for now - can probably automate this with unapck
 		if (bdlc[action]) then
 			if (param and unpack(param)) then -- if params arne't blank
-				bdlc[action](unpack(param))
+				bdlc[action](self, unpack(param))
 			else
-				bdlc[action]()
+				bdlc[action](self)
 			end
 		else
 			print("bdlc can't find any function for "..action.." - this usually means someone is out of date");
