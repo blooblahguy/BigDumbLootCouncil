@@ -91,7 +91,7 @@ end
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
 	local name, server = strsplit("-", name)
-	local nameserver = false
+	local name_server = false
 
 	if (UnitExists(name) and UnitIsConnected(name)) then
 		name_server = GetUnitName(name, true)
