@@ -360,7 +360,7 @@ end--]]
 ----------------------------------------
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes)
 	local playerName = FetchUnitName(playerName)
-	
+	if (not notes) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
 
 	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
@@ -371,6 +371,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	if (not currententry) then return end
 	if (not playerName) then return end
 
+	print(itemUID, playerName, want, itemLink1, itemLink2, notes)
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText = bdlc.wantTable[want][1]
