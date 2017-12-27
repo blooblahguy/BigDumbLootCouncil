@@ -132,7 +132,7 @@ function bdlc:buildLC()
 		end
 
 		-- now send actions all at once to reduce gap
-		bdlc:sendAction("findEnchanters");
+		--bdlc:sendAction("findEnchanters");
 
 		-- People who are in your custom loot council
 		local council = {}
