@@ -782,7 +782,6 @@ function bdlc:mainCallback(data)
 		end
 
 		-- auto methods have to force a self param
-		print(data);
 
 		if (bdlc[action]) then
 			if (param and unpack(param)) then -- if params arne't blank
