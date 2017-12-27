@@ -810,7 +810,6 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:RegisterEvent('CHAT_MSG_WHISPER')
 		bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
 		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
-		bdlc:RegisterEvent('LOADING_SCREEN_DISABLED')
 		
 		LoadAddOn("Blizzard_ArtifactUI")
 		
@@ -894,16 +893,16 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	
 		bdlc:Config()
 	end
-	
-	if (event == "PLAYER_ENTERING_WORLD") then
-		bdlc:sendAction("buildLC");
-	end
-	
-	if (event == "ENCOUNTER_END") then
-		bdlc:sendAction("buildLC");
-	end
-	if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		bdlc:sendAction("buildLC");
+	if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
+		if (event == "PLAYER_ENTERING_WORLD") then
+			bdlc:sendAction("buildLC");
+		end
+		if (event == "ENCOUNTER_END") then
+			bdlc:sendAction("buildLC");
+		end
+		if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
+			bdlc:sendAction("buildLC");
+		end
 	end
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
@@ -922,12 +921,12 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				f.tabs[i].table.item.num_items:SetText("x"..bdlc.item_drops[itemLink])
 			end
 		end
-		if (bdlc.item_drops[itemLink] == 0) then
+		--[[if (bdlc.item_drops[itemLink] == 0) then
 			local itemUID = bdlc:GetItemUID(itemLink)
 		
 			bdlc:sendAction("endSession", itemUID);
 			bdlc:endSession(itemUID)
-		end
+		end--]]
 		
 		bdlc.award_slot = {}
 		bdlc.loot_slots[arg1] = nil
