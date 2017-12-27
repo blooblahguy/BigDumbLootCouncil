@@ -121,10 +121,10 @@ local function awardLoot(playerName, dropdown, itemUID, enchanter)
 	-- Now find the candidate index of this same player
 	if (award_slot) then
 		for i = 1, 40 do
-			local candidate = GetMasterLootCandidate(bdlc.award_slot,i)
+			local candidate = GetMasterLootCandidate(award_slot,i)
 			
 			if (candidate == name or candidate == name.."-"..server) then
-				GiveMasterLoot(bdlc.award_slot, i)
+				GiveMasterLoot(award_slot, i)
 
 				SendChatMessage("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name, "RAID")
 				bdlc:debug("Award "..itemLink.." to "..name)
