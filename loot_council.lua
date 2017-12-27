@@ -125,7 +125,7 @@ function bdlc:buildLC()
 
 			if (online and rankIndex <= min_rank) then
 				local name = FetchUnitName(fullName)
-				if (not inraid[name]) then return end
+				if (not inraid[name]) then break end
 				autocouncil[name] = true
 				bdlc.loot_council[name] = name
 			end
@@ -151,7 +151,7 @@ function bdlc:buildLC()
 		end
 
 		-- send these all at once in 1 string
-		if (#council > 0) then
+		if (council and unpack(council)) then
 			bdlc:sendAction("addToLC", unpack(council) )
 		end
 		
@@ -162,8 +162,8 @@ function bdlc:buildLC()
 		end
 
 		-- send these all at once in 1 string
-		if (#quicknotes > 0) then
-			bdlc:sendAction("customQN", unpack(quicknotes));
+		if (quicknotes and unpack(quicknotes)) then
+			bdlc:sendAction("customQN", unpack(quicknotes) );
 		end
 	end
 end

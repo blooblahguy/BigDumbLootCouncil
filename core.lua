@@ -782,6 +782,8 @@ function bdlc:mainCallback(data)
 		end
 
 		-- auto methods have to force a self param
+		print(data);
+
 		if (bdlc[action]) then
 			if (param and unpack(param)) then -- if params arne't blank
 				bdlc[action](self, unpack(param))
@@ -789,7 +791,7 @@ function bdlc:mainCallback(data)
 				bdlc[action](self)
 			end
 		else
-			bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
+			--bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
 		end
 	end
 end
