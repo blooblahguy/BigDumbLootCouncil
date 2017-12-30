@@ -892,6 +892,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	
 		bdlc:Config()
 	end
+
+	--[[
 	if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
 		if (event == "PLAYER_ENTERING_WORLD") then
 			bdlc:sendAction("buildLC");
@@ -900,12 +902,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			bdlc:sendAction("buildLC");
 		end
 		if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-			bdlc:sendAction("buildLC");
 		end
-	end
+	end--]]
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
-		bdlc:parseLoot()
+		bdlc:sendAction("buildLC");
+		C_Timer.After(2, function()
+			bdlc:parseLoot()
+		end)
 	end
 	
 	-- Auto close sessions when loot is awarded from the body
