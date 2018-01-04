@@ -98,7 +98,11 @@ end
 
 -- this function sends out the master loot and then logs it
 local function awardLoot(playerName, dropdown, itemUID, enchanter)
-	if (not enchanter) then enchanter = false end
+	if (enchanter) then 
+		enchanter = 1
+	else
+		enchanter = 0 
+	end
 	local playerName = FetchUnitName(playerName)
 
 	local award_slot = nil
