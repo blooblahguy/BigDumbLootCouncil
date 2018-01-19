@@ -741,9 +741,11 @@ function bdlc:addLootHistory(itemUID, playerName, enchanter)
 	local playerName = FetchUnitName(playerName)
 	if not(playerName) then return end
 
+	if (not bdlc.loot_want[itemUID] or not bdlc.loot_want[itemUID][playerName]) then return end
+
 	-- fetch some data
 	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
-	local itemLink = bdlc.itemMap(itemUID)
+	local itemLink = bdlc.itemMap[itemUID]
 
 	-- compile the entry
 	local data = {itemLink, itemUID, playerName, want, itemLink1, itemLink2, notes, time(), enchanter}
