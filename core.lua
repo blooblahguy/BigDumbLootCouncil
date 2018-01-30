@@ -796,31 +796,49 @@ function bdlc:mainCallback(data)
 	end
 end
 
+-- wow needs to query the server for item information and this happens asynchronously. So we should cache it before we need it
+function bdlc:fetchPlayerItems()
+	if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
+		LoadAddOn("Blizzard_ArtifactUI")
+	end
+
+	-- inventory
+	for i = 1, 19 do
+		local link = GetInventoryItemLink("player", i)
+	end
+
+	-- relics
+	SocketInventoryItem(17)
+	SocketInventoryItem(16)
+
+	for relicSlotIndex = 1, C_ArtifactUI.GetNumRelicSlots() do
+		local lockedReason, relicName, relicIcon, relicLink = C_ArtifactUI.GetRelicInfo(relicSlotIndex);
+	end
+	
+	HideUIPanel(ArtifactFrame)
+end
+
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
 		bdlc:UnregisterEvent("ADDON_LOADED")
 		-------------------------------------------------------
 		--- Register necessary events
 		-------------------------------------------------------
+		bdlc:RegisterEvent("ENCOUNTER_END");
 		bdlc:RegisterEvent("LOOT_SLOT_CLEARED");
 		bdlc:RegisterEvent("LOOT_OPENED");
-		bdlc:RegisterEvent("LOOT_CLOSED");
 		bdlc:RegisterEvent('GET_ITEM_INFO_RECEIVED')
 		bdlc:RegisterEvent('CHAT_MSG_ADDON')
-		bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
-		bdlc:RegisterEvent('CHAT_MSG_WHISPER')
-		bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
-		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
+		-- bdlc:RegisterEvent("LOOT_CLOSED");
+		-- bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
+		-- bdlc:RegisterEvent('CHAT_MSG_WHISPER')
+		-- bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
+		-- bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
 		
 		LoadAddOn("Blizzard_ArtifactUI")
 		
 		-- force load player items
-		for i = 1, 19 do
-			local link = GetInventoryItemLink("player", i)
-		end
-		SocketInventoryItem(17)
-		SocketInventoryItem(16)
-		HideUIPanel(ArtifactFrame)
+		bdlc:fetchPlayerItems()
 		
 		--------------------------------------------------------------------------------
 		-- Load configuration or set bdlc.defaults
@@ -906,6 +924,10 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
 		end
 	end--]]
+
+	if (event == "ENCOUNTER_END") then
+		bdlc:fetchPlayerItems()
+	end
 	
 	if (IsMasterLooter() and event == "LOOT_OPENED") then
 		bdlc:sendAction("buildLC");
