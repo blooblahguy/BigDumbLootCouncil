@@ -62,6 +62,12 @@ end
 -- StartMockSession
 ----------------------------------------
 function bdlc:startMockSession()
+	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
+		if (not bdlc:inLC()) then
+			bdlc.print("You cannot run a test while inside of a raid group unless you are on the Loot Council.")
+		end
+	end
+
 	bdlc:debug("Starting mock session")
 
 	local demo_samples = {
