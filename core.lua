@@ -845,6 +845,9 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		
 		-- force load player items
 		bdlc:fetchPlayerItems()
+		C_Timer.After(1, function() 
+			bdlc:GetRelics('nonsense')
+		end)
 		
 		--------------------------------------------------------------------------------
 		-- Load configuration or set bdlc.defaults

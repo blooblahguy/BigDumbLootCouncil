@@ -958,6 +958,7 @@ function bdlc:getEntry(itemUID, playerName)
 		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (f.entries[t][e].playerName == playerName) then
+					f.entries[t][e]:Show()
 					return f.entries[t][e]
 				end
 			end
@@ -970,6 +971,7 @@ function bdlc:getEntry(itemUID, playerName)
 		if (f.tabs[t].itemUID == itemUID) then
 			for e = 1, #f.entries[t] do
 				if (not f.entries[t][e].playerName) then
+					f.entries[t][e]:Show()
 					f.entries[t][e].itemUID = itemUID
 					f.entries[t][e].playerName = playerName
 					return f.entries[t][e]

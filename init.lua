@@ -3,6 +3,10 @@ engine[1] = CreateFrame("Frame", nil, UIParent)
 engine[2] = {}
 engine[3] = {}
 
+if C_ChatInfo then
+	RegisterAddonMessagePrefix, SendAddonMessage = C_ChatInfo.RegisterAddonMessagePrefix, C_ChatInfo.SendAddonMessage
+end
+
 engine[1]:RegisterEvent("ADDON_LOADED")
 
 function engine:unpack()
