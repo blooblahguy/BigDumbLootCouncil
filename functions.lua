@@ -6,6 +6,39 @@ tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
+-- xform r, g, b into rrggbb
+function bdCore:RGBToHex(r, g, b)
+	if type(r) ~= 'number' then
+		g = r.g
+		b = r.b
+		r = r.r
+	end
+	
+	r = r <= 1 and r >= 0 and r or 0
+	g = g <= 1 and g >= 0 and g or 0
+	b = b <= 1 and b >= 0 and b or 0
+	
+	return string.format("%02x%02x%02x", r*255, g*255, b*255)
+end
+
+-- To colorize lootedBy player
+function bdlc:prettyName(playerName, returnString)
+	local name, server = strsplit("-", playerName)
+	local demo_samples = bdlc.demo_samples
+
+	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
+	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
+
+	--print(color, color.r, color.g, color.b, bdCore:RGBToHex(color))
+
+	if (returnString) then
+		print("|cff"..bdCore:RGBToHex(color)..playerName.."|r")
+		return "|cff"..bdCore:RGBToHex(color)..playerName.."|r"
+	else
+		return color
+	end
+end
+
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)

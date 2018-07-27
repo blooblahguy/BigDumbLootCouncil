@@ -25,6 +25,9 @@ bdlc.colorName = "|cff3399FFBDLC|r: "
 function bdlc.print(msg)
 	print(bdlc.colorName..msg)
 end
+
+bdlc.looted = {}
+
 bdlc.item_drops = {}
 bdlc.enchanters = {}
 bdlc.award_slot = nil
@@ -38,7 +41,8 @@ bdlc.loot_council = {}
 bdlc.loot_council_votes = {}
 bdlc.loot_council_votes.indexhistory = {}
 
-bdlc.items_waiting = {}
+bdlc.items_waiting_for_verify = {}
+bdlc.items_waiting_for_session = {}
 bdlc.player_items_waiting = {}
 bdlc.master_looter_qn = {}
 

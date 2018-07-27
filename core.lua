@@ -5,7 +5,24 @@ local AceComm = LibStub:GetLibrary("AceComm-3.0")
 ----------------------------------------
 -- StartSession
 ----------------------------------------
-function bdlc:startSession(itemLink,num)
+function bdlc:itemValidForSession(itemLink)
+	local valid = false
+
+	local itemUID = bdlc:GetItemUID(itemLink)
+	local isTier = bdlc:IsTier(itemLink)
+	local equipSlot = select(9, GetItemInfo(itemLink))
+	local isRelic = bdlc:IsRelic(itemLink)
+
+	if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0))) then
+		valid = true
+	end
+	if (isTier or isRelic) then
+		valid = true
+	end
+
+	return valid
+end
+function bdlc:startSession(itemLink, lootedBy)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
@@ -13,29 +30,22 @@ function bdlc:startSession(itemLink,num)
 	if (GetItemInfo(itemLink)) then
 		local itemUID = bdlc:GetItemUID(itemLink)
 		bdlc.itemMap[itemUID] = itemLink
-
-		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or num
-		if (not num) then num = bdlc.item_drops[itemLink] or 1 end
 	
-		local isTier = bdlc:IsTier(itemLink)
-		local equipSlot = select(9, GetItemInfo(itemLink))
-		local isRelic = bdlc:IsRelic(itemLink)
-		
-		if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0) or isTier or isRelic)) then
+		if (bdlc:itemValidForSession(itemLink)) then
 			bdlc:debug("Starting session for "..itemLink)
 			bdlc.loot_sessions[itemUID] = itemUID 
 			bdlc.loot_want[itemUID] = {} -- will be used to track loot log and also refresh sessions if someone relogs
 
 			if (bdlc:inLC()) then
-				bdlc.loot_council_votes[itemUID] = {}
-				bdlc:createVoteWindow(itemUID, num)
+				bdlc.loot_council_votes[itemUID] = {} 
+				bdlc:createVoteWindow(itemUID, lootedBy)
 				f.voteFrame.enchanters:Show()
 			end
 
-			bdlc:createRollWindow(itemUID,num)
+			bdlc:createRollWindow(itemUID, lootedBy)
 		end
 	else
-		bdlc.items_waiting[itemID] = {itemLink,num}
+		bdlc.items_waiting_for_session[itemID] = {itemLink, lootedBy}
 		local name = GetItemInfo(itemLink)
 	end
 end
@@ -61,6 +71,11 @@ end
 ----------------------------------------
 -- StartMockSession
 ----------------------------------------
+bdlc.demo_samples = {
+	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
+	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot", "King"},
+	names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Atlas", "Edgelord", "Yeah", "Arranum", "Witts"}
+}
 function bdlc:startMockSession()
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
 		if (not bdlc:inLC()) then
@@ -68,13 +83,9 @@ function bdlc:startMockSession()
 		end
 	end
 
-	bdlc:debug("Starting mock session")
+	local demo_samples = bdlc.demo_samples
 
-	local demo_samples = {
-		classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
-		ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot", "King"},
-		names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Atlas", "Edgelord", "Yeah", "Arranum", "Witts"}
-	}
+	bdlc:debug("Starting mock session")
 	
 	local function rando_name()
 		return demo_samples.names[math.random(#demo_samples.names)]
@@ -101,7 +112,7 @@ function bdlc:startMockSession()
 	bdlc.item_drops = {}
 	for i = 1, 4 do
 		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = math.random(1,4)
+		bdlc.item_drops[GetInventoryItemLink("player", index)] = rando_name()
 		table.remove(itemslots,index)
 	end
 
@@ -127,7 +138,7 @@ end
 ----------------------------------------
 -- CreateVoteWindow
 ----------------------------------------
-function bdlc:createVoteWindow(itemUID,num)
+function bdlc:createVoteWindow(itemUID, lootedBy)
 	local itemLink = bdlc.itemMap[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	
@@ -139,13 +150,10 @@ function bdlc:createVoteWindow(itemUID,num)
 	currenttab:Show()
 	currenttab.icon:SetTexture(texture)
 	currenttab.table.item.itemtext:SetText(itemLink)
-	if (num > 1) then
-		currenttab.table.item.num_items:SetText("x"..num)
-		currenttab.table.item.num_items:SetTextColor(0,1,0)
-	else
-		currenttab.table.item.num_items:SetText("")
+
+		currenttab.table.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
 		currenttab.table.item.num_items:SetTextColor(1,1,1)
-	end
+
 	currenttab.table.item.icon.tex:SetTexture(texture)
 
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
@@ -184,7 +192,7 @@ end
 ----------------------------------------
 -- CreateRollWindow
 ----------------------------------------
-function bdlc:createRollWindow(itemUID,num)
+function bdlc:createRollWindow(itemUID, lootedBy)
 	local itemLink = bdlc.itemMap[itemUID]
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	rollFrame:Show()
@@ -194,14 +202,9 @@ function bdlc:createRollWindow(itemUID,num)
 	currentroll:Show()
 	currentroll.item.icon.tex:SetTexture(texture)
 	currentroll.item.item_text:SetText(itemLink)
-	if (num > 1) then
-		currentroll.item.num_items:SetText("x"..num)
-		currentroll.item.num_items:SetTextColor(0,1,0)
-	else
-		currentroll.item.num_items:SetText("")
-		currentroll.item.num_items:SetTextColor(1,1,1)
-	end
-	--currentroll.item.item_ilvl:SetText("ilvl: "..iLevel)
+
+	currentroll.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
+	currentroll.item.num_items:SetTextColor(1,1,1)
 	
 	-- custom quick notes
 	for i = 1, 10 do
@@ -289,8 +292,7 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local name, server = strsplit("-", playerName)
 
-	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
-	local color = RAID_CLASS_COLORS[classFileName]
+	local color = bdlc:prettyName(playerName)
 	name = GetUnitName(name, true) or name
 	
 	currententry:Show()
@@ -562,7 +564,7 @@ function bdlc:updateVotesRemaining(itemUID, councilName)
 	if (councilName ~= FetchUnitName('player')) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
-	local numvotes = bdlc.item_drops[itemLink]
+	local numvotes = 1--bdlc.item_drops[itemLink]
 	local currentvotes = 0;
 	local color = "|cff00FF00"
 	local tab = bdlc:getTab(itemUID)
@@ -721,26 +723,6 @@ function bdlc:fetchSessions()
 	end
 end--]]
 
-function bdlc:parseLoot()
-	f.voteFrame.enchanters:Show()
-	bdlc.loot_slots = {}
-	bdlc.item_drops = {}
-	for slot = 1, GetNumLootItems() do
-		local texture, item, quantity, quality, locked = GetLootSlotInfo(slot)
-
-		if (quality and quality > 3) then
-			local itemLink = GetLootSlotLink(slot)
-			bdlc.loot_slots[slot] = itemLink
-
-			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or 0
-			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] + 1
-		end
-	end
-	for k, v in pairs(bdlc.item_drops) do
-		bdlc:sendAction("startSession", k, v);
-	end
-end
-
 
 -- logging where loot has gone
 function bdlc:addLootHistory(itemUID, playerName, enchanter)
@@ -802,6 +784,29 @@ function bdlc:mainCallback(data)
 	end
 end
 
+-- now that blizzard decided for every single guild on the planet than masterlooting isn't good, we have to track which players have looted the boss, and start sessions based on them instead of using a really useful tool that we've all enjoyed since vanilla. 
+function bdlc:removeLooter(name)
+	bdlc.looters[name] = nil
+	bdlc:drawLooters()
+end
+function bdlc:startLooterList()
+	bdlc.looters = {}
+	local p = f.voteFrame.pending
+	for r = 0, MAX_RAID_MEMBERS do
+		local name = FetchUnitName("raid"..i)
+		bdlc.looters[name] = true
+	end
+
+	bdlc:drawLooters()
+end
+function bdlc:drawLooters() 
+	local text = "";
+	for k, v in pairs(bdlc.looters) do
+		text = text .. name .. "\n"
+	end
+	f.voteFrame.pending:SetText(text)
+end
+
 -- wow needs to query the server for item information and this happens asynchronously. So we should cache it before we need it
 function bdlc:fetchPlayerItems()
 	if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
@@ -824,26 +829,59 @@ function bdlc:fetchPlayerItems()
 	HideUIPanel(ArtifactFrame)
 end
 
+function bdlc:verifyTradability(itemLink)
+	if (GetItemInfo(itemLink)) then
+		local tradable = false
+		-- scan for whether this item can be traded for 2 hours by the player
+		if (tradable) then
+			bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
+		end
+	else
+		bdlc.items_waiting_for_verify[itemID] = itemLink
+		local name = GetItemInfo(itemLink)
+	end
+end
+
+-- alert the raid its time to loot the boss
+function bdlc:alertRaid()
+	for i = 0, MAX_RAID_MEMBERS do
+		-- SendChatMessage("", )
+	end
+end
+function bdlc:alertSlackers()
+	for k, v in pairs(bdlc.looters) do
+		-- these players haven't looted yet
+	end
+end
+
+-- BDLC = {
+-- 	test = function()
+
+-- 	end
+-- 	, ok = function()
+
+-- 	end
+-- }
+
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
 		bdlc:UnregisterEvent("ADDON_LOADED")
 		-------------------------------------------------------
 		--- Register necessary events
 		-------------------------------------------------------
-		bdlc:RegisterEvent("ENCOUNTER_END");
-		bdlc:RegisterEvent("LOOT_SLOT_CLEARED");
+		bdlc:RegisterEvent("BOSS_KILL");
 		bdlc:RegisterEvent("LOOT_OPENED");
 		bdlc:RegisterEvent('GET_ITEM_INFO_RECEIVED')
-		bdlc:RegisterEvent('CHAT_MSG_ADDON')
-		-- bdlc:RegisterEvent("LOOT_CLOSED");
+		bdlc:RegisterEvent("CHAT_MSG_LOOT");
+		-- bdlc:RegisterEvent("LOOT_SLOT_CLEARED");
+		-- bdlc:RegisterEvent('CHAT_MSG_ADDON')
 		-- bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
 		-- bdlc:RegisterEvent('CHAT_MSG_WHISPER')
 		-- bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
 		-- bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
 		
-		LoadAddOn("Blizzard_ArtifactUI")
-		
 		-- force load player items
+		LoadAddOn("Blizzard_ArtifactUI")
 		bdlc:fetchPlayerItems()
 		C_Timer.After(1, function() 
 			bdlc:GetRelics('nonsense')
@@ -853,7 +891,6 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- Load configuration or set bdlc.defaults
 		--------------------------------------------------------------------------------
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
-		--RegisterAddonMessagePrefix(bdlc.message_prefix);
 		AceComm:RegisterComm(bdlc.message_prefix, function(prefix, text, channel, sender) bdlc:mainCallback(text) end)
 
 		bdlc_config = bdlc_config or bdlc.defaults
@@ -891,9 +928,9 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				local s, e = string.find(origmsg, msg)
 				local newmsg = strtrim(string.sub(origmsg, e+1))
 				
-				if (IsMasterLooter() or IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
+				if (IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
 					bdlc:debug(newmsg)
-					bdlc:sendAction("startSession", newmsg, 1);
+					bdlc:sendAction("startSession", newmsg, FetchUnitName("player"));
 				else
 					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
@@ -922,62 +959,83 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:Config()
 	end
 
-	--[[
-	if (IsMasterLooter() or IsRaidLeader() or not IsInRaid()) then
-		if (event == "PLAYER_ENTERING_WORLD") then
-			bdlc:sendAction("buildLC");
-		end
-		if (event == "ENCOUNTER_END") then
-			bdlc:sendAction("buildLC");
-		end
-		if (event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LOOT_METHOD_CHANGED") then
-		end
-	end--]]
-
-	if (event == "ENCOUNTER_END") then
-		bdlc:fetchPlayerItems()
-	end
-	
-	if (IsMasterLooter() and event == "LOOT_OPENED") then
+	if (IsRaidLeader() and event == "BOSS_KILL") then
 		bdlc:sendAction("buildLC");
+		bdlc:fetchPlayerItems()
+		bdlc:startLooterList()
+
+		bdlc:alertRaid()
+	end 
+	
+	if (event == "LOOT_OPENED") then
+		bdlc.item_drops = {}
+
+		for slot = 1, GetNumLootItems() do
+			local texture, item, quantity, quality, locked = GetLootSlotInfo(slot)
+
+			if (quality and quality > 3) then
+				local itemLink = GetLootSlotLink(slot)
+
+				bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or 0
+				bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] + 1
+			end
+		end
+
+		-- let the loot council rebuild before we start any sessions
 		C_Timer.After(2, function()
-			bdlc:parseLoot()
+			f.voteFrame.enchanters:Show()
+			
+			for k, v in pairs(bdlc.item_drops) do
+				bdlc:verifyTradability(k)
+			end
 		end)
+
+		bdlc:sendAction("removeLooter", FetchUnitName("player"))
 	end
 	
 	-- Auto close sessions when loot is awarded from the body
-	if (event == "LOOT_SLOT_CLEARED" and arg1 == bdlc.award_slot) then
-		local itemlink = bdlc.loot_slots[arg1]
-		if not itemLink then return false end
+	-- if (event == "LOOT_SLOT_CLEARED" and arg1 == bdlc.award_slot) then
+	-- 	local itemlink = bdlc.loot_slots[arg1]
+	-- 	if not itemLink then return false end
 		
-		bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] - 1
+	-- 	bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] - 1
 		
-		for i = 1, #f.tabs do
-			if (f.tabs[i].itemLink == itemLink) then
-				f.tabs[i].table.item.num_items:SetText("x"..bdlc.item_drops[itemLink])
-			end
-		end
-		--[[if (bdlc.item_drops[itemLink] == 0) then
-			local itemUID = bdlc:GetItemUID(itemLink)
+	-- 	for i = 1, #f.tabs do
+	-- 		if (f.tabs[i].itemLink == itemLink) then
+	-- 			f.tabs[i].table.item.num_items:SetText("x"..bdlc.item_drops[itemLink])
+	-- 		end
+	-- 	end
+	-- 	--[[if (bdlc.item_drops[itemLink] == 0) then
+	-- 		local itemUID = bdlc:GetItemUID(itemLink)
 		
-			bdlc:sendAction("endSession", itemUID);
-			bdlc:endSession(itemUID)
-		end--]]
+	-- 		bdlc:sendAction("endSession", itemUID);
+	-- 		bdlc:endSession(itemUID)
+	-- 	end--]]
 		
-		bdlc.award_slot = {}
-		bdlc.loot_slots[arg1] = nil
-	end
+	-- 	bdlc.award_slot = {}
+	-- 	bdlc.loot_slots[arg1] = nil
+	-- end
 		
 	
 	-- THIS IS FINISHED DONT TOUCH
 	if (event == "GET_ITEM_INFO_RECEIVED") then	
+		-- Queue items that need to verify tradability
+		for k, v in pairs(bdlc.items_waiting_for_verify) do
+			local num1 = tonumber(arg1)
+			local num2 = tonumber(k)
+			if (num1 == num2) then
+				bdlc:verifyTradability(v)
+				bdlc.items_waiting_for_verify[k] = nil
+			end
+		end
+
 		-- Queue items that are starting sessions
-		for k, v in pairs(bdlc.items_waiting) do
+		for k, v in pairs(bdlc.items_waiting_for_session) do
 			local num1 = tonumber(arg1)
 			local num2 = tonumber(k)
 			if (num1 == num2) then
 				bdlc:startSession(v[1],v[2])
-				bdlc.items_waiting[k] = nil
+				bdlc.items_waiting_for_session[k] = nil
 			end
 		end
 		

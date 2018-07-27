@@ -1,7 +1,7 @@
 local bdlc, l, f = select(2, ...):unpack()
 
 function bdlc:inLC()
-	return bdlc.loot_council[FetchUnitName("player")] or IsMasterLooter() or not IsInRaid()
+	return bdlc.loot_council[FetchUnitName("player")] or IsRaidLeader() or not IsInRaid()
 end
 
 ----------------------------------------
@@ -42,7 +42,7 @@ function bdlc:addremoveLC(msg, name)
 	end
 
 	-- rebuild and redistribute your list if you're LM or leader
-	if (IsMasterLooter() or not IsInRaid()) then
+	if (IsRaidLeader() or not IsInRaid()) then
 		bdlc:sendAction("buildLC", targetname);
 	end
 end
@@ -92,7 +92,7 @@ function bdlc:buildLC()
 	bdlc.master_looter_qn = {}
 
 	-- only 1 person needs to make these actions
-	if (IsMasterLooter() or not IsInRaid()) then		
+	if (IsRaidLeader() or not IsInRaid()) then		
 		bdlc:debug("building LC")
 
 		-- get the saved min_rank

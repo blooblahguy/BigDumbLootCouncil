@@ -177,6 +177,25 @@ f.voteFrame:SetSize(600, 400);
 f.voteFrame:SetPoint("CENTER");
 f.voteFrame:Hide()
 
+-- Pending Loot Frame
+f.voteFrame.pending = CreateFrame("frame", nil, f.voteFrame)
+do 
+	local p = f.voteFrame.pending
+	p:SetPoint("TOPLEFT", f.voteFrame, "TOPRIGHT")
+	p:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMRIGHT", 0, 200)
+	p:SetFrameStrata("DIALOG");
+	p:SetFrameLevel(1);
+	p:Hide()
+	p.text = p:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	p.text:SetPoint("TOPLEFT", p, "TOPLEFT", 10, -10)
+	p.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", -10, 10)
+	p.text:SetJustifyH("LEFT")
+	p.text:SetJustifyV("TOP")
+	p.SetText = p.text.SetText
+
+	bdlc:skinBackdrop(p, .1, .1, .1, .8)
+end
+
 -- Header
 f.voteFrame.header = CreateFrame("frame", nil, f.voteFrame);
 f.voteFrame.header:EnableMouse(true);
@@ -261,8 +280,7 @@ f.voteFrame.loot_council:SetScript("OnEnter", function()
 		if (server == player_realm) then
 			councilName = name
 		end
-		local classFileName = select(2, UnitClass(councilName))
-		local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["b"] = 1, ["g"] = 1}
+		local color = bdlc:prettyName(playerName)
 		GameTooltip:AddLine(councilName, color.r, color.g, color.b)
 	end
 
