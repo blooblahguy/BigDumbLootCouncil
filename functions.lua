@@ -32,7 +32,6 @@ function bdlc:prettyName(playerName, returnString)
 	--print(color, color.r, color.g, color.b, bdCore:RGBToHex(color))
 
 	if (returnString) then
-		print("|cff"..bdCore:RGBToHex(color)..playerName.."|r")
 		return "|cff"..bdCore:RGBToHex(color)..playerName.."|r"
 	else
 		return color

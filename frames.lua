@@ -280,7 +280,7 @@ f.voteFrame.loot_council:SetScript("OnEnter", function()
 		if (server == player_realm) then
 			councilName = name
 		end
-		local color = bdlc:prettyName(playerName)
+		local color = bdlc:prettyName(councilName)
 		GameTooltip:AddLine(councilName, color.r, color.g, color.b)
 	end
 
