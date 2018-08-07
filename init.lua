@@ -26,7 +26,7 @@ function bdlc.print(msg)
 	print(bdlc.colorName..msg)
 end
 
-bdlc.looted = {}
+bdlc.looters = {}
 
 bdlc.item_drops = {}
 bdlc.enchanters = {}

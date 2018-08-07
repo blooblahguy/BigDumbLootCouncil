@@ -804,7 +804,7 @@ function bdlc:drawLooters()
 	for k, v in pairs(bdlc.looters) do
 		text = text .. name .. "\n"
 	end
-	f.voteFrame.pending:SetText(text)
+	f.voteFrame.pending.text:SetText(text)
 end
 
 -- wow needs to query the server for item information and this happens asynchronously. So we should cache it before we need it
