@@ -829,6 +829,14 @@ function bdlc:fetchPlayerItems()
 	HideUIPanel(ArtifactFrame)
 end
 
+function bdlc:getItemID(itemLink)
+	local itemString = string.match(itemLink, "item[%-?%d:]+")
+	if (not itemString) then return end
+	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+
+	return itemID
+end
+
 function bdlc:verifyTradability(itemLink)
 	if (GetItemInfo(itemLink)) then
 		local tradable = false
@@ -837,6 +845,7 @@ function bdlc:verifyTradability(itemLink)
 			bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
 		end
 	else
+		local itemID = bdlc:getItemID(itemLink)
 		bdlc.items_waiting_for_verify[itemID] = itemLink
 		local name = GetItemInfo(itemLink)
 	end
