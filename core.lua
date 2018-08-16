@@ -806,7 +806,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print("  /bdlc addtolc playername - Adds a player to the loot council (if you're the Masterlooter)")
 				print("  /bdlc removefromlc playername - Adds a player to the loot council (if you're the Masterlooter)")
 			elseif (msg == "version") then
-				bdlc:checkVersions()
+				bdlc:checkRaidVersions()
 			elseif (msg == "reset") then
 				bdlc_config = bdlc.defaults
 				ReloadUI()
