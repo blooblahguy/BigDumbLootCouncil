@@ -3,19 +3,17 @@ engine[1] = CreateFrame("Frame", nil, UIParent)
 engine[2] = {}
 engine[3] = {}
 
-if C_ChatInfo then
-	RegisterAddonMessagePrefix, SendAddonMessage = C_ChatInfo.RegisterAddonMessagePrefix, C_ChatInfo.SendAddonMessage
-end
-
-engine[1]:RegisterEvent("ADDON_LOADED")
+bdlc = engine[1]
+l = engine[2]
+f = engine[3]
 
 function engine:unpack()
 	return self[1], self[2], self[3]
 end
 
-bdlc = engine[1]
-l = engine[2]
-f = engine[3]
+bdlc:RegisterEvent("ADDON_LOADED")
+
+bdlc.testMode = false
 
 bdlc.player_realm = GetRealmName()
 bdlc.local_player = UnitName("player").."-"..bdlc.player_realm

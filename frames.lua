@@ -181,17 +181,20 @@ f.voteFrame:Hide()
 f.voteFrame.pending = CreateFrame("frame", nil, f.voteFrame)
 do 
 	local p = f.voteFrame.pending
-	p:SetPoint("TOPLEFT", f.voteFrame, "TOPRIGHT")
-	p:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMRIGHT", 0, 200)
+	p:SetPoint("LEFT", f.voteFrame, "RIGHT", -1, 0)
+	p:SetSize(150, 400)
 	p:SetFrameStrata("DIALOG");
 	p:SetFrameLevel(1);
-	p:Hide()
+
+	p.header = p:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+	p.header:SetPoint("TOP", p, "TOP", 0, -4)
+	p.header:SetText("|cff3399FFPlayers who need to loot:|r")
+
 	p.text = p:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-	p.text:SetPoint("TOPLEFT", p, "TOPLEFT", 10, -10)
+	p.text:SetPoint("TOPLEFT", p, "TOPLEFT", 10, -18)
 	p.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", -10, 10)
 	p.text:SetJustifyH("LEFT")
 	p.text:SetJustifyV("TOP")
-	p.SetText = p.text.SetText
 
 	bdlc:skinBackdrop(p, .1, .1, .1, .8)
 end
@@ -365,7 +368,7 @@ end
 
 -- Rolls
 rollFrame = CreateFrame('frame', "BDLC Roll Window", bdlc)
-rollFrame:SetSize(458, 1)
+rollFrame:SetSize(520, 1)
 rollFrame:SetPoint("CENTER", UIParent, "CENTER", 600, 0)
 rollFrame:EnableMouse(true)
 rollFrame:SetMovable(true);

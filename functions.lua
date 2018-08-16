@@ -370,6 +370,32 @@ function bdlc:GetItemUID(itemLink)
 	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue--]]
 end
 
+
+function bdlc:IsInRaidGroup()
+	local inInstance, instanceType = IsInInstance();
+	
+	if (inInstance and instanceType == "raid") then
+		local nbRaidMember = 0;
+		local nbGuildRaidMember = 0;
+		local myGuildName = GetGuildInfo("player");
+		
+		for i= 1,MAX_RAID_MEMBERS do
+			local name = GetRaidRosterInfo(i);
+			if (name ~= nil) then
+				nbRaidMember = nbRaidMember + 1;
+				local playerGuildName = GetGuildInfo("raid" .. i);
+				if (playerGuildName == myGuildName) then
+					nbGuildRaidMember = nbGuildRaidMember + 1;
+				end
+			end
+		end
+		if ((nbGuildRaidMember / nbRaidMember * 100) > 75) then
+			return true;
+		end
+	end
+	return false;
+end
+
 -- case insensitive search
 function bdlc:SmartSearch(str,ss)
 	local search = {strsplit(" ",ss)} or {ss}
@@ -397,6 +423,36 @@ function bdlc:SmartStrip(str,ss)
 	str = str:gsub(" ","")
 
 	return str
+end
+
+function bdlc:TradableTooltip(itemLink)
+	local isTradable = false
+	local tradableString = BIND_TRADE_TIME_REMAINING:gsub('%%s', '(.+)');
+
+	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
+	for bag = 0,4 do
+		for slot = 1,GetContainerNumSlots(bag) do
+			local bagItemLink = GetContainerItemLink(bag,slot);
+			
+			if (bagItemLink ~= nil and bagItemLink == itemLink) then
+				tts:SetOwner(UIParent, 'ANCHOR_NONE')
+				tts:SetBagItem(bag, slot)
+
+				for i = 2, 6 do
+					local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() or nil;
+
+					if (text and text:match(tradableString)) then
+						isTradable = true
+						break
+					end
+				end
+
+				break
+			end
+		end
+	end
+
+	return isTradable
 end
 
 -- determines if given string is a relic string
