@@ -442,26 +442,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 end
 
 ----------------------------------------
--- AddUserNotes
-----------------------------------------
---[[
-function bdlc:addUserNotes(itemUID, playerName, notes)
-	local playerName = FetchUnitName(playerName)
-
-	bdlc:debug("Add "..playerName.." notes")
-
-	if (not bdlc.loot_sessions[itemUID]) then return end
-	if not bdlc:inLC() then return end
-	
-	local currententry = bdlc:getEntry(itemUID, playerName)
-
-	if (not currententry) then return end
-	
-	currententry.notes = notes
-	currententry.user_notes:Show()
-end--]]
-
-----------------------------------------
 -- UpdateUserItem
 ----------------------------------------
 function bdlc:updateUserItem(itemLink, frame)
@@ -480,83 +460,8 @@ function bdlc:updateUserItem(itemLink, frame)
 end
 
 ----------------------------------------
--- TakeWhisperEntry
-----------------------------------------
-
-function bdlc:takeWhisperEntry(msg, sender)
-	--[[msg = string.lower(msg)
-	if (string.find(msg, "!bdlc")) then
-		local itemLink = string.match(msg,"(\124c%x+\124Hitem:.-\124h\124r)")
-		local s2, e2 = string.find(msg,"(\124c%x+\124Hitem:.-\124h\124r)")
-		local wantlevel = strtrim(string.sub(msg, e2+2))
-		local raidIndex = 0
-		local name, server = strsplit("-", sender)
-		--local findserver = select(1, string.find(sender, "-"))
-		--sender = string.sub(sender, 0, findserver-1)
-	
-		if (bdlc.loot_sessions[itemLink]) then
-			for r = 1, GetNumGroupMembers() do
-				local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(r)
-				if (name == sender) then
-					raidIndex = r
-				end
-			end
-			
-			local wantTable = {
-				["need"] = 1,
-				["bis"] = 1,
-				["mainspec"] = 1,
-				["main"] = 1,
-				["minor"] = 2,
-				["sidegrade"] = 2,
-				["off"] = 3,
-				["offspec"] = 3,
-				["rr"] = 4,
-				["reroll"] = 4,
-				["transmog"] = 5,
-				["xmog"] = 5,
-				["mog"] = 5,
-			}
-			local want = wantTable[wantLevel]
-		
-			local itemID = select(2, strsplit(":", itemLink))
-			
-			NotifyInspect("raid"..raidIndex)
-			InspectUnit("raid"..raidIndex)
-			local itemLink1, itemLink2 = bdlc:fetchUserGear("raid"..raidIndex, itemLink)
-			local guildRank = select(2, GetGuildInfo("raid"..raidIndex))
-			local ilvl = getUnitItemLevel("raid"..raidIndex)
-			local inspectwait = CreateFrame("frame", nil)
-			local total = 0
-			inspectwait:SetScript("OnUpdate", function(self, elapsed)
-				total = total + elapsed
-				if (total > 1) then
-					total = 0
-					inspectwait:SetScript("OnUpdate", function() return end)
-					guildRank = select(2, GetGuildInfo(sender)) or ""
-					itemLink1, itemLink2 = bdlc:fetchUserGear("raid"..raidIndex, itemLink)
-					ilvl = getUnitItemLevel("raid"..raidIndex)
-					
-					print(itemLink1)
-					print(itemLink2)
-					
-					bdlc:sendAction("addUserConsidering", itemLink, raidIndex, ilvl, guildRank);
-					bdlc:sendAction("addUserWant", itemID, raidIndex, 1, itemLink1, itemLink2);
-					
-					ClearInspectPlayer()
-				end
-			end)
-			
-			
-		end
-	end--]]
-end
-
-----------------------------------------
 --[[ VoteForUser
-	voting for multiple users... hmmm
-
-	why is this so hard to wrap my head around
+	Supports N votes per user. Right now just hard set to 1
 --]]
 ----------------------------------------
 function bdlc:updateVotesRemaining(itemUID, councilName)
@@ -600,8 +505,8 @@ function bdlc:updateVotesRemaining(itemUID, councilName)
 			break
 		end
 	end
-
 end
+
 function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (not bdlc.loot_council_votes[itemUID]) then return false end
@@ -693,34 +598,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 			end
 		end
 	end
-
 end
-
---[[
-function bdlc:fetchSessions()
-	if (IsMasterLooter()) then
-		if (GetNumLootItems() > 0) then
-			bdlc:parseLoot()
-		else
-			for itemUID, v in pairs(bdlc.loot_sessions) do
-				local itemLink = bdlc.itemMap[itemUID]
-				local num = bdlc.item_drops[itemLink]
-				
-				if (not num) then return end
-				
-				bdlc:sendAction("startSession", itemLink, num);
-				
-				for playerName, data in pairs(bdlc.loot_want[itemUID]) do
-					bdlc:sendAction("addUserWant", data[1], data[2], data[3], data[4], data[5]);
-				end
-				
-				for playerName, data in pairs(bdlc.loot_considering[itemUID]) do
-					bdlc:sendAction("addUserConsidering", data[1], data[2], data[3], data[4]);
-				end
-			end
-		end
-	end
-end--]]
 
 
 -- logging where loot has gone
@@ -783,27 +661,50 @@ function bdlc:mainCallback(data)
 	end
 end
 
--- now that blizzard decided for every single guild on the planet than masterlooting isn't good, we have to track which players have looted the boss, and start sessions based on them instead of using a really useful tool that we've all enjoyed since vanilla. 
+-- now that blizzard decided for every single guild on the planet than masterlooting isn't good
+-- we have to track which players have looted the boss, and start sessions based on what they got 
+-- instead of using a really useful tool that we've all enjoyed since vanilla.
+
 function bdlc:removeLooter(name)
 	bdlc.looters[name] = nil
 	bdlc:drawLooters()
 end
+
 function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
 	for r = 0, MAX_RAID_MEMBERS do
-		local name = FetchUnitName("raid"..i)
+		local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
 		bdlc.looters[name] = true
 	end
 
 	bdlc:drawLooters()
+
+	C_Timer.After(20, function()
+		bdlc:alertSlackers()
+	end)
 end
+
 function bdlc:drawLooters() 
 	local text = "";
 	for k, v in pairs(bdlc.looters) do
 		text = text .. name .. "\n"
 	end
 	f.voteFrame.pending.text:SetText(text)
+end
+
+-- alert the raid its time to loot the boss
+function bdlc:alertRaid()
+	SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
+end
+
+-- whisper players that haven't yet looted the boss
+function bdlc:alertSlackers()
+	if (not IsRaidLeader()) then return end
+	for k, v in pairs(bdlc.looters) do
+		-- these players haven't looted yet
+		SendChatMessage("BDLC: You still need to loot the boss in order to start valid sessions.", "WHISPER", nil, k)
+	end
 end
 
 -- wow needs to query the server for item information and this happens asynchronously. So we should cache it before we need it
@@ -825,11 +726,11 @@ function bdlc:cachePlayerItems()
 		local lockedReason, relicName, relicIcon, relicLink = C_ArtifactUI.GetRelicInfo(relicSlotIndex);
 	end
 
+	-- just safely allow for itemLinks to load
 	C_Timer.After(1, function() 
 		bdlc:GetRelics('nonsense')
 		HideUIPanel(ArtifactFrame)
 	end)
-	
 end
 
 function bdlc:getItemID(itemLink)
@@ -849,18 +750,6 @@ function bdlc:verifyTradability(itemLink)
 		local itemID = bdlc:getItemID(itemLink)
 		bdlc.items_waiting_for_verify[itemID] = itemLink
 		local name = GetItemInfo(itemLink)
-	end
-end
-
--- alert the raid its time to loot the boss
-function bdlc:alertRaid()
-	for i = 0, MAX_RAID_MEMBERS do
-		SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
-	end
-end
-function bdlc:alertSlackers()
-	for k, v in pairs(bdlc.looters) do
-		-- these players haven't looted yet
 	end
 end
 
@@ -884,7 +773,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
 		-- bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
 		
-		-- force load player items
+		-- force cache player items
 		bdlc:cachePlayerItems()
 		
 		--------------------------------------------------------------------------------
@@ -947,7 +836,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				
 				if (IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
 					bdlc:debug(newmsg)
-					bdlc:sendAction("verifyTradability", newmsg, FetchUnitName("player"));
+					bdlc:verifyTradability(newmsg);
 				else
 					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
