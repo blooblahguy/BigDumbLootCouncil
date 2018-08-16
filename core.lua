@@ -39,7 +39,6 @@ function bdlc:startSession(itemLink, lootedBy)
 			if (bdlc:inLC()) then
 				bdlc.loot_council_votes[itemUID] = {} 
 				bdlc:createVoteWindow(itemUID, lootedBy)
-				f.voteFrame.enchanters:Show()
 			end
 
 			bdlc:createRollWindow(itemUID, lootedBy)

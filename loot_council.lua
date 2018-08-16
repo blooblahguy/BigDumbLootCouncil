@@ -62,39 +62,10 @@ function bdlc:addremoveLC(msg, name)
 	end
 end
 
-----------------------------------------
--- Enchanters
-----------------------------------------
-function bdlc:addEnchanter(playerName, guildRankIndex)
-	playerName = FetchUnitName(playerName)
-	bdlc.enchanters[playerName] = guildRankIndex
-	bdlc:debug("Added "..playerName.." to enchanter quicklist")
-end
 
-function bdlc:findEnchanters()
-	bdlc:debug("Finding enchanters")
-	local prof1, prof2, archaeology, fishing, cooking, firstAid = GetProfessions()
-	local prof = prof1 == 8 or prof2
-	if (prof == 8) then
-		name, rank, maxRank = select(1, GetProfessionInfo(prof)), select(3, GetProfessionInfo(prof)), select(4, GetProfessionInfo(prof))
-		--if (rank >= (maxRank-10)) then
-			local masterLooter = select(3, GetLootMethod()) or 1
-			if (masterLooter) then
-				local masterLooter = GetRaidRosterInfo(masterLooter) or UnitName("player")
-				local mlguildName = select(1, GetGuildInfo(masterLooter))
-				local guildName, guildRankName, guildRankIndex = GetGuildInfo("player")
-				
-				if (mlguildName == guildName or not IsInRaid()) then
-					bdlc:sendAction("addEnchanter", bdlc.local_player, guildRankIndex);
-					--bdlc:addEnchanter(bdlc.local_player, guildRankIndex)
-				else
-					bdlc:debug("Since this enchanter isn't from the same guild, we're going to ignore them")
-				end
-			end
-		--end
-	end
-end
-
+-------------------------------------------
+-- Returns min rank or default for LC
+-------------------------------------------
 function bdlc:GetLCMinRank()
 	local min_rank
 	if (bdlc_config.lc_rank) then
