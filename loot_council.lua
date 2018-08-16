@@ -141,9 +141,8 @@ function bdlc:buildLC()
 
 	-- clear all the settings since we're rebuilding here
 	bdlc.enchanters = {}
-	local council = {}
+	local council = {FetchUnitName("player")}
 	local quicknotes = {}
-	council[playerName] = playerName
 
 	-------------------------------------------------------
 	-- MINIMUM LC RANK
