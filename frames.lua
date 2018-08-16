@@ -96,48 +96,15 @@ function bdlc:repositionFrames()
 	end
 end
 
--- this function sends out the master loot and then logs it
-local function awardLoot(playerName, dropdown, itemUID, enchanter)
-	if (enchanter) then 
-		enchanter = 1
-	else
-		enchanter = 0 
-	end
-	local playerName = FetchUnitName(playerName)
-
-	local award_slot = nil
-	local name, server = strsplit("-", playerName)
-
+-- This function alerts awarding and then sends a raid message
+local function awardLoot(playerName, dropdown, itemUID)
+	playerName = FetchUnitName(playerName)
 	if (not itemUID) then return end
 	local itemLink = bdlc.itemMap[itemUID]
 	if (not itemLink) then return end
-	
-	-- find which loot slot has this itemLink
-	for slot = 1, GetNumLootItems() do
-		local slot_itemLink = GetLootSlotLink(slot)
-		
-		if (slot_itemLink == itemLink) then
-			award_slot = slot
-			break
-		end
-	end
-	
-	-- Now find the candidate index of this same player
-	if (award_slot) then
-		for i = 1, 40 do
-			local candidate = GetMasterLootCandidate(award_slot,i)
-			
-			if (candidate == name or candidate == name.."-"..server) then
-				GiveMasterLoot(award_slot, i)
 
-				SendChatMessage("|cff3399FFBDLC|r Awarding "..itemLink.." to "..name, "RAID")
-				bdlc:debug("Award "..itemLink.." to "..name)
-				bdlc:sendAction("addLootHistory", itemUID, name, enchanter)
-
-				break
-			end
-		end
-	end
+	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
+	bdlc:sendAction("addLootHistory", itemUID, name)
 
 	dropdown:Hide()
 end
@@ -267,7 +234,7 @@ f.voteFrame.loot_council.add:SetScript("OnClick", function()
 end)
 
 f.voteFrame:HookScript("OnShow", function()
-	if (IsMasterLooter() or UnitIsGroupLeader("player") or not IsInRaid()) then
+	if (IsRaidLeader() or not IsInRaid()) then
 		f.voteFrame.loot_council.add:Show()
 	else
 		f.voteFrame.loot_council.add:Hide()
@@ -292,79 +259,6 @@ end)
 f.voteFrame.loot_council:SetScript("OnLeave", function()
 	GameTooltip:Hide()
 end)
-
--- Loot Disenchanters
-f.voteFrame.enchanters = CreateFrame("Button", nil, f.voteFrame)
-f.voteFrame.enchanters:SetText("Disenchant")
-f.voteFrame.enchanters:Hide()
-f.voteFrame.enchanters:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMRIGHT", -8, 6)
-bdlc:skinButton(f.voteFrame.enchanters, true, "blue")
-f.voteFrame.enchanters:SetScript("OnEnter", function()
-	ShowUIPanel(GameTooltip)
-	GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-	if (GetNumLootItems() > 0) then
-		GameTooltip:AddLine("Click to Disenchant")
-	else
-		GameTooltip:AddLine("Loot the boss to choose a Disenchanter")
-	end
-	GameTooltip:Show()
-end)
-f.voteFrame.enchanters:SetScript("OnLeave", function()
-	GameTooltip:Hide()
-end)
-f.voteFrame.enchanters:SetScript("OnClick", function()
-	if (GetNumLootItems() > 0) then
-		if (f.voteFrame.enchanters.dropdown:IsShown()) then
-			f.voteFrame.enchanters.dropdown:Hide()
-		else
-			local itemUID = nil
-			for i = 1, #f.tabs do
-				if (f.tabs[i].selected) then
-					itemUID = f.tabs[i].itemUID
-				end
-			end
-			
-			for i = 1, 4 do
-				f.voteFrame.enchanters.dropdown[i]:Hide()
-			end
-			f.voteFrame.enchanters.dropdown:Show()
-			table.sort(bdlc.enchanters, function(a, b)
-				return a < b
-			end)
-			local index = 1
-			for name, gRank in pairs(bdlc.enchanters) do
-				if (not f.voteFrame.enchanters.dropdown[index]) then break end
-				--if index <= 4 then
-					--local vname, server = strsplit("-", name)
-					f.voteFrame.enchanters.dropdown[index]:Show()
-					f.voteFrame.enchanters.dropdown[index]:SetText(name)
-					f.voteFrame.enchanters.dropdown[index].itemUID = itemUID
-					f.voteFrame.enchanters.dropdown[index].playerName = name
-
-					index = index + 1
-				--end
-			end
-		end
-	end
-end)
-f.voteFrame.enchanters.dropdown = CreateFrame("frame", nil, f.voteFrame.enchanters)
-f.voteFrame.enchanters.dropdown:SetSize(100, (22*4)-2)
-f.voteFrame.enchanters.dropdown:Hide()
-f.voteFrame.enchanters.dropdown:SetPoint("TOP", f.voteFrame.enchanters, "BOTTOM", 0, 1)
-bdlc:skinBackdrop(f.voteFrame.enchanters.dropdown, .1,.1,.1,1)
-for i = 1, 4 do
-	f.voteFrame.enchanters.dropdown[i] = CreateFrame("Button", nil, f.voteFrame.enchanters.dropdown)
-	local enchanter = f.voteFrame.enchanters.dropdown[i]
-	enchanter:Hide()
-	enchanter:SetSize(100, 22)
-	enchanter:SetPoint("TOP", f.voteFrame.enchanters.dropdown, "TOP", 0, -22*(i-1))
-	enchanter:SetNormalFontObject("bdlc_button")
-	enchanter:SetHighlightFontObject("bdlc_button")
-	enchanter:SetPushedTextOffset(0,-1)
-	enchanter:SetScript("OnClick", function(self)
-		awardLoot(self.playerName, f.voteFrame.enchanters.dropdown, self.itemUID, true)
-	end)
-end
 
 -- Rolls
 rollFrame = CreateFrame('frame', "BDLC Roll Window", bdlc)
@@ -819,7 +713,7 @@ for i = 1, 10 do
 				end
 			end
 		
-			if (IsMasterLooter()) then
+			if (IsRaidLeader()) then
 				if (entry.award:IsShown()) then
 					entry.award:Hide()
 				else

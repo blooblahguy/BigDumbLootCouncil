@@ -725,7 +725,7 @@ end--]]
 
 
 -- logging where loot has gone
-function bdlc:addLootHistory(itemUID, playerName, enchanter)
+function bdlc:addLootHistory(itemUID, playerName)
 	local playerName = FetchUnitName(playerName)
 	if not(playerName) then return end
 
@@ -736,7 +736,7 @@ function bdlc:addLootHistory(itemUID, playerName, enchanter)
 	local itemLink = bdlc.itemMap[itemUID]
 
 	-- compile the entry
-	local data = {itemLink, itemUID, playerName, want, itemLink1, itemLink2, notes, time(), enchanter}
+	local data = {itemLink, itemUID, playerName, want, itemLink1, itemLink2, notes, time()}
 	
 	-- get unqiue index of day/time
 	local today = date("%m/%d/%Y")
@@ -808,7 +808,7 @@ function bdlc:drawLooters()
 end
 
 -- wow needs to query the server for item information and this happens asynchronously. So we should cache it before we need it
-function bdlc:fetchPlayerItems()
+function bdlc:cachePlayerItems()
 	if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
 		LoadAddOn("Blizzard_ArtifactUI")
 	end
@@ -825,8 +825,12 @@ function bdlc:fetchPlayerItems()
 	for relicSlotIndex = 1, C_ArtifactUI.GetNumRelicSlots() do
 		local lockedReason, relicName, relicIcon, relicLink = C_ArtifactUI.GetRelicInfo(relicSlotIndex);
 	end
+
+	C_Timer.After(1, function() 
+		bdlc:GetRelics('nonsense')
+		HideUIPanel(ArtifactFrame)
+	end)
 	
-	HideUIPanel(ArtifactFrame)
 end
 
 function bdlc:getItemID(itemLink)
@@ -852,7 +856,7 @@ end
 -- alert the raid its time to loot the boss
 function bdlc:alertRaid()
 	for i = 0, MAX_RAID_MEMBERS do
-		SendChatMessage("BDLC: Please loot the boss", "RAID")
+		SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
 	end
 end
 function bdlc:alertSlackers()
@@ -863,33 +867,30 @@ end
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
-		bdlc:UnregisterEvent("ADDON_LOADED")
+		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
+
+		-------------------------------------------------------
+		-- ADDON CHANNEL
+		-------------------------------------------------------
+		AceComm:RegisterComm(bdlc.message_prefix, function(prefix, text, channel, sender) bdlc:mainCallback(text) end)
+
 		-------------------------------------------------------
 		--- Register necessary events
 		-------------------------------------------------------
+		bdlc:UnregisterEvent("ADDON_LOADED")
 		bdlc:RegisterEvent("BOSS_KILL");
 		bdlc:RegisterEvent('GET_ITEM_INFO_RECEIVED')
 		bdlc:RegisterEvent("CHAT_MSG_LOOT");
-		-- bdlc:RegisterEvent("LOOT_OPENED");
-		-- bdlc:RegisterEvent('CHAT_MSG_ADDON')
+		bdlc:RegisterEvent("LOOT_OPENED");
+		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
 		-- bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
-		-- bdlc:RegisterEvent('CHAT_MSG_WHISPER')
-		-- bdlc:RegisterEvent('PARTY_LOOT_METHOD_CHANGED')
-		-- bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
 		
 		-- force load player items
-		bdlc:fetchPlayerItems()
-
-		C_Timer.After(1, function() 
-			bdlc:GetRelics('nonsense')
-		end)
+		bdlc:cachePlayerItems()
 		
 		--------------------------------------------------------------------------------
 		-- Load configuration or set bdlc.defaults
 		--------------------------------------------------------------------------------
-		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
-		AceComm:RegisterComm(bdlc.message_prefix, function(prefix, text, channel, sender) bdlc:mainCallback(text) end)
-
 		bdlc_config = bdlc_config or bdlc.defaults
 		bdlc_history = bdlc_history or {}
 		for k, v in pairs(bdlc.defaults) do
@@ -940,7 +941,6 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				else
 					bdlc_config_toggle = true
 					bdlcconfig:Show()
-					
 				end
 			elseif (msg == "verify") then
 				local s, e = string.find(origmsg, msg)
@@ -966,90 +966,61 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:Config()
 	end
 
-	if (event == "BOSS_KILL" and IsRaidLeader() and bdlc:IsInRaidGroup()) then
-		bdlc.item_drops = {}
+	------------------------------------------------
+	-- MAIN SESSION EVENTS
+	-- Event hook when in guild raid settings
+	------------------------------------------------
+	if (event == "PLAYER_ENTERING_WORLD") then
+		-- check guild for updates
+		bdlc:checkForUpdates()
 
-		bdlc:sendAction("buildLC");
-		bdlc:fetchPlayerItems()
-		bdlc:startLooterList()
-
-		bdlc:alertRaid()
-	end 
-	
-	-- if (event == "LOOT_OPENED") then
-	-- 	if (not bdlc:IsInRaidGroup()) then return end
-
-	-- 	for slot = 1, GetNumLootItems() do
-	-- 		local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
-
-	-- 		if (quality and quality > 3) then
-	-- 			local itemLink = GetLootSlotLink(slot)
-
-	-- 			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] or 0
-	-- 			bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] + 1
-
-	-- 			-- give the loot council time to rebuild
-				
-	-- 		end
-	-- 	end
-	-- end
-
-	if (event == "CHAT_MSG_LOOT") then
-		C_Timer.After(1, function()
-			local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-			local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
-
-			local itemLink = arg1:match(myLoot) or arg1:match(myItem)
-
-			if (itemLink) then
-				bdlc:verifyTradability(itemLink)
-			end
-		end)
-	end
-	
-
-	-- checks that a user has looted all of their eligable items
-	if (event == "LOOT_SLOT_CLEARED") then
-		local eligableItems = 0
-		for slot = 1, GetNumLootItems() do
-			local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
-
-			if (quality and quality > 3) then
-				eligable = eligable + 1
-			end
+		-- rebuild the LC if you just logged in
+		if (bdlc:CanStartSession()) then
+			bdlc:sendAction("buildLC");
 		end
+	end
 
-		-- they've looted all their good items
-		if (eligableItems == 0) then
+	if (bdlc:IsInRaidGroup()) then
+		-- On boss kill, prepare BDLC to accept valid sessions
+		if (event == "BOSS_KILL" and IsRaidLeader() ) then
+			bdlc.item_drops = {}
+
+			bdlc:sendAction("buildLC");
+			bdlc:startLooterList()
+
+			bdlc:alertRaid()
+		-- checks that a user has looted all of their eligable items
+		elseif (event == "LOOT_OPENED") then
+			for slot = 1, GetNumLootItems() do
+				local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
+
+				if (quality and quality > 3) then
+					-- force pick up this item since it is potentially a loot session item
+					LootSlot(slot)
+				end
+			end
+
+			-- they've looted all their good items
 			bdlc:sendAction("removeLooter", FetchUnitName("player"))
+		-- When a user loots an item, snag that item link and attempt a session
+		elseif (event == "CHAT_MSG_LOOT") then
+			C_Timer.After(1, function()
+				local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+				local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+
+				local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+
+				if (itemLink) then
+					bdlc:verifyTradability(itemLink)
+				end
+			end)
 		end
 	end
 	
-	-- Auto close sessions when loot is awarded from the body
-	-- if (event == "LOOT_SLOT_CLEARED" and arg1 == bdlc.award_slot) then
-	-- 	local itemlink = bdlc.loot_slots[arg1]
-	-- 	if not itemLink then return false end
-		
-	-- 	bdlc.item_drops[itemLink] = bdlc.item_drops[itemLink] - 1
-		
-	-- 	for i = 1, #f.tabs do
-	-- 		if (f.tabs[i].itemLink == itemLink) then
-	-- 			f.tabs[i].table.item.num_items:SetText("x"..bdlc.item_drops[itemLink])
-	-- 		end
-	-- 	end
-	-- 	--[[if (bdlc.item_drops[itemLink] == 0) then
-	-- 		local itemUID = bdlc:GetItemUID(itemLink)
-		
-	-- 		bdlc:sendAction("endSession", itemUID);
-	-- 		bdlc:endSession(itemUID)
-	-- 	end--]]
-		
-	-- 	bdlc.award_slot = {}
-	-- 	bdlc.loot_slots[arg1] = nil
-	-- end
-		
-	
-	-- THIS IS FINISHED DONT TOUCH
+	--------------------------------------------
+	-- ITEM INFO QUEUING
+	-- this is finished, don't touch
+	--------------------------------------------
 	if (event == "GET_ITEM_INFO_RECEIVED") then	
 		-- Queue items that need to verify tradability
 		for k, v in pairs(bdlc.items_waiting_for_verify) do

@@ -120,6 +120,27 @@ function bdlc:fetchUserGear(unit, itemLink)
 	return itemLink1, itemLink2
 end
 
+function bdlc:CanStartSession(extended)
+	local can = false
+
+	-- leads the group, they are the best
+	if (IsRaidLeader()) then
+		can = true
+	end
+
+	-- is solo, let them test away
+	if (not IsInRaid()) then
+		can = true
+	end
+
+	-- let them start sessions if they are in LC and we're set [extended] = true
+	if (extended and bdlc.loot_council[FetchUnitName("player")]) then
+		can = true
+	end
+
+	return can
+end
+
 -- returns name-server for any valid unitID
 function FetchUnitName(name)
 	local name, server = strsplit("-", name)
@@ -147,11 +168,10 @@ function bdlc:sendAction(action, ...)
 	local delim = "><"
 	local paramString = strjoin(delim, ...)
 
-
 	-- allow the user to whisper through this function
-	local channel = "WHISPER"
 	local sender = bdlc.overrideSender or UnitName("player")
 	local priority = bdlc.overridePriority or "NORMAL"
+	local channel = "WHISPER"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
 	channel = bdlc.overrideChannel or channel
 
@@ -176,6 +196,7 @@ end
 function bdlc:itemEquippable(itemUID)
 	return true
 end
+
 function bdlc:itemEquippable2(itemUID)
 	-- this feature isn't localized
 	if (GetLocale() ~= "enUS" and GetLocale() ~= "enGB") then return true end
@@ -537,7 +558,6 @@ end
 function bdlc:GetRelics(rt)
 	SocketInventoryItem(17)
 	SocketInventoryItem(16)
-	LoadAddOn("Blizzard_ArtifactUI")
 	
 	local relic1, relic2
 
