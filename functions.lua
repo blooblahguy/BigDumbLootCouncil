@@ -7,7 +7,7 @@ tts:SetOwner(UIParent, 'ANCHOR_NONE')
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
 -- xform r, g, b into rrggbb
-function bdCore:RGBToHex(r, g, b)
+function bdlc:RGBToHex(r, g, b)
 	if type(r) ~= 'number' then
 		g = r.g
 		b = r.b
@@ -29,10 +29,10 @@ function bdlc:prettyName(playerName, returnString)
 	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
 
-	--print(color, color.r, color.g, color.b, bdCore:RGBToHex(color))
+	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
 
 	if (returnString) then
-		return "|cff"..bdCore:RGBToHex(color)..playerName.."|r"
+		return "|cff"..bdlc:RGBToHex(color)..playerName.."|r"
 	else
 		return color
 	end
