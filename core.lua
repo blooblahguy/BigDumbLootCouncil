@@ -744,7 +744,13 @@ end
 function bdlc:verifyTradability(itemLink)
 	if (GetItemInfo(itemLink)) then
 		if (bdlc:TradableTooltip(itemLink)) then
-			bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
+			if (bdlc.verifyMode) then
+				bdlc.print(itemLink.." is tradable!")
+			else
+				bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
+			end
+		else
+
 		end
 	else
 		local itemID = bdlc:getItemID(itemLink)
@@ -835,8 +841,11 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				local newmsg = strtrim(string.sub(origmsg, e+1))
 				
 				if (IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
+					bdlc.verifyMode = true
+					bdlc.print("Verifying Tradability of "..newmsg);
 					bdlc:debug(newmsg)
 					bdlc:verifyTradability(newmsg);
+					bdlc.verifyMode = false
 				else
 					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
 				end
@@ -868,7 +877,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		end
 	end
 
-	if (bdlc:IsInRaidGroup()) then
+	bdlc.testMode = true
+	if (bdlc:IsInRaidGroup() or bdlc.testMode) then
 		-- On boss kill, prepare BDLC to accept valid sessions
 		if (event == "BOSS_KILL" and IsRaidLeader() ) then
 			bdlc.item_drops = {}

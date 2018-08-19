@@ -459,7 +459,8 @@ function bdlc:TradableTooltip(itemLink)
 				tts:SetOwner(UIParent, 'ANCHOR_NONE')
 				tts:SetBagItem(bag, slot)
 
-				for i = 2, 6 do
+
+				for i = 50, 1, -1 do
 					local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() or nil;
 
 					if (text and text:match(tradableString)) then
