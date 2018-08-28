@@ -631,7 +631,7 @@ end
 function bdlc:mainCallback(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
-	if (method == "master" or not IsInRaid()) then
+	if (IsInRaid()) then
 		
 		local param = bdlc:split(data,"><")
 		local action = param[0] or data
@@ -673,8 +673,8 @@ end
 function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
-	for r = 0, MAX_RAID_MEMBERS do
-		local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
+	for r = 0, GetNumGroupMembers() do
+		local name = FetchUnitName("raid"..r) or FetchUnitName("party"..r)
 		bdlc.looters[name] = true
 	end
 
@@ -688,7 +688,7 @@ end
 function bdlc:drawLooters() 
 	local text = "";
 	for k, v in pairs(bdlc.looters) do
-		text = text .. name .. "\n"
+		text = text .. k .. "\n"
 	end
 	f.voteFrame.pending.text:SetText(text)
 end
