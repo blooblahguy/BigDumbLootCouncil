@@ -6,7 +6,8 @@ bdlc.versions = {}
 -- Returns version or 10000 for developer version
 --------------------------------------------------
 function bdlc:version()
-	if (bdlc.config.version == "@project-version@") then
+	-- print(strfind(bdlc.config.version, "%aproject-version%a"))
+	if (not tonumber(bdlc.config.version)) then
 		bdlc.config.version = 10000
 	end
 
@@ -22,7 +23,7 @@ function bdlc:checkForUpdates()
 	-- Only ask if you're not a developer
 	if (bdlc:version() < 10000) then
 		bdlc.overrideChannel = "GUILD"
-		bdlc:sendAction("guildTopVersion", version, bdlc.local_player);
+		bdlc:sendAction("guildTopVersion", bdlc:version(), bdlc.local_player);
 	end
 
 	-- wait 4 seconds for all responses to come back
@@ -83,6 +84,7 @@ function bdlc:checkRaidVersions()
 		local newestVersion = 0
 
 		for version, players in pairs(bdlc.versions) do
+			-- print(version, player)
 			local version = tonumber(version)
 			if (version < 10000) then
 				local printString = version..": " 
@@ -122,6 +124,7 @@ function bdlc:returnVersion(sendBackTo)
 end
 
 function bdlc:raiderVersion(version, player)
+	-- print(version, player)
 	bdlc.versions[version] = bdlc.versions[version] or {}
 	bdlc.versions[version][player] = true
 end

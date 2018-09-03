@@ -677,14 +677,14 @@ end
 function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
-	for r = 0, GetNumGroupMembers() do
+	for r = 1, GetNumGroupMembers() do
 		local name = FetchUnitName("raid"..r) or FetchUnitName("party"..r)
 		bdlc.looters[name] = true
 	end
 
 	bdlc:drawLooters()
 
-	C_Timer.After(20, function()
+	C_Timer.After(30, function()
 		bdlc:alertSlackers()
 	end)
 end
@@ -695,6 +695,10 @@ function bdlc:drawLooters()
 		text = text .. k .. "\n"
 	end
 	f.voteFrame.pending.text:SetText(text)
+end
+
+function bdlc:badGuyLooter(name)
+
 end
 
 -- alert the raid its time to loot the boss
@@ -894,17 +898,54 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			bdlc:alertRaid()
 		-- checks that a user has looted all of their eligable items
 		elseif (event == "LOOT_OPENED") then
+			local num_free = 0
+			local remaining_loot = 0
+			-- local looted = false
+			
+			-- loop through loot items and put them into bags to start sessions
+			-- if for some reason you have more than 1 item in the loot window this supports that
+			-- this also deletes greys if you have full bags
 			for slot = 1, GetNumLootItems() do
 				local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
 
 				if (quality and quality > 3) then
-					-- force pick up this item since it is potentially a loot session item
-					LootSlot(slot)
+					local itemLink = GetLootSlotLink(slot)
+					remaining_loot = remaining_loot + 1
+
+					-- get number of open bag slots
+					for b = 0, 4 do
+						num_free = num_free + GetContainerNumFreeSlots(b);
+					end
+
+					if (num_free == 0) then
+						bdlc.print("You have full bags! Attempting to delete a grey item so that you can loot this item.")
+						for bag = 0,4 do
+							for slot = 1,GetContainerNumSlots(bag) do
+								local bagItemLink = GetContainerItemLink(bag, slot);
+								if bagItemLink and select(3, GetItemInfo(bagItemLink)) == 0 then
+									PickupContainerItem(bag, slot)
+									DeleteCursorItem()
+									num_free = 1
+									bdlc.print("Deleted "..bagItemLink.." to loot "..itemLink..".");
+									break;
+								end
+							end
+						end
+					end
+					if (num_free == 0) then
+						SendChatMessage("BDLC: I have full bags but I looted "..itemLink..". Once I clear a bag slot we can see if a session can be started.", "RAID")
+					else
+						remaining_loot = remaining_loot - 1
+						-- force pick up this item since it is potentially a loot session item
+						LootSlot(slot)
+					end
 				end
 			end
 
 			-- they've looted all their good items
-			bdlc:sendAction("removeLooter", FetchUnitName("player"))
+			if (remaining_loot == 0) then
+				bdlc:sendAction("removeLooter", FetchUnitName("player"))
+			end
 		-- When a user loots an item, snag that item link and attempt a session
 		elseif (event == "CHAT_MSG_LOOT") then
 			C_Timer.After(1, function()
