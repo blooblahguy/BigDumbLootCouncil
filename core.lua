@@ -19,6 +19,10 @@ function bdlc:itemValidForSession(itemLink)
 	if (isTier or isRelic) then
 		valid = true
 	end
+	if (bdlc.forceSession) then
+		value = true
+		bdlc.forceSession = false
+	end
 
 	return valid
 end
@@ -84,7 +88,7 @@ function bdlc:startMockSession()
 
 	local demo_samples = bdlc.demo_samples
 
-	bdlc:debug("Starting mock session")
+	bdlc.print("Starting mock session")
 	
 	local function rando_name()
 		return demo_samples.names[math.random(#demo_samples.names)]
@@ -631,7 +635,7 @@ end
 function bdlc:mainCallback(data)
 
 	local method, partyMaster, raidMaster = GetLootMethod()
-	if (IsInRaid()) then
+	-- if (IsInRaid() ) then
 		
 		local param = bdlc:split(data,"><")
 		local action = param[0] or data
@@ -658,7 +662,7 @@ function bdlc:mainCallback(data)
 		else
 			--bdlc.print("Can't find any function for "..action.." - this usually means someone is out of date");
 		end
-	end
+	-- end
 end
 
 -- now that blizzard decided for every single guild on the planet than masterlooting isn't good
@@ -822,6 +826,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				
 				if (IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
 					bdlc:debug(newmsg)
+					bdlc.forceSession = true
 					bdlc:sendAction("startSession", newmsg, FetchUnitName("player"));
 				else
 					bdlc.print("You must be in the loot council and be either the loot master or the raid leader to do that");
