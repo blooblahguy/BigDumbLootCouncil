@@ -670,6 +670,8 @@ end
 -- instead of using a really useful tool that we've all enjoyed since vanilla.
 
 function bdlc:removeLooter(name)
+	local name = FetchUnitName(name)
+	
 	bdlc.looters[name] = nil
 	bdlc:drawLooters()
 end

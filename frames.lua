@@ -26,6 +26,7 @@ function bdlc:repositionFrames()
 		
 		for e = 1, #f.entries[t] do
 			local currententry = f.entries[t][e]
+			currententry:ClearAllPoints()
 			if (currententry.itemUID) then
 				if (lastentry) then
 					currententry:SetPoint("TOPLEFT", lastentry, "BOTTOMLEFT", 0, 1)
