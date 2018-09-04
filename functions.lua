@@ -584,7 +584,7 @@ function bdlc:GetRelics(rt)
 end
 
 function IsRaidLeader()
-	return UnitLeadsAnyGroup("player")
+	return UnitInRaid("player") and UnitIsGroupLeader("player")
 end
 
 function bdlc:debug(msg)

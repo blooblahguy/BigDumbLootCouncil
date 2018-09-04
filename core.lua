@@ -678,8 +678,11 @@ function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
 	for r = 1, GetNumGroupMembers() do
-		local name = FetchUnitName(UnitName("raid"..r)) or FetchUnitName(UnitName("party"..r))
-		bdlc.looters[name] = true
+		local name = GetRaidRosterInfo(i);
+		if (name) then
+			name = FetchUnitName(name)
+			bdlc.looters[name] = true
+		end
 	end
 
 	bdlc:drawLooters()
