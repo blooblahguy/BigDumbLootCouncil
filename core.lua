@@ -678,7 +678,7 @@ function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
 	for r = 1, GetNumGroupMembers() do
-		local name = FetchUnitName("raid"..r) or FetchUnitName("party"..r)
+		local name = FetchUnitName(UnitName("raid"..r)) or FetchUnitName(UnitName("party"..r))
 		bdlc.looters[name] = true
 	end
 
