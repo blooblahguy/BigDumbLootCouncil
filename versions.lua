@@ -57,9 +57,12 @@ function bdlc:newerVersion(version)
 end
 
 function bdlc:alertOutOfDate()
-	bdlc.print("You're out of date! Please update as soon as possible, old versions will often break and send lua errors to other players.");
-	bdlc.print("Your version: "..bdlc:version());
-	bdlc.print("Most recent version: "..bdlc.newestVersion);
+	if (not bdlc.alertedOutOfDate) then
+		bdlc.print("You're out of date! Please update as soon as possible, old versions will often break and send lua errors to other players.");
+		bdlc.print("Your version: "..bdlc:version());
+		bdlc.print("Most recent version: "..bdlc.newestVersion);
+		bdlc.alertedOutOfDate = true
+	end
 end
 
 
@@ -131,6 +134,7 @@ end
 
 function bdlc:alertRecent(newestVersion)
 	local myVersion = bdlc:version()
+	bdlc.newestVersion = newestVersion
 
 	if (myVersion < newestVersion) then
 		bdlc:alertOutOfDate()
