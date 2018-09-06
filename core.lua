@@ -8,18 +8,18 @@ local AceComm = LibStub:GetLibrary("AceComm-3.0")
 function bdlc:itemValidForSession(itemLink, lootedBy)
 	local valid = false
 
-	local itemUID = bdlc:GetItemUID(itemLink)
+	local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
 	local isTier = bdlc:IsTier(itemLink)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	local isRelic = bdlc:IsRelic(itemLink)
 
-	if (not bdlc.loot_sessions[itemUID]) then
-		value = true
-	else
-		if (bdlc:searchTable(bdlc.loot_sessions[itemUID], lootedBy) == false) then
-			valid = true
-		end
-	end
+	-- if (not bdlc.loot_sessions[itemUID]) then
+	-- 	value = true
+	-- end
+	-- 	if (bdlc:searchTable(bdlc.loot_sessions, lootedBy) == false) then
+	-- 		valid = true
+	-- 	end
+	-- end
 
 	if (equipSlot and string.len(equipSlot) > 0) then
 		valid = true
@@ -40,7 +40,7 @@ function bdlc:startSession(itemLink, lootedBy)
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 	
 	if (GetItemInfo(itemLink)) then
-		local itemUID = bdlc:GetItemUID(itemLink)
+		local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
 		bdlc.itemMap[itemUID] = itemLink
 	
 		if (bdlc:itemValidForSession(itemLink, lootedBy)) then

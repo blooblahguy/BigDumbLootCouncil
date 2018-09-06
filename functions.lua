@@ -364,7 +364,8 @@ function bdlc:GetItemValue(itemLink)
 end
 
 -- a hash value is fine here, because we don't actually care whats in the UID, we just need something shorter than a full link
-function bdlc:GetItemUID(itemLink)
+function bdlc:GetItemUID(itemLink, lootedBy)
+	-- print(itemLink, lootedBy)
 	--[[local text = string.match(itemLink, "item[%-?%d:]+")
 	local counter = 1
 	local len = string.len(text)
