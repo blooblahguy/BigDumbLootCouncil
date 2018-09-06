@@ -6,8 +6,8 @@ tts:SetOwner(UIParent, 'ANCHOR_NONE')
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
-function bdlc:searchTable(table, value)
-    for index, value in ipairs(tab) do
+function bdlc:searchTable(tab, val)
+    for index, value in pairs(tab) do
         if value == val then
             return true
         end
@@ -16,7 +16,7 @@ function bdlc:searchTable(table, value)
     return false
 end
 
--- xform r, g, b into rrggbb
+-- xform r, g, b into rrggbbw 
 function bdlc:RGBToHex(r, g, b)
 	if type(r) ~= 'number' then
 		g = r.g

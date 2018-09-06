@@ -13,7 +13,15 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	local isRelic = bdlc:IsRelic(itemLink)
 
-	if (bdlc:searchTable(bdlc.loot_sessions[itemUID], lootedBy) == false and ((equipSlot and string.len(equipSlot) > 0))) then
+	if (not bdlc.loot_sessions[itemUID]) then
+		value = true
+	else
+		if (bdlc:searchTable(bdlc.loot_sessions[itemUID], lootedBy) == false) then
+			valid = true
+		end
+	end
+
+	if (equipSlot and string.len(equipSlot) > 0) then
 		valid = true
 	end
 	if (isTier or isRelic) then
