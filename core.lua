@@ -129,7 +129,7 @@ function bdlc:startMockSession()
 
 	-- now lets start fake sessions
 	for k, v in pairs(bdlc.item_drops) do
-		local itemUID = bdlc:GetItemUID(k)
+		local itemUID = bdlc:GetItemUID(k, v)
 		bdlc:sendAction("startSession", k, v);
 
 		-- add our demo players in 
