@@ -5,7 +5,7 @@ local AceComm = LibStub:GetLibrary("AceComm-3.0")
 ----------------------------------------
 -- StartSession
 ----------------------------------------
-function bdlc:itemValidForSession(itemLink)
+function bdlc:itemValidForSession(itemLink, lootedBy)
 	local valid = false
 
 	local itemUID = bdlc:GetItemUID(itemLink)
@@ -13,7 +13,7 @@ function bdlc:itemValidForSession(itemLink)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	local isRelic = bdlc:IsRelic(itemLink)
 
-	if (not bdlc.loot_sessions[itemUID] and ((equipSlot and string.len(equipSlot) > 0))) then
+	if (bdlc:searchTable(bdlc.loot_sessions[itemUID], lootedBy) == false and ((equipSlot and string.len(equipSlot) > 0))) then
 		valid = true
 	end
 	if (isTier or isRelic) then
@@ -35,9 +35,9 @@ function bdlc:startSession(itemLink, lootedBy)
 		local itemUID = bdlc:GetItemUID(itemLink)
 		bdlc.itemMap[itemUID] = itemLink
 	
-		if (bdlc:itemValidForSession(itemLink)) then
+		if (bdlc:itemValidForSession(itemLink, lootedBy)) then
 			bdlc:debug("Starting session for "..itemLink)
-			bdlc.loot_sessions[itemUID] = itemUID 
+			bdlc.loot_sessions[itemUID] = lootedBy 
 			bdlc.loot_want[itemUID] = {} -- will be used to track loot log and also refresh sessions if someone relogs
 
 			if (bdlc:inLC()) then
