@@ -962,13 +962,15 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- When a user loots an item, snag that item link and attempt a session
 		elseif (event == "CHAT_MSG_LOOT") then
 			C_Timer.After(1, function()
-				local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-				local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+				if (bdlc:IsInRaidGroup()) then
+					local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+					local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
 
-				local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+					local itemLink = arg1:match(myLoot) or arg1:match(myItem)
 
-				if (itemLink) then
-					bdlc:verifyTradability(itemLink)
+					if (itemLink) then
+						bdlc:verifyTradability(itemLink)
+					end
 				end
 			end)
 		end

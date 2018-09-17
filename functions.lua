@@ -411,8 +411,8 @@ function bdlc:IsInRaidGroup()
 		local nbGuildRaidMember = 0;
 		local myGuildName = GetGuildInfo("player");
 		
-		for i= 1,MAX_RAID_MEMBERS do
-			local name = GetRaidRosterInfo(i);
+		for i = 1, 40 do
+			local name = UnitName("raid"..i);
 			if (name ~= nil) then
 				nbRaidMember = nbRaidMember + 1;
 				local playerGuildName = GetGuildInfo("raid" .. i);
