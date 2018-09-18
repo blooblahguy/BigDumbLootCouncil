@@ -421,7 +421,7 @@ function bdlc:IsInRaidGroup()
 				end
 			end
 		end
-		if ((nbGuildRaidMember / nbRaidMember * 100) > 75) then
+		if (nbGuildRaidMember > 5 and (nbGuildRaidMember / nbRaidMember * 100) > 75) then
 			return true;
 		end
 	end
