@@ -740,18 +740,18 @@ function bdlc:cachePlayerItems()
 	end
 
 	-- relics
-	SocketInventoryItem(17)
-	SocketInventoryItem(16)
+	-- SocketInventoryItem(17)
+	-- SocketInventoryItem(16)
 
-	for relicSlotIndex = 1, C_ArtifactUI.GetNumRelicSlots() do
-		local lockedReason, relicName, relicIcon, relicLink = C_ArtifactUI.GetRelicInfo(relicSlotIndex);
-	end
+	-- for relicSlotIndex = 1, C_ArtifactUI.GetNumRelicSlots() do
+	-- 	local lockedReason, relicName, relicIcon, relicLink = C_ArtifactUI.GetRelicInfo(relicSlotIndex);
+	-- end
 
-	-- just safely allow for itemLinks to load
-	C_Timer.After(1, function() 
-		bdlc:GetRelics('nonsense')
-		HideUIPanel(ArtifactFrame)
-	end)
+	-- -- just safely allow for itemLinks to load
+	-- C_Timer.After(1, function() 
+	-- 	-- bdlc:GetRelics('nonsense')
+	-- 	HideUIPanel(ArtifactFrame)
+	-- end)
 end
 
 function bdlc:getItemID(itemLink)
