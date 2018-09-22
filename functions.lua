@@ -405,6 +405,7 @@ end
 
 function bdlc:IsInRaidGroup()
 	local inInstance, instanceType = IsInInstance();
+	-- print(inInstance, instanceType)
 	
 	if (inInstance and instanceType == "raid") then
 		local nbRaidMember = 0;
@@ -415,13 +416,14 @@ function bdlc:IsInRaidGroup()
 			local name = UnitName("raid"..i);
 			if (name ~= nil) then
 				nbRaidMember = nbRaidMember + 1;
-				local playerGuildName = GetGuildInfo("raid" .. i);
+				local playerGuildName = GetGuildInfo(name);
 				if (playerGuildName == myGuildName) then
 					nbGuildRaidMember = nbGuildRaidMember + 1;
 				end
 			end
 		end
-		if (nbGuildRaidMember > 5 and (nbGuildRaidMember / nbRaidMember * 100) > 75) then
+		-- print(nbGuildRaidMember, nbRaidMember, myGuildName)
+		if ((nbGuildRaidMember / nbRaidMember * 100) > 75) then
 			return true;
 		end
 	end
