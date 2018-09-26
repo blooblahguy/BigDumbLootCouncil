@@ -405,7 +405,7 @@ end
 
 function bdlc:IsInRaidGroup()
 	local inInstance, instanceType = IsInInstance();
-	
+
 	if (inInstance == true and instanceType == "raid") then
 		local name;
 		local playerGuildName;
@@ -423,7 +423,7 @@ function bdlc:IsInRaidGroup()
 				end
 			end
 		end
-		if ((nbGuildRaidMember / nbRaidMember * 100) > 75) then
+		if (nbRaidMember > 5) then
 			return true;
 		end
 	end
