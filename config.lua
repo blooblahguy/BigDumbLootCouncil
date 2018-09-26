@@ -1,4 +1,5 @@
 local bdlc, l, c = select(2, ...):unpack()
+bdlc = bdlc
 
 function bdlc:Config()
 	-- Config window

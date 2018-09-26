@@ -1,4 +1,5 @@
 local bdlc, l, f = select(2, ...):unpack()
+bdlc = bdlc
 bdlc.versions = {}
 
 --------------------------------------------------

@@ -1,4 +1,5 @@
 local bdlc, l, f = select(2, ...):unpack()
+bdlc = bdlc
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
@@ -899,8 +900,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		end
 	end
 
-	bdlc.testMode = true
-	if (bdlc:IsInRaidGroup() or bdlc.testMode) then
+	if (bdlc:IsInRaidGroup()) then
 		-- On boss kill, prepare BDLC to accept valid sessions
 		if (event == "BOSS_KILL" and IsRaidLeader() ) then
 			bdlc.item_drops = {}
@@ -962,15 +962,13 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- When a user loots an item, snag that item link and attempt a session
 		elseif (event == "CHAT_MSG_LOOT") then
 			C_Timer.After(1, function()
-				if (bdlc:IsInRaidGroup()) then
-					local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-					local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+				local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+				local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
 
-					local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+				local itemLink = arg1:match(myLoot) or arg1:match(myItem)
 
-					if (itemLink) then
-						bdlc:verifyTradability(itemLink)
-					end
+				if (itemLink) then
+					bdlc:verifyTradability(itemLink)
 				end
 			end)
 		end

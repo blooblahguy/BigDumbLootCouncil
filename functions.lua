@@ -1,4 +1,5 @@
 local bdlc, l, f = select(2, ...):unpack()
+bdlc = bdlc
 
 -- tooltip scanning
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
@@ -402,27 +403,26 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue--]]
 end
 
-
 function bdlc:IsInRaidGroup()
 	local inInstance, instanceType = IsInInstance();
-	-- print(inInstance, instanceType)
 	
-	if (inInstance and instanceType == "raid") then
+	if (inInstance == true and instanceType == "raid") then
+		local name;
+		local playerGuildName;
 		local nbRaidMember = 0;
 		local nbGuildRaidMember = 0;
 		local myGuildName = GetGuildInfo("player");
 		
-		for i = 1, 40 do
-			local name = UnitName("raid"..i);
+		for i = 1, MAX_RAID_MEMBERS do
+			name = GetRaidRosterInfo(i);
 			if (name ~= nil) then
 				nbRaidMember = nbRaidMember + 1;
-				local playerGuildName = GetGuildInfo(name);
+				playerGuildName = GetGuildInfo("raid" .. i);
 				if (playerGuildName == myGuildName) then
 					nbGuildRaidMember = nbGuildRaidMember + 1;
 				end
 			end
 		end
-		-- print(nbGuildRaidMember, nbRaidMember, myGuildName)
 		if ((nbGuildRaidMember / nbRaidMember * 100) > 75) then
 			return true;
 		end
