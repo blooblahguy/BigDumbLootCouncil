@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-bdlc = bdlc
 
 function bdlc:inLC()
 	return bdlc.loot_council[FetchUnitName("player")] or IsRaidLeader() or not IsInRaid()
@@ -107,8 +106,8 @@ end
 -- BuildLC
 -- Wipes default loot council, quick notes, and enchanters. Then rebuilds in bulk
 ----------------------------------------
-function bdlc:buildLC()
-	if (not bdlc:CanStartSession()) then return end
+function bdlc:buildLC(requester)
+	if (not IsRaidLeader()) then return end
 	bdlc:debug("Building LC")
 
 	-- clear all the settings since we're rebuilding here
@@ -152,11 +151,6 @@ function bdlc:buildLC()
 			table.insert(council, name)
 		end
 	end
-
-	-- send these all at once in 1 call
-	if (council and #council > 0) then
-		bdlc:sendAction("addToLC", unpack(council))
-	end
 	
 	-------------------------------------------------------
 	-- QUICK NOTES
@@ -166,10 +160,15 @@ function bdlc:buildLC()
 		table.insert(quicknotes, k)
 	end
 
-	-- send these all at once in 1 call
+	-- loot council
+	if (council and #council > 0) then
+		bdlc:sendAction("addToLC", unpack(council))
+	end
+	-- custom quicknotes
 	if (quicknotes and #quicknotes > 0) then
 		bdlc:sendAction("customQN", unpack(quicknotes) );
 	end
+
 
 	-------------------------------------------------------
 	-- ENCHANTERS

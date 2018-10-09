@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-bdlc = bdlc
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
@@ -689,7 +688,7 @@ function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
 	for r = 1, GetNumGroupMembers() do
-		local name = GetRaidRosterInfo(i);
+		local name = GetRaidRosterInfo(r);
 		if (name) then
 			name = FetchUnitName(name)
 			bdlc.looters[name] = true
@@ -782,8 +781,8 @@ function bdlc:verifyTradability(itemLink)
 end
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
-	if (event == "ADDON_LOADED" and (arg1 == "BigDumbLootCouncil" or arg1 == "bigdumblootcouncil")) then
-		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
+	if (event == "ADDON_LOADED" and arg1 == "bdlc") then
+		print("|cff3399FFAO Big Dumb Loot Council|r loaded. /bdlc for options")
 
 		-------------------------------------------------------
 		-- ADDON CHANNEL
@@ -799,6 +798,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:RegisterEvent("CHAT_MSG_LOOT");
 		bdlc:RegisterEvent("LOOT_OPENED");
 		bdlc:RegisterEvent('PLAYER_ENTERING_WORLD')
+		bdlc:RegisterEvent('TRADE_ACCEPT_UPDATE')
+		
 		-- bdlc:RegisterEvent('GROUP_ROSTER_UPDATE')
 		
 		-- force cache player items
@@ -818,9 +819,9 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		--------------------------------------------------------------------------------
 		-- Set up slash commands
 		--------------------------------------------------------------------------------
-		SLASH_BDLC1 = "/bdlc"
+		SLASH_bdlc1 = "/bdlc"
 		bdlc_config_toggle = false
-		SlashCmdList["BDLC"] = function(origmsg, editbox)
+		SlashCmdList["bdlc"] = function(origmsg, editbox)
 			origmsg = strtrim(origmsg)
 			local param = bdlc:split(origmsg," ")
 			local msg = param[0] or origmsg;
@@ -894,13 +895,12 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- check guild for updates
 		bdlc:checkForUpdates()
 
-		-- rebuild the LC if you just logged in
-		if (bdlc:CanStartSession()) then
-			bdlc:sendAction("buildLC");
-		end
+		-- rebuild / request the LC if you just logged in
+		bdlc:sendAction("buildLC");
 	end
 
-	if (bdlc:IsInRaidGroup()) then
+	bdlc.testMode = true
+	if (bdlc:IsInRaidGroup() or bdlc.testMode) then
 		-- On boss kill, prepare BDLC to accept valid sessions
 		if (event == "BOSS_KILL" and IsRaidLeader() ) then
 			bdlc.item_drops = {}
@@ -909,8 +909,9 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			bdlc:startLooterList()
 
 			bdlc:alertRaid()
-		-- checks that a user has looted all of their eligable items
+			
 		elseif (event == "LOOT_OPENED") then
+			-- checks that a user has looted all of their eligable items
 			local num_free = 0
 			local remaining_loot = 0
 			-- local looted = false
@@ -945,6 +946,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 							end
 						end
 					end
+
 					if (num_free == 0) then
 						SendChatMessage("BDLC: I have full bags but I looted "..itemLink..". Once I clear a bag slot we can see if a session can be started.", "RAID")
 					else
@@ -959,16 +961,47 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			if (remaining_loot == 0) then
 				bdlc:sendAction("removeLooter", FetchUnitName("player"))
 			end
+
+		elseif (event == "TRADE_ACCEPT_UPDATE") then
+			for i = 1, 6 do
+				local chatItemLink = GetTradeTargetItemLink(i);
+				local name, _, quantity, quality, isUsable, _ = GetTradeTargetItemInfo(i)
+				
+				if (quantity == 1) then 
+					-- Exists, not stackable
+					
+					local _, _, _, itemLink = string.find(chatItemLink, "(|H(.+)|h)");
+					_, _, itemLink = string.find(itemLink, "(.-|h)");
+					
+					local itemString = string.match(itemLink, "item[%-?%d:]+")
+					local _, itemID, _, gem1, _, _, _, _, _, _, _, _, _, _, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+					local itemUID = itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue
+
+					-- Registering a filter
+					bdlc.tradedItems[itemUID] = time()
+				end
+			end
 		-- When a user loots an item, snag that item link and attempt a session
 		elseif (event == "CHAT_MSG_LOOT") then
 			C_Timer.After(1, function()
-				local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-				local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+				if (bdlc:IsInRaidGroup()) then
+					local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+					local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+					-- You receive loot : %s|Hitem :%d :%d :%d :%d|h[%s]|h%s.
+					
+					local itemLink = arg1:match(myLoot) or arg1:match(myItem)
 
-				local itemLink = arg1:match(myLoot) or arg1:match(myItem)
-
-				if (itemLink) then
-					bdlc:verifyTradability(itemLink)
+					if (itemLink) then
+						local itemString = string.match(itemLink, "item[%-?%d:]+")
+						local _, itemID, _, gem1, _, _, _, _, _, _, _, _, _, _, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+						local itemUID = itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue
+					
+						if not bdlc.tradedItems[itemUID] then
+							bdlc:verifyTradability(itemLink)
+						else
+							print('Experimental: '..itemLink..' received via trading, will not be announced again.')
+						end
+					end
 				end
 			end)
 		end
@@ -984,7 +1017,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			local num1 = tonumber(arg1)
 			local num2 = tonumber(k)
 			if (num1 == num2) then
-				bdlc:verifyTradability(v)
+				
+				if not bdlc.tradedItems[v] then
+				-- TODO: This event can't fire after a trade so this test should be removed?
+					bdlc:verifyTradability(v)
+				else
+					print('Experimental: Item received via trading, will not be announced again.')
+				end
+				
 				bdlc.items_waiting_for_verify[k] = nil
 			end
 		end

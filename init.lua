@@ -26,6 +26,8 @@ end
 
 bdlc.looters = {}
 
+bdlc.tradedItems = {}
+
 bdlc.item_drops = {}
 bdlc.enchanters = {}
 bdlc.award_slot = nil
@@ -61,7 +63,6 @@ bdlc.config = {
 	width = 600,
 	debug = false,
 	version = "@project-version@"
-	-- version = "1.25"
 }
 bdlc.defaults = {
 	council_min_rank = 2,

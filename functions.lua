@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-bdlc = bdlc
 
 -- tooltip scanning
 local tts = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
@@ -131,6 +130,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 	return itemLink1, itemLink2
 end
 
+-- probably don't need this
 function bdlc:CanStartSession(extended)
 	local can = false
 
@@ -144,7 +144,7 @@ function bdlc:CanStartSession(extended)
 		can = true
 	end
 
-	-- let them start sessions if they are in LC and we're set [extended] = true
+	-- let them start sessions if they are in LC and we've passed [extended] = true
 	if (extended and bdlc.loot_council[FetchUnitName("player")]) then
 		can = true
 	end
@@ -180,7 +180,7 @@ function bdlc:sendAction(action, ...)
 	local paramString = strjoin(delim, ...)
 
 	-- allow the user to whisper through this function
-	local sender = bdlc.overrideSender or UnitName("player")
+	local sender = bdlc.overrideRecipient or UnitName("player")
 	local priority = bdlc.overridePriority or "NORMAL"
 	local channel = "WHISPER"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
@@ -188,11 +188,11 @@ function bdlc:sendAction(action, ...)
 
 	-- merge then send
 	local data = action..delim..paramString
-	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, sender, priority)
+	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, receipiant, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil
-	bdlc.overrideSender = nil
+	bdlc.overrideRecipient = nil
 end
 
 local function searchArray(arr, val)
@@ -205,112 +205,62 @@ local function searchArray(arr, val)
 end
 
 function bdlc:itemEquippable(itemUID)
-	return true
-end
-
-function bdlc:itemEquippable2(itemUID)
-	-- this feature isn't localized
-	if (GetLocale() ~= "enUS" and GetLocale() ~= "enGB") then return true end
-
 	local itemLink = bdlc.itemMap[itemUID]
-
-	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
-	local playerClass = select(2, UnitClass("player"))
-	local armorType = nil
-	local classes = {}
+	local _, _, _, _, _, _, _, _, equipSlot, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(itemLink)
 	
-	classes["WARRIOR"] = {}
-	classes["WARRIOR"].armor = "Plate"
-	classes["WARRIOR"].tier = l["tierProtector"]
-	classes["WARRIOR"].relics = {"Iron", "Blood", "Shadow", "Fire", "Storm"}
-	
-	classes["PALADIN"] = {}
-	classes["PALADIN"].armor = "Plate"
-	classes["PALADIN"].tier = l["tierConqueror"]
-	classes["PALADIN"].relics = {"Life", "Holy", "Iron", "Fire", "Arcane"}
-	
-	classes["HUNTER"] = {}
-	classes["HUNTER"].armor = "Mail"
-	classes["HUNTER"].tier = l["tierProtector"]
-	classes["HUNTER"].relics = {"Storm", "Arcane", "Blood", "Iron", "Life"}
-	
-	classes["ROGUE"] = {}
-	classes["ROGUE"].armor = "Leather"
-	classes["ROGUE"].tier = l["tierVanquisher"]
-	classes["ROGUE"].relics = {"Shadow", "Blood", "Fel", "Iron", "Storm", "Fel"}
-	
-	classes["PRIEST"] = {}
-	classes["PRIEST"].armor = "Cloth"
-	classes["PRIEST"].tier =l["tierConqueror"]
-	classes["PRIEST"].relics = {"Holy", "Shadow", "Blood", "Life"}
-	
-	classes["DEATHKNIGHT"] = {}
-	classes["DEATHKNIGHT"].armor = "Plate"
-	classes["DEATHKNIGHT"].tier = l["tierVanquisher"]
-	classes["DEATHKNIGHT"].relics = {"Blood", "Frost", "Fire", "Shadow", "Iron"}
-	
-	classes["SHAMAN"] = {}
-	classes["SHAMAN"].armor = "Mail"
-	classes["SHAMAN"].tier = l["tierProtector"]
-	classes["SHAMAN"].relics = {"Storm", "Fire", "Life", "Frost", "Iron"}
-	
-	classes["MAGE"] = {}
-	classes["MAGE"].armor = "Cloth"
-	classes["MAGE"].tier = l["tierVanquisher"]
-	classes["MAGE"].relics = {"Arcane", "Fire", "Frost"}
-	
-	classes["WARLOCK"] = {}
-	classes["WARLOCK"].armor = "Cloth"
-	classes["WARLOCK"].tier = l["tierConqueror"]
-	classes["WARLOCK"].relics = {"Shadow", "Fel", "Blood", "Fire"}
-	
-	classes["MONK"] = {}
-	classes["MONK"].armor = "Leather"
-	classes["MONK"].tier = l["tierProtector"]
-	classes["MONK"].relics = {"Life", "Frost", "Storm", "Iron"}
-	
-	classes["DRUID"] = {}
-	classes["DRUID"].armor = "Leather"
-	classes["DRUID"].tier = l["tierVanquisher"]
-	classes["DRUID"].relics = {"Arcane", "Frost", "Fire", "Life", "Blood"}
-	
-	classes["DEMONHUNTER"] = {}
-	classes["DEMONHUNTER"].armor = "Leather"
-	classes["DEMONHUNTER"].tier = l["tierConqueror"]
-	classes["DEMONHUNTER"].relics = {"Fel", "Iron", "Shadow", "Arcane"}
-	
-	local myClass = classes[playerClass]
-	
-	if (class == "Armor" and subclass ~= "Miscellaneous" and subclass ~= "Cosmetic" and equipSlot ~= "INVTYPE_CLOAK") then
-		armorType = subclass
-	elseif (bdlc:IsRelic(itemLink)) then
-		local relicType = bdlc:GetRelicType(itemLink)
-		
-		if (searchArray(myClass.relics, relicType)) then
-			bdlc:debug("This item is "..relicType..". I am a "..playerClass.." I can use this!")
-			return true
-		else
-			return false
-		end
-	elseif (bdlc:IsTier(itemLink)) then
-			bdlc:debug("This item is tier. I am tier "..myClass.tier.." I can use this!")
-		if (string.find(itemLink, myClass.tier)) then
-			return true
-		else
-			return false
-		end
-	else
-		bdlc:debug("This is not armor")
+	if (bindType ~= 1) or (equipSlot == 'INVTYPE_FINGER') or (equipSlot == 'INVTYPE_CLOAK') or (equipSlot == 'INVTYPE_NECK') or (equipSlot == 'INVTYPE_TRINKET') then 
+		-- LQE, necks, rings, trinkets and cloaks are always 'usable'
 		return true
 	end
 	
-	if (armorType ~= myClass.armor) then
-		bdlc:debug("This item is "..armorType..". I am a "..playerClass.." I can't use this!!")
-		return false
+	local playerClass = select(2, UnitClass("player"))
+	local classes = {}
+		--[[
+			[4] = Armor
+				Miscellaneous=0, (trinkets/necks/rings filtered above, so the only way to get there are caster offhands)
+				Cloth=1,
+				Leather=2,
+				Mail=3,
+				Plate=4,
+				Cosmetic=5,
+				Shields=6
+			
+			[2] = Weapons
+				One-handed Axes=0, Two-handed Axes=1,
+				Bows=2, Guns=3,
+				One-handed Maces=4, Two-handed Maces=5,
+				Polearms=6,
+				One-handed Swords=7, Two-handed Swords=8,
+				Warglaives=9,
+				Staves=10,
+				Fist Weapons=13,
+				Miscellaneous=14, ??
+				Daggers=15,
+				Thrown=16,
+				Crossbows=18,
+				Wands=19,
+				Fishing Poles=20
+		--]]
+		
+		classes["WARRIOR"] = { [2]={0,1,4,5,6,7,8,10,13,14,15,20}, [4]={4,5,6}, }
+		classes["PALADIN"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={0,4,5,6}, }
+		classes["HUNTER"] = { [2]={0,1,2,3,6,7,8,10,13,14,15,18,20}, [4]={3,5}, }
+		classes["ROGUE"] = { [2]={0,4,7,13,14,15,20}, [4]={2,5}, }
+		classes["PRIEST"] = { [2]={4,10,14,15,19,20}, [4]={0,1,5}, }
+		classes["DEATHKNIGHT"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={4,5}, }
+		classes["SHAMAN"] = { [2]={0,1,4,5,10,13,14,15,20}, [4]={0,3,5,6}, }
+		classes["MAGE"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
+		classes["WARLOCK"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
+		classes["MONK"] = { [2]={0,4,6,7,10,13,14,20}, [4]={0,2,5}, }
+		classes["DRUID"] = { [2]={4,5,6,10,13,14,15,20}, [4]={0,2,5}, }
+		classes["DEMONHUNTER"] = { [2]={0,7,9,13,14,15,20}, [4]={2,5}, }
+	
+	if tContains(classes[playerClass][itemClassID], itemSubClassID) then
+		return true 
 	end
 	
-	bdlc:debug("This item is "..armorType..". I am a "..playerClass.." I can totally use this!!")
-	return true
+	print("Experimental: You automatically passed on "..itemLink.." (unusable for you class).")
+	return false
 end
 
 function bdlc:IsTier(itemLink)
@@ -403,27 +353,27 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue--]]
 end
 
+
 function bdlc:IsInRaidGroup()
 	local inInstance, instanceType = IsInInstance();
-
-	if (inInstance == true and instanceType == "raid") then
-		local name;
-		local playerGuildName;
+	
+	if (inInstance and instanceType == "raid") then
 		local nbRaidMember = 0;
 		local nbGuildRaidMember = 0;
 		local myGuildName = GetGuildInfo("player");
 		
-		for i = 1, MAX_RAID_MEMBERS do
-			name = GetRaidRosterInfo(i);
+		-- we only do the first 20, because we don't want to check if they are in the raid on mythic
+		for i = 1, 20 do
+			local name = UnitName("raid"..i);
 			if (name ~= nil) then
 				nbRaidMember = nbRaidMember + 1;
-				playerGuildName = GetGuildInfo("raid" .. i);
+				local playerGuildName = GetGuildInfo("raid" .. i);
 				if (playerGuildName == myGuildName) then
 					nbGuildRaidMember = nbGuildRaidMember + 1;
 				end
 			end
 		end
-		if (nbRaidMember > 5) then
+		if (nbGuildRaidMember > 5 and (nbGuildRaidMember / nbRaidMember * 100) > 75) then
 			return true;
 		end
 	end

@@ -1,5 +1,4 @@
 local bdlc, l, f = select(2, ...):unpack()
-bdlc = bdlc
 bdlc.versions = {}
 
 --------------------------------------------------
@@ -41,7 +40,7 @@ function bdlc:guildTopVersion(versionToBeat, sendBackTo)
 	-- We have a more recent version than them
 	if (myVersion < 10000 and myVersion > versionToBeat) then
 		bdlc.overrideChannel = "WHISPER"
-		bdlc.overrideSender = sendBackTo
+		bdlc.overrideRecipient = sendBackTo
 		bdlc:sendAction("newerVersion", myVersion);
 	end
 
@@ -123,7 +122,7 @@ function bdlc:returnVersion(sendBackTo)
 	local myVersion = bdlc:version()
 
 	bdlc.overrideChannel = "WHISPER"
-	bdlc.overrideSender = sendBackTo
+	bdlc.overrideRecipient = sendBackTo
 	bdlc:sendAction("raiderVersion", myVersion, bdlc.local_player);
 end
 
