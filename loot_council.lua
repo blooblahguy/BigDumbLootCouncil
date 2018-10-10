@@ -106,7 +106,7 @@ end
 -- BuildLC
 -- Wipes default loot council, quick notes, and enchanters. Then rebuilds in bulk
 ----------------------------------------
-function bdlc:buildLC(requester)
+function bdlc:buildLC()
 	if (not IsRaidLeader()) then return end
 	bdlc:debug("Building LC")
 

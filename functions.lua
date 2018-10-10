@@ -180,7 +180,7 @@ function bdlc:sendAction(action, ...)
 	local paramString = strjoin(delim, ...)
 
 	-- allow the user to whisper through this function
-	local sender = bdlc.overrideRecipient or UnitName("player")
+	local recipient = bdlc.overrideRecipient or UnitName("player")
 	local priority = bdlc.overridePriority or "NORMAL"
 	local channel = "WHISPER"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then channel = "RAID" end
@@ -188,7 +188,7 @@ function bdlc:sendAction(action, ...)
 
 	-- merge then send
 	local data = action..delim..paramString
-	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, receipiant, priority)
+	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, recipient, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil

@@ -688,10 +688,8 @@ function bdlc:startLooterList()
 	bdlc.looters = {}
 	local p = f.voteFrame.pending
 	for r = 1, GetNumGroupMembers() do
-		local name = GetRaidRosterInfo(r);
-		if (name) then
-			name = FetchUnitName(name)
-			bdlc.looters[name] = true
+		if (UnitExists("raid"..r)) then
+			bdlc.looters[FetchUnitName('raid'..r)] = true
 		end
 	end
 
@@ -781,8 +779,9 @@ function bdlc:verifyTradability(itemLink)
 end
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
-	if (event == "ADDON_LOADED" and arg1 == "bdlc") then
-		print("|cff3399FFAO Big Dumb Loot Council|r loaded. /bdlc for options")
+	-- print(arg1)
+	if (event == "ADDON_LOADED" and arg1 == "BigDumbLootCouncil") then
+		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
 
 		-------------------------------------------------------
 		-- ADDON CHANNEL
@@ -905,7 +904,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		if (event == "BOSS_KILL" and IsRaidLeader() ) then
 			bdlc.item_drops = {}
 
-			bdlc:sendAction("buildLC");
+			bdlc:buildLC()
 			bdlc:startLooterList()
 
 			bdlc:alertRaid()
@@ -984,23 +983,21 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		-- When a user loots an item, snag that item link and attempt a session
 		elseif (event == "CHAT_MSG_LOOT") then
 			C_Timer.After(1, function()
-				if (bdlc:IsInRaidGroup()) then
-					local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-					local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
-					-- You receive loot : %s|Hitem :%d :%d :%d :%d|h[%s]|h%s.
-					
-					local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+				local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+				local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+				-- You receive loot : %s|Hitem :%d :%d :%d :%d|h[%s]|h%s.
+				
+				local itemLink = arg1:match(myLoot) or arg1:match(myItem)
 
-					if (itemLink) then
-						local itemString = string.match(itemLink, "item[%-?%d:]+")
-						local _, itemID, _, gem1, _, _, _, _, _, _, _, _, _, _, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
-						local itemUID = itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue
-					
-						if not bdlc.tradedItems[itemUID] then
-							bdlc:verifyTradability(itemLink)
-						else
-							print('Experimental: '..itemLink..' received via trading, will not be announced again.')
-						end
+				if (itemLink) then
+					local itemString = string.match(itemLink, "item[%-?%d:]+")
+					local _, itemID, _, gem1, _, _, _, _, _, _, _, _, _, _, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+					local itemUID = itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue
+				
+					if not bdlc.tradedItems[itemUID] then
+						bdlc:verifyTradability(itemLink)
+					else
+						print('Experimental: '..itemLink..' received via trading, will not be announced again.')
 					end
 				end
 			end)
