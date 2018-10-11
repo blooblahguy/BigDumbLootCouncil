@@ -58,11 +58,12 @@ bdlc.wantTable = {
 
 -- Config
 bdlc.config = {
-	flat = "Interface\\Buttons\\WHITE8x8",
-	height = 400,
-	width = 600,
-	debug = false,
-	version = "@project-version@"
+	flat = "Interface\\Buttons\\WHITE8x8"
+	, height = 400
+	, width = 600
+	-- , debug = true
+	-- , version = "@project-version@"
+	, version = "2.45"
 }
 bdlc.defaults = {
 	council_min_rank = 2,

@@ -188,6 +188,7 @@ function bdlc:sendAction(action, ...)
 
 	-- merge then send
 	local data = action..delim..paramString
+	bdlc:debug(bdlc.message_prefix, data, channel, recipient, priority)
 	AceComm:SendCommMessage(bdlc.message_prefix, data, channel, recipient, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
@@ -358,24 +359,7 @@ function bdlc:IsInRaidGroup()
 	local inInstance, instanceType = IsInInstance();
 	
 	if (inInstance and instanceType == "raid") then
-		local nbRaidMember = 0;
-		local nbGuildRaidMember = 0;
-		local myGuildName = GetGuildInfo("player");
-		
-		-- we only do the first 20, because we don't want to check if they are in the raid on mythic
-		for i = 1, 20 do
-			local name = UnitName("raid"..i);
-			if (name ~= nil) then
-				nbRaidMember = nbRaidMember + 1;
-				local playerGuildName = GetGuildInfo("raid" .. i);
-				if (playerGuildName == myGuildName) then
-					nbGuildRaidMember = nbGuildRaidMember + 1;
-				end
-			end
-		end
-		if (nbGuildRaidMember > 5 and (nbGuildRaidMember / nbRaidMember * 100) > 75) then
-			return true;
-		end
+		return true;
 	end
 	return false;
 end
@@ -547,7 +531,8 @@ function bdlc:GetRelics(rt)
 end
 
 function IsRaidLeader()
-	return UnitInRaid("player") and UnitIsGroupLeader("player")
+	local inInstance, instanceType = IsInInstance();
+	return inInstance and instanceType == "raid" and UnitIsGroupLeader("player")
 end
 
 function bdlc:debug(msg)

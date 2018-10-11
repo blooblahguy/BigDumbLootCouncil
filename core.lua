@@ -1,4 +1,4 @@
-local bdlc, l, f = select(2, ...):unpack()
+bdlc, l, f = select(2, ...):unpack()
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
@@ -714,7 +714,7 @@ end
 
 -- alert the raid its time to loot the boss
 function bdlc:alertRaid()
-	SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
+	
 end
 
 -- whisper players that haven't yet looted the boss
@@ -780,7 +780,7 @@ end
 
 bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	-- print(arg1)
-	if (event == "ADDON_LOADED" and arg1 == "BigDumbLootCouncil") then
+	if (event == "ADDON_LOADED" and (arg1:lower() == "bigdumblootcouncil" or arg1:lower() == "bdlc")) then
 		print("|cff3399FFBig Dumb Loot Council|r loaded. /bdlc for options")
 
 		-------------------------------------------------------
@@ -823,7 +823,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		SlashCmdList["bdlc"] = function(origmsg, editbox)
 			origmsg = strtrim(origmsg)
 			local param = bdlc:split(origmsg," ")
-			local msg = param[0] or origmsg;
+			local msg = param[0] or origmsg
+
 			if (msg == "" or msg == " ") then
 				bdlc.print("Options:")
 				print("  /bdlc test - Tests the addon (must be in raid)")
@@ -842,7 +843,7 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				local s, e = string.find(origmsg, msg)
 				local newmsg = strtrim(string.sub(origmsg, e+1))
 				
-				if (IsRaidLeader() or not IsInRaid() and strlen(newmsg) > 1) then
+				if (bdlc:inLC() and strlen(newmsg) > 1) then
 					bdlc:debug(newmsg)
 					bdlc.forceSession = true
 					bdlc:sendAction("startSession", newmsg, FetchUnitName("player"));
@@ -874,9 +875,13 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				end
 			elseif (msg == "test") then
 				bdlc:startMockSession()
-			elseif (msg == "show" and bdlc:inLC()) then
-				f.voteFrame:Show()
-			elseif (msg == "hide" and bdlc:inLC()) then
+			elseif (msg == "show") then
+				if (bdlc:inLC()) then
+					f.voteFrame:Show()
+				else
+					print("Can't show window - you are not in the loot council.")
+				end
+			elseif (msg == "hide") then
 				f.voteFrame:Hide()
 			else
 				print("/bdlc "..msg.." command not recognized")
@@ -901,14 +906,15 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 	bdlc.testMode = true
 	if (bdlc:IsInRaidGroup() or bdlc.testMode) then
 		-- On boss kill, prepare BDLC to accept valid sessions
-		if (event == "BOSS_KILL" and IsRaidLeader() ) then
+		if (event == "BOSS_KILL" ) then
+
+			if (IsRaidLeader()) then
+				bdlc:buildLC()
+				SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
+			end
+
 			bdlc.item_drops = {}
-
-			bdlc:buildLC()
 			bdlc:startLooterList()
-
-			bdlc:alertRaid()
-			
 		elseif (event == "LOOT_OPENED") then
 			-- checks that a user has looted all of their eligable items
 			local num_free = 0
