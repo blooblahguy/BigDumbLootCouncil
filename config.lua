@@ -1,3 +1,4 @@
+--[[
 bdlc, l, c = select(2, ...):unpack()
 
 function bdlc:Config()
@@ -363,3 +364,4 @@ function bdlc:createList(option,info)
 		info:callback()
 	end
 end
+--]]
