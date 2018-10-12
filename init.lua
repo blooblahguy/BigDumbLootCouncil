@@ -24,6 +24,8 @@ function bdlc.print(msg)
 	print(bdlc.colorName..msg)
 end
 
+bdlc.font = "Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf"
+
 bdlc.looters = {}
 
 bdlc.tradedItems = {}
@@ -62,8 +64,8 @@ bdlc.config = {
 	, height = 400
 	, width = 600
 	-- , debug = true
-	-- , version = "@project-version@"
-	, version = "2.45"
+	, version = "@project-version@"
+	-- , version = "2.45"
 }
 bdlc.defaults = {
 	council_min_rank = 2,
