@@ -1,0 +1,3 @@
+[submodule "libs/bdConfigLib"]
+	path = libs/bdConfigLib
+	url = https://github.com/blooblahguy/bdConfigLib
