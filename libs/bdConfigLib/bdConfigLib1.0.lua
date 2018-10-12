@@ -26,6 +26,7 @@
 
 ========================================================]]
 
+local addonName, addon = ...
 local _G = _G
 local version = 10
 
@@ -43,122 +44,11 @@ local config = _G.bdConfigLib
 local function debug(...)
 	print("|cffA02C2FbdConfigLib|r:", ...)
 end
-
-local function RegisterModule(settings, configuration, savedVariable, savedVariableAcct)
-	if (not settings.name) then 
-		debug("When addind a module, you must include a name in the settings table.")
-		return
-	end
-	if (not configuration) then 
-		debug("When addind a module, you must include a configuration table to outline it's options.")
-		return
-	end
-	if (not savedVariable) then 
-		debug("When addind a module, you must include a savedVariable reference so that your settings can be saved.")
-		return
-	end
-
-	local module = {}
-	module.tabs = {}
-	module.tabContainer = false
-	module.link = false
-	module.lastTab = false
-
-	function module:Select()
-		if (module.active) then return end
-
-		-- Unselect all modules
-		for name, otherModule in pairs(config.modules) do
-			otherModule:Unselect()
-		end
-
-		-- Show this module
-		module.active = true
-		module.tabContainer:Show()
-
-		-- Select first tab
-	end
-
-	-- for when hiding
-	function module:Unselect()
-		module.tabContainer:Hide()
-		for k, page in pairs(module.pages) do
-			page:Hide()
-		end
-	end
-
-	--// Create tabs container
-	do
-		local tabContainer = CreateFrame("frame", nil, config)
-		tabContainer:SetPoint("TOPLEFT", config.right, "TOPLEFT")
-		tabContainer:SetPoint("BOTTOMRIGHT", config.right, "TOPRIGHT", config.dimensions.header)
-		config:CreateBackdrop(tabContainer)
-
-		module.tabsContainer = tabContainer
-	end
-	
-	--// Create page / tab
-	function module:CreateTab(name)
-		local index = #module.tabs + 1
-
-		-- create page container to display first tab's configuration options
-		local page = CreateFrame("frame", nil, config)
-		page:SetAllPoints(config.right)
-		page:Hide()
-
-		-- create tab to link to this page
-		local tab = CreateButton(module.tabContainer)
-		tab.OnClick = function()
-			-- unselect / hide other tabs
-			for i, t in pairs(modules.tabs) do
-
-			end
-			tab.page:Show()
-			tab.active = true
-			tab.page.active = true
-		end
-		tab:SetText(name)
-		if (index == 1) then
-			tab:SetPoint("LEFT", module.tabContainer, "LEFT", 2, 0)
-		else
-			tab:SetPoint("LEFT", module.tabs[index - 1], "RIGHT", 2, 0)
-		end
-
-		-- give data to the objects
-		tab.page, tab.name, tab.index = page, name, index
-		parent.page, parent.name, parent.index = page, name, index
-
-		-- append to page storage
-		module.tabs[index] = page
-	end
-
-	--// Create module navigation link
-	do
-		local link = CreateButton()
-		link.OnClick = module.Select
-		link:SetText(settings.name)
-		link:SetWidth(config.dimensions.left_column)
-		link:SetJustifyH("LEFT")
-		if (not config.lastLink) then
-			link:SetPoint("TOPLEFT", config.left, "TOPLEFT")
-			config.firstLink = link
-		else
-			link:SetPoint("TOPLEFT", config.lastLink, "BOTTOMLEFT")
-		end
-
-		config.lastLink = link
-		module.link = link
-	end
-
-	config.modules[settings.name] = module
-end
-
-
 --[[======================================================
 	Helper functions & variables
 ========================================================]]
 config.dimensions = {
-	left_column = 140
+	left_column = 150
 	, right_column = 600
 	, height = 450
 	, header = 30
@@ -166,11 +56,11 @@ config.dimensions = {
 config.media = {
 	flat = "Interface\\Buttons\\WHITE8x8"
 	, font = "fonts\\ARIALN.ttf"
-	, fontSize = 13
-	, fontHeaderScale = 1.2
+	, fontSize = 14
+	, fontHeaderScale = 1.1
 	, border = {0.06, 0.08, 0.09, 1}
 	, borderSize = 1
-	, backdrop = {0.11, 0.15, 0.18, 1}
+	, background = {0.11, 0.15, 0.18, 1}
 	, red = {0.62, 0.17, 0.18, 1}
 	, blue = {0.2, 0.4, 0.8, 1}
 	, green = {0.1, 0.7, 0.3, 1}
@@ -178,19 +68,21 @@ config.media = {
 
 -- main font object
 config.font = CreateFont("bdConfig_font")
-config.font:SetFont(config.media.font, fontSize)
+config.font:SetFont(config.media.font, config.media.fontSize)
 config.font:SetShadowColor(0, 0, 0)
 config.font:SetShadowOffset(1, -1)
+config.foundBetterFont = false
 
 -- dirty create shadow (no external textures)
 local function CreateShadow(frame, size)
 	if (frame.shadow) then return end
 
 	frame.shadow = {}
-	local start = 0.4
+	local start = 0.088
 	for s = 1, size do
 		local shadow = frame:CreateTexture(nil, "BACKGROUND")
 		shadow:SetTexture(config.media.flat)
+		shadow:SetVertexColor(0,0,0,1)
 		shadow:SetPoint("TOPLEFT", frame, "TOPLEFT", -s, s)
 		shadow:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", s, -s)
 		shadow:SetAlpha(start - ((s / size) * start))
@@ -202,26 +94,26 @@ end
 local function CreateBackdrop(frame)
 	if (frame.bd_background) then return end
 
-	local background = frame:CreateTexture(nil, "BACKGROUND")
+	local background = frame:CreateTexture(nil, "BORDER", -1)
 	background:SetTexture(config.media.flat)
 	background:SetVertexColor(unpack(config.media.background))
 	background:SetAllPoints()
 	
-	local border = frame:CreateTexture(nil, "BACKGROUND")
+	local border = frame:CreateTexture(nil, "BACKGROUND", -8)
 	border:SetTexture(config.media.flat)
 	border:SetVertexColor(unpack(config.media.border))
-	border:SetPoint("TOPLEFT", frame, "TOPLEFT", -borderSize, borderSize)
-	border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", borderSize, -borderSize)
+	border:SetPoint("TOPLEFT", frame, "TOPLEFT", -config.media.borderSize, config.media.borderSize)
+	border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", config.media.borderSize, -config.media.borderSize)
 
 	frame.bd_background = background
-	frame.bd_border = background
+	frame.bd_border = border
 
 	return frame
 end
 
 -- creates basic button template
 local function CreateButton(parent)
-	if (not parent) then parent = config end
+	if (not parent) then parent = config.window end
 	local button = CreateFrame("Button", nil, parent)
 
 	button.inactiveColor = config.media.blue
@@ -246,8 +138,8 @@ local function CreateButton(parent)
 	button:SetHeight(config.dimensions.header)
 	button:EnableMouse(true)
 
-	button.text = button:CreateFontString(nil, "bdConfig_font")
-	button.text:SetAllPoints(button)
+	button.text = button:CreateFontString(nil, "OVERLAY", "bdConfig_font")
+	button.text:SetPoint("CENTER")
 	button.text:SetJustifyH("CENTER")
 	button.text:SetJustifyV("MIDDLE")
 
@@ -255,31 +147,33 @@ local function CreateButton(parent)
 		button.SetVertexColor(unpack(self.activeColor))
 	end
 	function button:Deselect()
-		button.SetVertexColor(unpack(self.activeColor))
+		button.SetVertexColor(unpack(self.inactiveColor))
 	end
 	function button:OnEnter()
-		local ar, ag, ab, aa = unpack(self.activeColor)
-		local ir, ig, ib, ia = unpack(self.inactiveColor)
-
 		if (self.active) then
-			button:SetBackdropColor(ar, ag, ab, 1)
+			button:SetBackdropColor(unpack(self.activeColor))
 		else
-			button:SetBackdropColor(ir, ig, ib, 1)
+			if (self.hoverColor) then
+				button:SetBackdropColor(unpack(self.hoverColor))
+			else
+				button:SetBackdropColor(unpack(self.inactiveColor))
+			end
 		end
+		button:SetAlpha(1)
 	end
-	function button:OnLeave()
-		local ar, ag, ab, aa = unpack(self.activeColor)
-		local ir, ig, ib, ia = unpack(self.inactiveColor)
 
+	function button:OnLeave()
 		if (self.active) then
-			button:SetBackdropColor(ar, ag, ab, 1)
+			button:SetBackdropColor(unpack(self.activeColor))
+			button:SetAlpha(1)
 		else
-			button:SetBackdropColor(ir, ig, ib, 0.6)
+			button:SetBackdropColor(unpack(self.inactiveColor))
+			button:SetAlpha(0.6)
 		end
 	end
 	function button:OnClickDefault()
-		if (self.OnClick) then self.OnClick() end
-		if (self.toggle) then
+		if (self.OnClick) then self.OnClick(self) end
+		if (self.autoToggle) then
 			if (self.active) then
 				self.active = false
 			else
@@ -287,7 +181,7 @@ local function CreateButton(parent)
 			end
 		end
 
-		button:OnEnter()
+		button:OnLeave()
 	end
 	function button:GetText()
 		return button.text:GetText()
@@ -298,10 +192,10 @@ local function CreateButton(parent)
 	end
 
 	button:SetScript("OnEnter", button.OnEnter)
-	button:SetScript("OnLeave", button.OnEnter)
+	button:SetScript("OnLeave", button.OnLeave)
 	button:SetScript("OnClick", button.OnClickDefault)
-	button.text.SetText = button.SetText
-	button.text.GetText = button.GetText
+	-- button.text.SetText = button.SetText
+	-- button.text.GetText = button.GetText
 
 	return button
 end
@@ -318,47 +212,58 @@ local function CreateFrames()
 	-- Parent
 	do
 		window:SetPoint("RIGHT", UIParent, "RIGHT", -20, 0)
-		window:SetSize(config.dimensions.left_column + config.dimensions.right_column, config.dimensions.height)
+		window:SetSize(config.dimensions.left_column + config.dimensions.right_column, config.dimensions.height + config.dimensions.header)
 		window:SetMovable(true)
 		window:SetUserPlaced(true)
 		window:SetFrameStrata("DIALOG")
 		window:SetClampedToScreen(true)
 		-- window:Hide()
-		CreateBackdrop(window)
+		-- CreateBackdrop(window)
 		CreateShadow(window, 10)
 	end
 
 	-- Header
 	do
 		window.header = CreateFrame("frame", nil, window)
-		window.header:SetPoint("BOTTOMLEFT", window, "TOPLEFT", 0, 0)
-		window.header:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, config.dimensions.header)
+		window.header:SetPoint("TOPLEFT")
+		window.header:SetPoint("TOPRIGHT")
+		window.header:SetHeight(config.dimensions.header)
 		window.header:RegisterForDrag("LeftButton", "RightButton")
 		window.header:EnableMouse(true)
 		window.header:SetScript("OnDragStart", function(self) window:StartMoving() end)
 		window.header:SetScript("OnDragStop", function(self) window:StopMovingOrSizing() end)
 		window.header:SetScript("OnMouseUp", function(self) window:StopMovingOrSizing() end)
+		CreateBackdrop(window.header)
 
 		window.header.text = window.header:CreateFontString(nil, "OVERLAY", "bdConfig_font")
-		window.header.text:SetAllPoints()
+		window.header.text:SetPoint("LEFT", 10, 0)
 		window.header.text:SetJustifyH("LEFT")
+		window.header.text:SetText("Addon Configuration")
 		window.header.text:SetJustifyV("MIDDLE")
-		window.header.text:SetScale("fontHeaderScale")
+		window.header.text:SetScale(config.media.fontHeaderScale)
 
 		window.header.close = CreateButton(window.header)
+		window.header.close:SetPoint("TOPRIGHT", window.header)
 		window.header.close:SetText("x")
+		window.header.close.inactiveColor = config.media.red
+		window.header.close:OnLeave()
 		window.header.close.OnClick = function()
 			window:Hide()
 		end
 
 		window.header.reload = CreateButton(window.header)
+		window.header.reload:SetPoint("TOPRIGHT", window.header.close, "TOPLEFT", -config.media.borderSize, 0)
 		window.header.reload:SetText("Reload UI")
+		window.header.reload.inactiveColor = config.media.green
+		window.header.reload:OnLeave()
 		window.header.reload.OnClick = function()
 			ReloadUI();
 		end
 
 		window.header.lock = CreateButton(window.header)
-		window.header:SetText("Unlock")
+		window.header.lock:SetPoint("TOPRIGHT", window.header.reload, "TOPLEFT", -config.media.borderSize, 0)
+		window.header.lock:SetText("Unlock")
+		window.header.lock.autoToggle = true
 		window.header.lock.OnClick = function(self)
 			if (self:GetText() == "Lock") then
 				self:SetText("Unlock")
@@ -371,7 +276,7 @@ local function CreateFrames()
 	-- Left Column
 	do
 		window.left = CreateFrame( "Frame", nil, window)
-		window.left:SetPoint("TOPLEFT", window, "TOPLEFT", 0, config.dimensions.header)
+		window.left:SetPoint("TOPLEFT", window, "TOPLEFT", 0, -config.dimensions.header-config.media.borderSize)
 		window.left:SetSize(config.dimensions.left_column, config.dimensions.height)
 		CreateBackdrop(window.left)
 	end
@@ -379,20 +284,380 @@ local function CreateFrames()
 	-- Right Column
 	do
 		window.right = CreateFrame( "Frame", nil, window)
-		window.right:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, config.dimensions.header)
-		window.right:SetSize(config.dimensions.right_column, config.dimensions.height)
+		window.right:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, -config.dimensions.header-config.media.borderSize)
+		window.right:SetSize(config.dimensions.right_column-config.media.borderSize, config.dimensions.height)
 		CreateBackdrop(window.right)
+		window.right.bd_background:SetVertexColor(unpack(config.media.border))
 	end
 
-	window:HookScript("OnShow", config.OnShow)
-
 	return window
+end
+
+local function FindBetterFont()
+	if (config.foundBetterFont) then return end
+	local font = false
+
+	if (bdCore) then
+		font = bdCore.media.font
+	elseif (bdlc) then
+		font = bdlc.font
+	end
+
+	if (font) then
+		config.foundBetterFont = true
+		config.font:SetFont(font, config.media.fontSize)
+	end
+end
+
+local function RegisterModule(self, settings, configuration, savedVariable)
+	local enabled, loaded = IsAddOnLoaded(addonName)
+	if (not loaded) then
+		debug("Addon", addonName, "saved variables not loaded yet, make sure you wrap RegisterModule inside of an ADDON_LOADED event for your addon.")
+		config.load[addonName] = {settings, configuration, savedVariable}
+		return
+	end
+
+	if (not settings.name) then 
+		debug("When addind a module, you must include a name in the settings table.")
+		return
+	end
+	if (not configuration) then 
+		debug("When addind a module, you must include a configuration table to outline it's options.")
+		return
+	end
+	if (not savedVariable) then 
+		debug("When addind a module, you must include a savedVariable reference so that your settings can be saved.")
+		return
+	end
+
+	-- see if we can upgrade font object here
+	FindBetterFont()
+
+	--[[======================================================
+		Create Module Frame and Methods
+	========================================================]]
+	local module = {}
+	module.settings = settings
+	module.configuration = configuration
+	module.savedVariable = savedVariable
+	do
+		module.tabs = {}
+		module.tabContainer = false
+		module.pageContainer = false
+		module.link = false
+		module.lastTab = false
+
+		function module:Select()
+			if (module.active) then return end
+
+			-- Unselect all modules
+			for name, otherModule in pairs(config.modules) do
+				otherModule:Unselect()
+			end
+
+			-- Show this module
+			module.active = true
+			module.link.active = true
+			module.tabContainer:Show()
+
+			-- Select first tab
+			module.tabs[1]:Select()
+		end
+
+		-- for when hiding
+		function module:Unselect()
+			module.tabContainer:Hide()
+			module.active = false
+			module.link.active = false
+		end
+
+		-- Create page and tabs container
+		do
+			local tabContainer = CreateFrame("frame", nil, config.window.right)
+			tabContainer:SetPoint("TOPLEFT")
+			tabContainer:SetPoint("TOPRIGHT")
+			tabContainer:SetHeight(config.dimensions.header)
+			CreateBackdrop(tabContainer)
+			local r, g, b, a = unpack(config.media.background)
+			tabContainer.bd_border:Hide()
+			tabContainer.bd_background:SetVertexColor(r, g, b, 0.5)
+
+			module.tabContainer = tabContainer
+		end
+		
+		-- Create page / tab
+		function module:CreateTab(name)
+			local index = #module.tabs + 1
+
+			-- create scrollable page container to display tab's configuration options
+			local page = CreateFrame("Frame", nil, scrollContainer) 
+			do
+				--parent frame 
+				local scrollFrameParent = CreateFrame("Frame", nil, config.window.right) 
+				scrollFrameParent:SetPoint("BOTTOMRIGHT")
+				scrollFrameParent:SetPoint("BOTTOMLEFT")
+				scrollFrameParent:SetHeight(config.dimensions.height - config.dimensions.header - config.media.borderSize)
+
+				--scrollframe 
+				scrollContainer = CreateFrame("ScrollFrame", nil, scrollFrameParent) 
+				scrollContainer:SetPoint("TOPRIGHT", scrollFrameParent, "TOPRIGHT", 0, 0) 
+				scrollContainer:SetSize(scrollFrameParent:GetWidth(), scrollFrameParent:GetHeight()) 
+				scrollFrameParent.scrollframe = scrollContainer 
+
+				--scrollbar 
+				scrollbar = CreateFrame("Slider", nil, scrollContainer, "UIPanelScrollBarTemplate") 
+				scrollbar:SetPoint("TOPRIGHT", scrollFrameParent, "TOPRIGHT", 0, -16) 
+				scrollbar:SetPoint("BOTTOMRIGHT", scrollFrameParent, "BOTTOMRIGHT", 0, 16) 
+				scrollbar:SetMinMaxValues(1, math.ceil(scrollFrameParent:GetHeight()+1)) 
+				scrollbar:SetValueStep(1) 
+				scrollbar.scrollStep = 1 
+				scrollbar:SetValue(0) 
+				scrollbar:SetWidth(16) 
+				scrollbar:SetBackdrop({bgFile = config.media.flat})
+				scrollbar:SetBackdropColor(0,0,0,.2)
+				scrollFrameParent.scrollbar = scrollbar 
+
+				--content frame 
+				page:SetPoint("TOPLEFT", scrollFrameParent, "TOPLEFT")
+				page:SetSize(scrollFrameParent:GetWidth() - 32, scrollFrameParent:GetHeight()) 
+				scrollContainer.content = page 
+				scrollContainer:SetScrollChild(page)
+
+				-- scripts
+				scrollbar:SetScript("OnValueChanged", function (self, value) 
+					self:GetParent():SetVerticalScroll(value) 
+				end)
+				scrollFrameParent:SetScript("OnMouseWheel", function(self, delta)
+					self.scrollbar:SetValue(self.scrollbar:GetValue() - (delta*20))
+				end)
+
+				-- to reference things
+				page.scrollbar = scrollbar
+				page.scrollparent = scrollFrameParent
+
+				page:Hide()
+			end
+
+			-- create tab to link to this page
+			local tab = CreateButton(module.tabContainer)
+			tab.inactiveColor = {1,1,1,0}
+			tab.hoverColor = {1,1,1,0.1}
+			tab:OnLeave()
+			tab:Hide()
+			function tab:Select()
+				tab:Show()
+				tab.page:Show()
+				tab.active = true
+				tab.page.active = true
+			end
+			function tab:Unselect()
+				t:Hide()
+				t.page:Hide()
+				t.active = false
+				t.page.active = false
+			end
+			tab.OnClick = function()
+				-- unselect / hide other tabs
+				for i, t in pairs(module.tabs) do
+					tab:Unselect()
+				end
+				-- select this tab
+				tab:Select()
+			end
+			tab:SetText(name)
+			if (index == 1) then
+				tab:SetPoint("LEFT", module.tabContainer, "LEFT", 0, 0)
+			else
+				tab:SetPoint("LEFT", module.tabs[index - 1], "RIGHT", 1, 0)
+			end
+
+			-- give data to the objects
+			tab.page, tab.name, tab.index = page, name, index
+			page.tab, page.name, page.index = tab, name, index
+
+			-- append to tab storage
+			module.tabs[index] = tab
+
+			return index
+		end
+
+		-- Create module navigation link
+		do
+			local link = CreateButton(config.window.left)
+			link.inactiveColor = {0, 0, 0, 0}
+			link.hoverColor = {1, 1, 1, .2}
+			link:OnLeave()
+			link.OnClick = module.Select
+			link:SetText(settings.name)
+			link:SetWidth(config.dimensions.left_column)
+			link.text:SetPoint("LEFT", link, "LEFT", 6, 0)
+			if (not config.lastLink) then
+				link:SetPoint("TOPLEFT", config.window.left, "TOPLEFT")
+				config.firstLink = link
+			else
+				link:SetPoint("TOPLEFT", config.window.lastLink, "BOTTOMLEFT")
+			end
+
+			config.lastLink = link
+			module.link = link
+		end
+	end
+
+	--[[======================================================
+		Module main frames have been created
+		1: CREATE / SET SAVED VARIABLES
+			This includes setting up profile support
+			Persistent config (non-profile)
+			Defaults
+	========================================================]]
+	savedVariable = savedVariable or {}
+	config.save = savedVariable
+	local save = config.save
+
+	-- player configuration
+	save.user = save.user or {}
+	save.user.name = UnitName("player")
+	save.user.profile = save.user.profile or "default"
+	save.user.spec_profile[1] = save.user.spec_profile[1] or false
+	save.user.spec_profile[2] = save.user.spec_profile[2] or false
+	save.user.spec_profile[3] = save.user.spec_profile[3] or false
+	save.user.spec_profile[4] = save.user.spec_profile[4] or false
+
+	-- profile configuration
+	save.profiles = save.profiles or {}
+	save.profiles['default'] = save.profiles['default'] or {}
+	save.profiles.positions = save.profiles.positions or {}
+
+	-- persistent configuration
+	save.persistent = save.persistent or {}
+	save.persistent.bd_config = save.persistent.bd_config or {} -- todo : let the user decide how the library looks and behaves
+
+	-- shortcuts
+	local user = save.user
+	local persistent = save.persistent
+	local profile = save.profiles[user.profile]
+
+	-- let's us access module inforomation quickly and easily
+	function module:GetInfo(option, info)
+		local isPersistent = info.persistent or settings.persistent
+		local currentPage = module.tabs[#module.tabs].page
+		local save = config.save.profile
+		if (isPersistent) then
+			save = config.save.profile[config.save.user.profile]
+		end
+		return save, currentPage, isPersistent
+	end
+	
+	--[[======================================================
+		2: CREATE INPUTS AND DEFAULTS
+			This includes setting up profile support
+			Persistent config (non-profile)
+			Defaults
+	========================================================]]
+	module.pageHeight = 0
+	for k, conf in pairs(configuration) do
+		-- loop through the configuration table to setup, tabs, sliders, inputs, etc.
+		for option, info in pairs(conf) do
+			local isPersistent = info.persistent or settings.persistent
+			if (isPersistent) then
+				-- if variable is `persistent` its account-wide
+				persistent[name] = persistent[name] or {}
+				if (persistent[name][option] == nil) then
+					if (info.value == nil) then
+						info.value = {}
+					end
+
+					persistent[name][option] = info.value
+				end
+			else
+				-- this is a per-character configuration
+				profile[name] = profile[name] or {}
+				if (profile[name][option] == nil) then
+					if (info.value == nil) then
+						info.value = {}
+					end
+
+					profile[name][option] = info.value
+				end
+			end
+			
+			-- If the very first entry is not a tab, then create a general tab/page container
+			if (not info.type == "tab" and #module.tabs == 0) then
+				module:CreateTab("General")
+			end
+
+			-- Master Call (slider = config.SliderElement(config, module, option, info))
+			config[info.type:gsub("^%l", string.upper).."Element"](config, module, option, info)
+
+
+			-- If we never created multiple tabs, then hide the tab container and increase the height of the page
+
+			
+			--scrollheight = panels.lastpanel.scrollheight
+
+			-- local addedHeight = 0
+			
+			-- if (info.type == "slider") then
+			-- 	addedHeight = bdCore:createSlider(name, option, info, persistent)
+			-- elseif (info.type == "checkbox") then
+			-- 	addedHeight = bdCore:createCheckButton(name, option, info, persistent)
+			-- elseif (info.type == "dropdown") then
+			-- 	addedHeight = bdCore:createDropdown(name, option, info, persistent)
+			-- elseif (info.type == "text") then
+			-- 	addedHeight = bdCore:createText(name, info)
+			-- elseif (info.type == "list") then
+			-- 	addedHeight = bdCore:createList(name, option, info, persistent)
+			-- elseif (info.type == "tab") then
+			-- 	if (module.lastTab) then
+			-- 		module.scrollbar:SetMinMaxValues(1, math.max(1, scrollHeight - 320))
+			-- 		if ((scrollHeight - 320) < 2) then
+			-- 			module.scrollbar:Hide()
+			-- 		end
+			-- 	end
+			-- 	scrollHeight = 0
+
+			-- 	module:addTab(info.value)
+			-- 	tabstarted = true
+			-- elseif (info.type == "createbox") then
+			-- 	addedHeight = bdCore:createBox(name, option, info, persistent)
+			-- elseif (info.type == "actionbutton") then
+			-- 	addedHeight = bdCore:createActionButton(name, option, info, persistent)
+			-- elseif (info.type == "color") then
+			-- 	addedHeight = bdCore:colorPicker(name, option, info, persistent)
+			-- end
+
+			-- scrollHeight = scrollHeight + addedHeight
+		end
+
+	end
+
+	--[[======================================================
+		3: SETUP DISPLAY AND STORE MODULE
+			If we only made 1 tab, hide the tabContianer an
+			make the page take up the extra space
+	========================================================]]
+	-- module.scrollbar:SetMinMaxValues(1, math.max(1, scrollHeight - 320))
+	-- if ((scrollHeight - 320) < 2) then
+	-- 	module.scrollbar:Hide()
+	-- end
+	
+	-- -- If there aren't additional tabs, act like non exist
+	-- if (module.lastTab.text:GetText() == "General") then
+	-- 	module.tabs:Hide()
+	-- 	module.contentParent:SetPoint("TOPLEFT", module, "TOPLEFT", 8, -8)
+	-- else
+	-- 	module.tabs:Show()
+	-- end
+
+
+	config.modulesIndex[#config.modulesIndex + 1] = module
+	config.modules[settings.name] = module
 end
 
 --[[========================================================
 	Load the Library Up
 	For anyone curious, I use `do` statements just to 
-		keep the code dileniated and easy to read.
+	keep the code dileniated and easy to read.
 ==========================================================]]
 do
 	-- returns a list of modules currently loaded
@@ -407,6 +672,8 @@ do
 
 	-- create tables
 	config.modules = {}
+	config.modulesIndex = {}
+	config.load = {}
 	config.lastLink = false
 	config.firstLink = false
 
@@ -415,6 +682,121 @@ do
 
 	-- associate RegisterModule function
 	config.RegisterModule = RegisterModule
+end
+
+--[[========================================================
+	CONFIGURATION INPUT ELEMENT METHODS
+	This is all of the methods that create user interaction 
+	elements. When adding support for new modules, start here.
+==========================================================]]
+
+--[[========================================================
+	ELEMENT CONTAINER WITH `COLUMN` SUPPORT
+==========================================================]]
+function config:ElementContainer(page, element)
+	local container = CreateFrame("frame", nil, page)
+	local padding = 10
+	local sizing = { -- size as a percentage
+		text = 1.0
+		, table = 1.0
+		, slider = 1.0
+		, checkbox = 0.5
+		, color = 0.33
+		, dropdown = 0.5
+	}
+
+	-- size the container ((pageWidth / %) - padding left)
+	container:SetSize((page:GetWidth() / sizing[element]) - padding)
+
+	-- place the container
+	page.row_width = page.row_width or 0
+	page.row_width = page.row_width + sizing[element]
+
+	if (page.row_width > 100 or not page.lastContainer) then
+		page.row_width = sizing[element]
+		if (not page.lastContainer) then
+			container:SetPoint("TOPLEFT", page, "TOPLEFT", padding, -padding)
+		else
+			container:SetPoint("TOPLEFT", page.lastContainer, "BOTTOMLEFT", 0, -padding)
+		end
+	else
+		container:SetPoint("TOPLEFT", page.lastContainer, "TOPRIGHT", padding, 0)
+	end
+
+	page.lastContainer = container
+	return container
+end
+
+--[[========================================================
+	ADDING NEW TABS / SETTING SCROLLFRAME
+==========================================================]]
+function config:TabElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+	-- We're done with the current page contianer, cap it's slider/height and start a new tab / height
+	if (#module.tabs > 0) then
+		-- make the scrollbar only scroll the height of the page
+		page.scrollbar:SetMinMaxValues(1, math.max(1, module.pageHeight - config.dimensions.height - config.dimensions.header))
+
+		-- if the size of the page is lesser than it's height. don't show a scrollbar
+		if ((module.pageHeight  - config.dimensions.height - config.dimensions.header) < 2) then
+			page.scrollbar:Hide()
+		end
+	end
+
+	-- reset this dynamic variable
+	module.pageHeight = 0
+
+	-- add new tab
+	module:addTab(info.value)
+end
+
+--[[========================================================
+	TEXT ELEMENT FOR USER INFO
+==========================================================]]
+function config:TextElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+end
+
+--[[========================================================
+	TABLE ELEMENT
+==========================================================]]
+function config:TableElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+end
+
+--[[========================================================
+	SLIDER ELEMENT
+==========================================================]]
+function config:SliderElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+end
+
+--[[========================================================
+	CHECKBOX ELEMENT
+==========================================================]]
+function config:CheckboxElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+end
+
+--[[========================================================
+	COLORPICKER ELEMENT
+==========================================================]]
+function config:ColorElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
+end
+
+--[[========================================================
+	DROPDOWN ELEMENT
+==========================================================]]
+function config:DropdownElement(module, option, info)
+	local save, page, persistent = module:GetInfo(option, info)
+
 end
 
 -- TABLES
