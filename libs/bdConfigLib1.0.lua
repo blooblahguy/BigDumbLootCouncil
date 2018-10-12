@@ -135,7 +135,7 @@ local function CreateButton(parent)
 
 	button:SetBackdropColor(unpack(config.media.blue))
 	button:SetAlpha(0.6)
-	button:SetHeight(config.dimensions.header - 2)
+	button:SetHeight(config.dimensions.header)
 	button:EnableMouse(true)
 
 	button.text = button:CreateFontString(nil, "OVERLAY", "bdConfig_font")
@@ -225,8 +225,9 @@ local function CreateFrames()
 	-- Header
 	do
 		window.header = CreateFrame("frame", nil, window)
-		window.header:SetPoint("TOPLEFT", window, "TOPLEFT", 0, 0)
-		window.header:SetPoint("BOTTOMRIGHT", window, "TOPRIGHT", 0, -config.dimensions.header)
+		window.header:SetPoint("TOPLEFT")
+		window.header:SetPoint("TOPRIGHT")
+		window.header:SetHeight(config.dimensions.header)
 		window.header:RegisterForDrag("LeftButton", "RightButton")
 		window.header:EnableMouse(true)
 		window.header:SetScript("OnDragStart", function(self) window:StartMoving() end)
@@ -242,7 +243,7 @@ local function CreateFrames()
 		window.header.text:SetScale(config.media.fontHeaderScale)
 
 		window.header.close = CreateButton(window.header)
-		window.header.close:SetPoint("TOPRIGHT", window.header, -1, -1)
+		window.header.close:SetPoint("TOPRIGHT", window.header)
 		window.header.close:SetText("x")
 		window.header.close.inactiveColor = config.media.red
 		window.header.close:OnLeave()
@@ -251,7 +252,7 @@ local function CreateFrames()
 		end
 
 		window.header.reload = CreateButton(window.header)
-		window.header.reload:SetPoint("TOPRIGHT", window.header.close, "TOPLEFT", -2, 0)
+		window.header.reload:SetPoint("TOPRIGHT", window.header.close, "TOPLEFT", -config.media.borderSize, 0)
 		window.header.reload:SetText("Reload UI")
 		window.header.reload.inactiveColor = config.media.green
 		window.header.reload:OnLeave()
@@ -260,7 +261,7 @@ local function CreateFrames()
 		end
 
 		window.header.lock = CreateButton(window.header)
-		window.header.lock:SetPoint("TOPRIGHT", window.header.reload, "TOPLEFT", -2, 0)
+		window.header.lock:SetPoint("TOPRIGHT", window.header.reload, "TOPLEFT", -config.media.borderSize, 0)
 		window.header.lock:SetText("Unlock")
 		window.header.lock.autoToggle = true
 		window.header.lock.OnClick = function(self)
@@ -366,9 +367,9 @@ local function RegisterModule(self, settings, configuration, savedVariable, save
 	--// Create page and tabs container
 	do
 		local tabContainer = CreateFrame("frame", nil, config.window.right)
-		tabContainer:SetPoint("TOPLEFT", config.window.right, "TOPLEFT")
-		tabContainer:SetPoint("TOPRIGHT", config.window.right, "TOPRIGHT")
-		tabContainer:SetHeight(config.dimensions.header - (config.media.borderSize * 2))
+		tabContainer:SetPoint("TOPLEFT")
+		tabContainer:SetPoint("TOPRIGHT")
+		tabContainer:SetHeight(config.dimensions.header)
 		CreateBackdrop(tabContainer)
 		local r, g, b, a = unpack(config.media.background)
 		tabContainer.bd_border:Hide()
@@ -383,10 +384,10 @@ local function RegisterModule(self, settings, configuration, savedVariable, save
 
 		-- create page container to display first tab's configuration options
 		local page = CreateFrame("frame", nil, config.window.right)
-		page:SetPoint("BOTTOMRIGHT", config.window.right)
-		page:SetPoint("BOTTOMLEFT", config.window.right)
-		page:SetHeight(config.dimensions.height - config.dimensions.header + config.media.borderSize)
-		CreateBackdrop(page)
+		page:SetPoint("BOTTOMRIGHT")
+		page:SetPoint("BOTTOMLEFT")
+		page:SetHeight(config.dimensions.height - config.dimensions.header - config.media.borderSize)
+		-- CreateBackdrop(page)
 		-- page:Hide()
 
 		-- create tab to link to this page
