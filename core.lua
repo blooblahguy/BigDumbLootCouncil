@@ -887,12 +887,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print("/bdlc "..msg.." command not recognized")
 			end
 		end
-	
-		local settings = {
-			name = "Big Dumb Loot Council"
-		}
-		print("settings", settings.name)
-		bdConfigLib:RegisterModule(settings, {}, bdlc_config)
+
+		bdlc:SetupConfiguration()
 		-- bdlc:Config()
 	end
 

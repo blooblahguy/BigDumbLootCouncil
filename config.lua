@@ -1,3 +1,21 @@
+bdlc, l, f = select(2, ...):unpack()
+
+function bdlc:SetupConfiguration() 
+	local defaults = {}
+
+	defaults[#defaults+1] = {text = {
+		type = "text"
+		, value = "Welcome to BDLC"
+	}}
+
+	bdConfigLib:RegisterModule({
+		name = "Big Dumb Loot Council"
+		, persistent = true
+	}, defaults, bdlc_config)
+end
+
+
+
 --[[
 bdlc, l, c = select(2, ...):unpack()
 
