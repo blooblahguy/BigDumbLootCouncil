@@ -1,11 +1,25 @@
 bdlc, l, f = select(2, ...):unpack()
 
+local numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
 function bdlc:SetupConfiguration() 
 	local defaults = {}
+	local ranks = {}
+	numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
+
+	for i =1, numGuildMembers do
+		local name, rank, rankIndex, _, class = GetGuildRosterInfo(i)
+		ranks[rankIndex] = rank
+	end
 
 	defaults[#defaults+1] = {text = {
 		type = "text"
 		, value = "Welcome to BDLC"
+	}}
+
+	defaults[#defaults+1] = {text = {
+		type = "dropdown"
+		, options = ranks
+		, label = "Minimum Loot Council Rank"
 	}}
 
 	bdConfigLib:RegisterModule({
