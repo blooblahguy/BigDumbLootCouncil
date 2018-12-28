@@ -10,6 +10,7 @@ function bdlc:SetupConfiguration()
 		local name, rank, rankIndex, _, class = GetGuildRosterInfo(i)
 		ranks[rankIndex] = rank
 	end
+	print(ranks)
 
 	defaults[#defaults+1] = {text = {
 		type = "text"
@@ -21,6 +22,8 @@ function bdlc:SetupConfiguration()
 		, options = ranks
 		, label = "Minimum Loot Council Rank"
 	}}
+
+	
 
 	bdConfigLib:RegisterModule({
 		name = "Big Dumb Loot Council"
