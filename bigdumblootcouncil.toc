@@ -11,7 +11,7 @@ config.lua
 localization.lua
 
 # Libs
-libs\bdConfigLib\bdConfigLib1.0.lua
+libs\bdConfigLib1.0.lua
 libs\LibStub.lua
 libs\ChatThrottleLib.lua
 libs\CallbackHandler-1.0.lua
