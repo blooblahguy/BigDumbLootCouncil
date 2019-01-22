@@ -771,7 +771,13 @@ end
 do
 	-- returns a list of modules currently loaded
 	function bdConfigLib:GetSave(name)
-		return bdConfigLib.saves[name].save
+		-- print(name)
+		-- print(name.save)
+		if (self.saves[name]) then
+			return self.saves[name].save
+		else
+			return false
+		end
 	end
 	function bdConfigLib:Toggle()
 		if (not bdConfigLib.toggled) then
@@ -1401,7 +1407,6 @@ do
 		type = "dropdown",
 		label = "Current Profile",
 		value = bdConfigLibProfiles.Selected,
-		override = true,
 		options = bdConfigLibProfiles.Profiles,
 		update = function(self, dropdown) bdConfigLib:UpdateProfiles(dropdown) end,
 		update_action = "update_profiles",
@@ -1442,4 +1447,4 @@ end
 
 
 -- for testing, pops up config on reload for easy access :)
-bdConfigLib:Toggle()
+-- bdConfigLib:Toggle()
