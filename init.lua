@@ -3,9 +3,9 @@ engine[1] = CreateFrame("Frame", nil, UIParent)
 engine[2] = {}
 engine[3] = {}
 
-bdlc = engine[1]
-l = engine[2]
-f = engine[3]
+local bdlc = engine[1]
+local l = engine[2]
+local f = engine[3]
 
 function engine:unpack()
 	return self[1], self[2], self[3]

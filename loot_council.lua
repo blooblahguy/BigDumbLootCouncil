@@ -1,4 +1,4 @@
-bdlc, l, f = select(2, ...):unpack()
+local bdlc, l, f = select(2, ...):unpack()
 
 function bdlc:inLC()
 	return bdlc.loot_council[FetchUnitName("player")] or IsRaidLeader() or not IsInRaid()
