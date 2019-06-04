@@ -1,5 +1,4 @@
-bdlc, l, f = select(2, ...):unpack()
-bdlc = bdlc
+local bdlc, l, f = select(2, ...):unpack()
 
 f.rolls = {}
 f.tabs = {}
