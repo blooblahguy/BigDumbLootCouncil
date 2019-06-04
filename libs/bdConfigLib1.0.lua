@@ -1317,7 +1317,7 @@ do
 				else
 					save.profiles[value] = save.profile
 					bdConfigLibProfiles.Selected = value
-					bg_do_action("update_profiles")
+					bd_do_action("update_profiles")
 				end
 			end
 		end

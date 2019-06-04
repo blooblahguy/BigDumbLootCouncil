@@ -49,7 +49,7 @@ function bdlc:SetupConfiguration()
 			}, defaults, "bdlc_config")
 		end
 
-		bg_do_action("guild_info_available")
+		bd_do_action("guild_info_available")
 	end)
 	
 end
