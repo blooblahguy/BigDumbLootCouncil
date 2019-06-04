@@ -39,7 +39,7 @@ function bdlc:SetupConfiguration()
 				, value = defaultRank
 				, label = "Minimum LC Rank"
 				, update = function(self, dropdown) bdlc:UpdateRanks(dropdown) end
-				, update_action = "guild_info_available",
+				, update_action = "guild_info_available"
 				, options = ranks
 				, label = "Minimum Loot Council Rank"
 			}}
