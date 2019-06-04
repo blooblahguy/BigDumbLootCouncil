@@ -1,62 +1,3 @@
-local bdlc, l, f = select(2, ...):unpack()
-local config
-local defaults = {}
-local ranks = {}
-local defaultRank = "officer"
-
-function bdlc:UpdateRanks(dropdown)
-	ranks = {}
-	numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
-	for i = 1, numGuildMembers do
-		local name, rank, rankIndex, _, class = GetGuildRosterInfo(i)
-		ranks[rankIndex] = rank
-	end
-
-	dropdown:populate(ranks)
-end
-
-function bdlc:SetupConfiguration() 
-	local guild = CreateFrame("frame")
-	guild:RegisterEvent("GUILD_ROSTER_UPDATE")
-	guild:SetScript("OnEvent", function()
-		ranks = {}
-		numGuildMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
-		for i = 1, numGuildMembers do
-			local name, rank, rankIndex, _, class = GetGuildRosterInfo(i)
-			ranks[rankIndex] = rank
-		end
-		defaultRank = ranks[1]
-
-		config = bdConfigLib:GetSave("Big Dumb Loot Council")
-		if (not config) then
-			defaults[#defaults+1] = {text = {
-				type = "text"
-				, value = "Welcome to BDLC"
-			}}
-
-			defaults[#defaults+1] = {lc_rank = {
-				type = "dropdown"
-				, value = defaultRank
-				, label = "Minimum LC Rank"
-				, update = function(self, dropdown) bdlc:UpdateRanks(dropdown) end
-				, update_action = "guild_info_available",
-				, options = ranks
-				, label = "Minimum Loot Council Rank"
-			}}
-			config = bdConfigLib:RegisterModule({
-				name = "Big Dumb Loot Council"
-				, persistent = true
-			}, defaults, "bdlc_config")
-		end
-
-		bg_do_action("guild_info_available")
-	end)
-	
-end
-
-
-
---[[
 bdlc, l, c = select(2, ...):unpack()
 
 function bdlc:Config()
@@ -422,4 +363,3 @@ function bdlc:createList(option,info)
 		info:callback()
 	end
 end
---]]

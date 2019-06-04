@@ -1,4 +1,4 @@
-## Interface: 80100
+## Interface: 80000
 ## Title: |cffA02C2FBig|r Dumb Loot Council
 ## Version: @project-version@
 ## DefaultState: Enabled
@@ -7,11 +7,9 @@
 
 # Init
 init.lua
-config.lua
 localization.lua
 
 # Libs
-libs\bdConfigLib1.0.lua
 libs\LibStub.lua
 libs\ChatThrottleLib.lua
 libs\CallbackHandler-1.0.lua
@@ -24,3 +22,4 @@ versions.lua
 loot_council.lua
 frames.lua
 core.lua
+config.lua

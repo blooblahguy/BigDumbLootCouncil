@@ -1,7 +1,6 @@
-local bdlc, l, f = select(2, ...):unpack()
+bdlc, l, f = select(2, ...):unpack()
 
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
-GetNumGuildMembers()
 
 ----------------------------------------
 -- StartSession
@@ -854,7 +853,13 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 			elseif (msg == "addtolc" or msg == "removefromlc") then
 				bdlc:addremoveLC(msg, param[1])
 			elseif (msg == "config") then
-				bdConfigLib:Toggle()
+				if (bdlc_config_toggle) then
+					bdlc_config_toggle = false
+					bdlcconfig:Hide()
+				else
+					bdlc_config_toggle = true
+					bdlcconfig:Show()
+				end
 			elseif (msg == "verify") then
 				local s, e = string.find(origmsg, msg)
 				local newmsg = strtrim(string.sub(origmsg, e+1))
@@ -882,9 +887,8 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print("/bdlc "..msg.." command not recognized")
 			end
 		end
-
-		bdlc:SetupConfiguration()
-		-- bdlc:Config()
+	
+		bdlc:Config()
 	end
 
 	------------------------------------------------
