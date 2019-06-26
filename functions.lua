@@ -140,7 +140,7 @@ function bdlc:CanStartSession(extended)
 	end
 
 	-- is solo, let them test away
-	if (not IsInRaid()) then
+	if (not IsInGroup()) then
 		can = true
 	end
 

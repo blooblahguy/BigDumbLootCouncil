@@ -722,7 +722,7 @@ function bdlc:alertSlackers()
 	if (not IsRaidLeader()) then return end
 	for k, v in pairs(bdlc.looters) do
 		-- these players haven't looted yet
-		SendChatMessage("BDLC: You still need to loot the boss in order to start valid sessions.", "WHISPER", nil, k)
+		-- SendChatMessage("BDLC: You still need to loot the boss in order to start valid sessions.", "WHISPER", nil, k)
 	end
 end
 
@@ -903,14 +903,14 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 		bdlc:sendAction("buildLC");
 	end
 
-	bdlc.testMode = true
+	-- bdlc.testMode = true
 	if (bdlc:IsInRaidGroup() or bdlc.testMode) then
 		-- On boss kill, prepare BDLC to accept valid sessions
 		if (event == "BOSS_KILL" ) then
 
 			if (IsRaidLeader()) then
 				bdlc:buildLC()
-				SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
+				-- SendChatMessage("BDLC: Please loot the boss to start any potential sessions.", "RAID")
 			end
 
 			bdlc.item_drops = {}
