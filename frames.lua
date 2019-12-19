@@ -101,11 +101,13 @@ end
 local function awardLoot(playerName, dropdown, itemUID)
 	playerName = FetchUnitName(playerName)
 	if (not itemUID) then return end
+	local lootedBy = bdlc.loot_sessions[itemUID]
 	local itemLink = bdlc.itemMap[itemUID]
 	if (not itemLink) then return end
 
 	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
-	bdlc:sendAction("addLootHistory", itemUID, name)
+	SendChatMessage("BDLC: Please trade "..itemLink.." to "..playerName, "WHISPER", nil, lootedBy)
+	bdlc:sendAction("addLootHistory", itemUID, playerName)
 
 	dropdown:Hide()
 end
