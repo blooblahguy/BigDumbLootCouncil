@@ -63,7 +63,7 @@ bdlc.config = {
 	, width = 600
 	-- , debug = true
 	-- , version = "@project-version@"
-	, version = "2.45"
+	, version = "2.50"
 }
 bdlc.defaults = {
 	council_min_rank = 2,

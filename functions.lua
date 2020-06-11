@@ -260,7 +260,7 @@ function bdlc:itemEquippable(itemUID)
 		return true 
 	end
 	
-	print("Experimental: You automatically passed on "..itemLink.." (unusable for you class).")
+	print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
 	return false
 end
 

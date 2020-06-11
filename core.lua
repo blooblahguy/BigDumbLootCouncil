@@ -140,7 +140,7 @@ function bdlc:startMockSession()
 		-- send a random "want" after 2-5s, something like a real person
 		C_Timer.After(math.random(2, 5), function()
 			for name, data in pairs(demo_players) do
-				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0);
+				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0, math.random(1, 100));
 			end
 		end)
 	end
@@ -310,8 +310,8 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	currententry.name:SetText(name)
 	currententry.server = server
 	currententry.name:SetTextColor(color.r,color.g,color.b);
-	currententry.interest:SetText("considering...");
-	currententry.interest:SetTextColor(.5,.5,.5);
+	currententry.interest.text:SetText(l["frameConsidering"]);
+	currententry.interest.text:SetTextColor(.5,.5,.5);
 	currententry.rank:SetText(guildRank)
 	currententry.ilvl:SetText(iLvL)
 	currententry.gear1:Hide()
@@ -377,7 +377,7 @@ end--]]
 ----------------------------------------
 -- AddUserWant
 ----------------------------------------
-function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, notes)
 	local playerName = FetchUnitName(playerName)
 	if (not notes) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
@@ -396,8 +396,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 	
 	bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
 	
-	currententry.interest:SetText(wantText);
-	currententry.interest:SetTextColor(unpack(wantColor));
+	currententry.interest.text:SetText(wantText);
+	currententry.interest.text:SetTextColor(unpack(wantColor));
 	currententry.voteUser:Show()
 	currententry.wantLevel = want
 
@@ -451,6 +451,10 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, notes
 		currententry.notes = notes
 		currententry.user_notes:Show()
 	end
+
+	-- roll
+	currententry.roll = roll
+	bdlc:debug(playerName.." rolling on "..itemLink..": "..currententry.roll)
 end
 
 ----------------------------------------
