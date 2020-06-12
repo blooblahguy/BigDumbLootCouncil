@@ -356,9 +356,9 @@ for i = 1, 10 do
 				notes = roll.qn
 			end
 		end
-		
+
 		local lootRoll = math.random(1, 100)
-		bdlc.print("You rolled "..lootRoll.." on "..itemLink)
+		bdlc.print("You rolled "..lootRoll.." (|cFF"..bdlc:RGBToHex(bdlc.wantTable[wantLevel][2][1], bdlc.wantTable[wantLevel][2][2], bdlc.wantTable[wantLevel][2][3])..bdlc.wantTable[wantLevel][1].."|r) on "..itemLink)
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2, lootRoll, notes);
 
 		bdlc:endRoll(roll.itemUID)
