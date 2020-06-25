@@ -18,6 +18,9 @@ function bdlc:repositionFrames()
 			if a.wantLevel ~= b.wantLevel then
 				return a.wantLevel < b.wantLevel
 			end
+			if a.roll ~= b.roll then
+				return a.roll > b.roll
+			end
 			if a.rankIndex ~= b.rankIndex then
 				return a.rankIndex > b.rankIndex
 			end
@@ -354,7 +357,9 @@ for i = 1, 10 do
 			end
 		end
 
-		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2, notes);
+		local lootRoll = math.random(1, 100)
+		bdlc.print("You rolled "..lootRoll.." (|cFF"..bdlc:RGBToHex(bdlc.wantTable[wantLevel][2][1], bdlc.wantTable[wantLevel][2][2], bdlc.wantTable[wantLevel][2][3])..bdlc.wantTable[wantLevel][1].."|r) on "..itemLink)
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.local_player, wantLevel, itemLink1, itemLink2, lootRoll, notes);
 
 		bdlc:endRoll(roll.itemUID)
 
@@ -671,6 +676,7 @@ for i = 1, 10 do
 		entry.wantLevel = 0
 		entry.rankIndex = 0
 		entry.notes = ""
+		entry.roll = 0
 		entry:SetSize(vote_table.content:GetWidth(), 22)
 		if (lastframe) then
 			entry:SetPoint("TOPLEFT", lastframe, "BOTTOMLEFT", 0, 2)
@@ -739,10 +745,24 @@ for i = 1, 10 do
 		entry.ilvl:SetTextColor(1,1,1);
 		entry.ilvl:SetPoint("LEFT", entry, "LEFT", 166, 0)
 		
-		entry.interest = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
-		entry.interest:SetText(l["frameConsidering"]);
-		entry.interest:SetTextColor(.5,.5,.5);
+		entry.interest = CreateFrame('frame', nil, entry)
 		entry.interest:SetPoint("LEFT", entry, "LEFT", 198, 0)
+		entry.interest:SetSize(64,16)
+		entry.interest.text = entry.interest:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.interest:SetScript("OnEnter", function()
+			if (entry.roll > 0) then
+				ShowUIPanel(GameTooltip)
+				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+				GameTooltip:AddLine(entry.roll, 1, 1, 1)
+				GameTooltip:Show()
+			end
+		end)
+		entry.interest:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		entry.interest.text:SetText(l["frameConsidering"])
+		entry.interest.text:SetTextColor(.5,.5,.5)
+		entry.interest.text:SetAllPoints(entry.interest)
 		
 		entry.user_notes = CreateFrame('frame', nil, entry)
 		entry.user_notes:SetPoint("LEFT", entry, "LEFT", 284, 0)

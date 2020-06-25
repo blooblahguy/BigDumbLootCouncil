@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: 80300
 ## Title: |cffA02C2FBig|r Dumb Loot Council
 ## Version: @project-version@
 ## DefaultState: Enabled
