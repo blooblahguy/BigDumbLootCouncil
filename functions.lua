@@ -317,6 +317,7 @@ end
 
 -- a hash value is fine here, because we don't actually care whats in the UID, we just need something shorter than a full link
 function bdlc:GetItemUID(itemLink, lootedBy)
+	lootedBy = lootedBy or "trade"
 	-- print(itemLink, lootedBy)
 	--[[local text = string.match(itemLink, "item[%-?%d:]+")
 	local counter = 1
