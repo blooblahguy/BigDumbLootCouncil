@@ -138,7 +138,7 @@ bdlc.normal_text:SetShadowOffset(1, -1)
 bdlc.normal_text:SetJustifyH("CENTER")
 
 --Vote Window
-f.voteFrame = CreateFrame('frame', 'BDLC', UIParent)
+f.voteFrame = CreateFrame('frame', 'BDLC', UIParent, BackdropTemplateMixin and "BackdropTemplate")
 bdlc:skinBackdrop(f.voteFrame, .1,.1,.1,.8);
 f.voteFrame:EnableMouse(true);
 f.voteFrame:SetMovable(true);
@@ -151,7 +151,7 @@ f.voteFrame:SetPoint("CENTER");
 f.voteFrame:Hide()
 
 -- Pending Loot Frame
-f.voteFrame.pending = CreateFrame("frame", nil, f.voteFrame)
+f.voteFrame.pending = CreateFrame("frame", nil, f.voteFrame, BackdropTemplateMixin and "BackdropTemplate")
 do 
 	local p = f.voteFrame.pending
 	p:SetPoint("LEFT", f.voteFrame, "RIGHT", -1, 0)
@@ -173,7 +173,7 @@ do
 end
 
 -- Header
-f.voteFrame.header = CreateFrame("frame", nil, f.voteFrame);
+f.voteFrame.header = CreateFrame("frame", nil, f.voteFrame, BackdropTemplateMixin and "BackdropTemplate");
 f.voteFrame.header:EnableMouse(true);
 f.voteFrame.header:RegisterForDrag("LeftButton","RightButton")
 f.voteFrame.header:SetScript("OnDragStart", function(self) f.voteFrame:StartMoving() end)
@@ -182,7 +182,7 @@ f.voteFrame.header:SetPoint("TOPLEFT", f.voteFrame, "TOPLEFT")
 f.voteFrame.header:SetPoint("BOTTOMRIGHT", f.voteFrame, "TOPRIGHT", 0, -24)
 bdlc:skinBackdrop(f.voteFrame.header,.1,.1,.1,1)
 
-	f.voteFrame.header.close = CreateFrame("Button", nil, f.voteFrame.header)
+	f.voteFrame.header.close = CreateFrame("Button", nil, f.voteFrame.header, BackdropTemplateMixin and "BackdropTemplate")
 	f.voteFrame.header.close:SetPoint("RIGHT", f.voteFrame.header, "RIGHT", -4, 0)
 	f.voteFrame.header.close:SetText("x")
 	bdlc:skinButton(f.voteFrame.header.close,true,"red")
@@ -195,7 +195,7 @@ bdlc:skinBackdrop(f.voteFrame.header,.1,.1,.1,1)
 	f.voteFrame.header.text:SetPoint("CENTER", f.voteFrame.header, "CENTER")
 
 -- Loot Council Display
-f.voteFrame.loot_council = CreateFrame("frame", nil, f.voteFrame)
+f.voteFrame.loot_council = CreateFrame("frame", nil, f.voteFrame, BackdropTemplateMixin and "BackdropTemplate")
 f.voteFrame.loot_council:SetPoint("BOTTOMLEFT", f.voteFrame, "BOTTOMLEFT", 10, 6)
 f.voteFrame.loot_council:SetSize(84, 18)
 bdlc:skinBackdrop(f.voteFrame.loot_council, .1,.1,.1,.8);
@@ -209,7 +209,7 @@ f.voteFrame.loot_council.image:SetSize(10, 10)
 f.voteFrame.loot_council.image:SetPoint("RIGHT", f.voteFrame.loot_council, "RIGHT", -4, 0)
 f.voteFrame.loot_council.image:SetVertexColor(.8,.8,.8)
 
-f.voteFrame.loot_council.add = CreateFrame("BUTTON", nil, f.voteFrame.loot_council)
+f.voteFrame.loot_council.add = CreateFrame("BUTTON", nil, f.voteFrame.loot_council, BackdropTemplateMixin and "BackdropTemplate")
 f.voteFrame.loot_council.add:SetText(" + ")
 bdlc:skinButton(f.voteFrame.loot_council.add,true,"blue")
 f.voteFrame.loot_council.add:SetPoint("LEFT", f.voteFrame.loot_council, "RIGHT", 2, 0)
@@ -288,7 +288,7 @@ rollFrame:Hide()
 
 -- Create roll children
 for i = 1, 10 do
-	local roll = CreateFrame("frame", nil, rollFrame);
+	local roll = CreateFrame("frame", nil, rollFrame, BackdropTemplateMixin and "BackdropTemplate");
 	roll:SetPoint("TOPLEFT", rollFrame, "TOPLEFT", 0, -(59*(i-1)))
 	roll:SetSize(rollFrame:GetWidth(), 60);
 
@@ -304,7 +304,7 @@ for i = 1, 10 do
 	roll.item = CreateFrame("frame", nil, roll);
 	roll.item:SetAllPoints(roll)
 
-	roll.item.icon = CreateFrame("frame", nil, roll.item)
+	roll.item.icon = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
 	roll.item.icon:SetSize(50, 50)
 	roll.item.icon:SetPoint("TOPLEFT", roll, "TOPLEFT", 5, -5)
 	bdlc:skinBackdrop(roll.item.icon, 0,0,0,.8);
@@ -366,37 +366,37 @@ for i = 1, 10 do
 		bdlc:repositionFrames()
 	end
 	
-	roll.buttons.main = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.main = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.main:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
 	roll.buttons.main:SetText(l["frameMain"])
 	bdlc:skinButton(roll.buttons.main)
 	roll.buttons.main:SetScript("OnClick", function() roll.buttons.submit(1) end)
 	
-	roll.buttons.minor = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.minor = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
 	roll.buttons.minor:SetText(l["frameMinorUp"])
 	bdlc:skinButton(roll.buttons.minor)
 	roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
 	
-	roll.buttons.off = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.off = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
 	roll.buttons.off:SetText(l["frameOffspec"])
 	bdlc:skinButton(roll.buttons.off)
 	roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
 	
-	roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
 	roll.buttons.reroll:SetText(l["frameReroll"])
 	bdlc:skinButton(roll.buttons.reroll)
 	roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
 	
-	roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
 	roll.buttons.xmog:SetText(l["frameTransmog"])
 	bdlc:skinButton(roll.buttons.xmog)
 	roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
 	
-	roll.buttons.note = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.note = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.note:SetSize(40, 25)
 	roll.buttons.note:SetPoint("LEFT", roll.buttons.xmog, "RIGHT", 4, 0)
 	roll.buttons.note:SetText(l["frameNote"])
@@ -423,7 +423,7 @@ for i = 1, 10 do
 	end
 	local lastqn = nil
 	for i = 1, 10 do
-		roll.buttons.note.quicknotes[i] = CreateFrame("button",nil,roll.buttons.note.quicknotes)
+		roll.buttons.note.quicknotes[i] = CreateFrame("button",nil,roll.buttons.note.quicknotes, BackdropTemplateMixin and "BackdropTemplate")
 		local qn = roll.buttons.note.quicknotes[i]
 		qn:SetAlpha(0.6)
 		qn:SetText("")
@@ -447,7 +447,7 @@ for i = 1, 10 do
 		end)
 	end
 	
-	roll.buttons.pass = CreateFrame("Button", nil, roll.buttons)
+	roll.buttons.pass = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.pass:SetSize(42, 25)
 	roll.buttons.pass:SetPoint("LEFT", roll.buttons.note, "RIGHT", 4, 0)
 	roll.buttons.pass:SetText(l["framePass"])
@@ -464,7 +464,7 @@ for i = 1, 10 do
 		bdlc:repositionFrames()--]]
 	end)
 	
-	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons)
+	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.notes:SetSize(310, 24)
 	roll.buttons.notes:SetPoint("BOTTOMLEFT", roll.buttons, "BOTTOMLEFT", 8, 7)
 	roll.buttons.notes:SetMaxLetters(100)
@@ -476,7 +476,7 @@ for i = 1, 10 do
 	roll.buttons.notes:SetBackdropColor(.1,.1,.1,1)
 	roll.buttons.notes:SetBackdropBorderColor(0,0,0,1)
 	roll.buttons.notes:Hide()
-	roll.buttons.notes.okay = CreateFrame("Button", nil, roll.buttons.notes)
+	roll.buttons.notes.okay = CreateFrame("Button", nil, roll.buttons.notes, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.notes.okay:SetSize(37, 25)
 	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT", -1, 0)
 	roll.buttons.notes.okay:SetText(l["frameOkay"])
@@ -497,7 +497,7 @@ f.voteFrame.tabs:SetPoint("TOPLEFT", f.voteFrame, "TOPLEFT", -40, 0)
 f.voteFrame.tabs:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMLEFT", 0, 0)
 -- Number of Items
 for i = 1, 10 do
-	local tab = CreateFrame('frame', nil, f.voteFrame.tabs)
+	local tab = CreateFrame('frame', nil, f.voteFrame.tabs, BackdropTemplateMixin and "BackdropTemplate")
 	tab.selected = false
 	tab:Hide()
 	tab:SetSize(40, 40)
@@ -537,7 +537,7 @@ for i = 1, 10 do
 	tab.wfsock:SetJustifyH("CENTER")
 	
 	--parent frame 
-	local vote_table = CreateFrame("Frame", nil, tab) 
+	local vote_table = CreateFrame("Frame", nil, tab, BackdropTemplateMixin and "BackdropTemplate") 
 	vote_table:SetPoint("TOPLEFT", f.voteFrame, "TOPLEFT", 10, -100)
 	vote_table:SetPoint("BOTTOMRIGHT", f.voteFrame, "BOTTOMRIGHT", -30, 30)
 	vote_table:Hide()
@@ -545,13 +545,13 @@ for i = 1, 10 do
 	tab.table = vote_table
 	
 	--scrollframe 
-	scrollframe = CreateFrame("ScrollFrame", nil, vote_table) 
+	local scrollframe = CreateFrame("ScrollFrame", nil, vote_table) 
 	scrollframe:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 0, -2) 
 	scrollframe:SetPoint("BOTTOMRIGHT", vote_table, "BOTTOMRIGHT", 0, 2) 
 	vote_table.scrollframe = scrollframe 
 	 
 	--scrollbar 
-	scrollbar = CreateFrame("Slider", nil, scrollframe, "UIPanelScrollBarTemplate") 
+	local scrollbar = CreateFrame("Slider", nil, scrollframe, BackdropTemplateMixin and "BackdropTemplate", "UIPanelScrollBarTemplate") 
 	scrollbar:SetPoint("TOPLEFT", vote_table, "TOPRIGHT", 6, -16) 
 	scrollbar:SetPoint("BOTTOMLEFT", vote_table, "BOTTOMRIGHT", 0, 16) 
 	scrollbar:SetMinMaxValues(1, 200) 
@@ -629,7 +629,7 @@ for i = 1, 10 do
 	vote_table.item.itemdetail:SetTextColor(1,1,1,.7);
 	vote_table.item.itemdetail:SetPoint("BOTTOMLEFT", vote_table.item, "BOTTOMLEFT", 50, 6)
 
-	vote_table.item.icon = CreateFrame("frame", nil, vote_table.item)
+	vote_table.item.icon = CreateFrame("frame", nil, vote_table.item, BackdropTemplateMixin and "BackdropTemplate")
 	vote_table.item.icon:SetSize(40, 40)
 	vote_table.item.icon:SetPoint("TOPLEFT", vote_table.item, "TOPLEFT", 0, 0)
 	bdlc:skinBackdrop(vote_table.item.icon, 0,0,0,.8);
@@ -656,7 +656,7 @@ for i = 1, 10 do
 	vote_table.numvotes:SetTextColor(.8,.8,.8)
 	vote_table.numvotes:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 40)
 
-	vote_table.endSession = CreateFrame("Button", nil, vote_table)
+	vote_table.endSession = CreateFrame("Button", nil, vote_table, BackdropTemplateMixin and "BackdropTemplate")
 	vote_table.endSession:SetSize(100, 25)
 	vote_table.endSession:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 70)
 	vote_table.endSession:SetText(l["frameEndSession"])
@@ -672,7 +672,7 @@ for i = 1, 10 do
 	local lastframe = nil
 	for e = 1, 40 do
 		-- Create entry in table
-		local entry = CreateFrame("Button", nil, vote_table.content)
+		local entry = CreateFrame("Button", nil, vote_table.content, BackdropTemplateMixin and "BackdropTemplate")
 		entry.wantLevel = 0
 		entry.rankIndex = 0
 		entry.notes = ""
@@ -691,7 +691,7 @@ for i = 1, 10 do
 		entry.name:SetTextColor(1, 1, 1);
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
 		
-		entry.award = CreateFrame("Frame",nil, entry)
+		entry.award = CreateFrame("Frame",nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.award:SetPoint("TOPLEFT", entry.name, "BOTTOMLEFT", 0, -2)
 		entry.award:SetSize(100, 42)
 		entry.award:Hide()
@@ -701,7 +701,7 @@ for i = 1, 10 do
 		entry.award.text:SetText("Award loot to ?");
 		entry.award.text:SetPoint("TOP", entry.award, "TOP", 0, -2)
 		
-		entry.award.yes = CreateFrame("Button", nil, entry.award)
+		entry.award.yes = CreateFrame("Button", nil, entry.award, BackdropTemplateMixin and "BackdropTemplate")
 		entry.award.yes:SetText(l["frameYes"])
 		entry.award.yes:SetPoint("BOTTOMLEFT", entry.award, "BOTTOMLEFT", 2, 2)
 		bdlc:skinButton(entry.award.yes,false,"blue")
@@ -709,7 +709,7 @@ for i = 1, 10 do
 			awardLoot(entry.playerName, entry.award, entry.itemUID)
 		end)
 		
-		entry.award.no = CreateFrame("Button", nil, entry.award)
+		entry.award.no = CreateFrame("Button", nil, entry.award, BackdropTemplateMixin and "BackdropTemplate")
 		entry.award.no:SetText(l["frameNo"])
 		entry.award.no:SetPoint("BOTTOMRIGHT", entry.award, "BOTTOMRIGHT", -2, 2)
 		entry.award.no:SetScript("OnClick", function() entry.award:Hide() end)
@@ -782,7 +782,7 @@ for i = 1, 10 do
 		entry.user_notes.tex:SetTexture("Interface\\FriendsFrame\\BroadcastIcon")
 		
 		
-		entry.voteUser = CreateFrame("Button", nil, entry)
+		entry.voteUser = CreateFrame("Button", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.voteUser:SetSize(45, 20)
 		entry.voteUser:SetPoint("RIGHT", entry, "RIGHT", -38, 0)
 		entry.voteUser:SetText(l["frameVote"])
@@ -793,7 +793,7 @@ for i = 1, 10 do
 			bdlc:sendAction("voteForUser", bdlc.local_player, entry.itemUID, entry.playerName);
 		end)
 		
-		entry.removeUser = CreateFrame("Button", nil, entry)
+		entry.removeUser = CreateFrame("Button", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.removeUser:SetSize(25, 20)
 		entry.removeUser:SetPoint("RIGHT", entry, "RIGHT", -7, 0)
 		entry.removeUser:SetText("x")
@@ -804,7 +804,7 @@ for i = 1, 10 do
 			bdlc:removeUserConsidering(entry.itemUID, entry.playerName)
 		end)
 		
-		entry.gear1 = CreateFrame("frame", nil, entry)
+		entry.gear1 = CreateFrame("frame", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.gear1:SetSize(20,20);
 		entry.gear1:Hide();
 		entry.gear1:SetPoint("RIGHT", entry, "RIGHT", -200, 0);
@@ -817,7 +817,7 @@ for i = 1, 10 do
 		entry.gear1.tex:SetPoint("TOPLEFT", entry.gear1, "TOPLEFT", 2, -2)
 		entry.gear1.tex:SetPoint("BOTTOMRIGHT", entry.gear1, "BOTTOMRIGHT", -2, 2)
 	
-		entry.gear2 = CreateFrame("frame", nil, entry)
+		entry.gear2 = CreateFrame("frame", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.gear2:Hide();
 		entry.gear2:SetSize(20,20);
 		entry.gear2:SetPoint("RIGHT", entry, "RIGHT", -170, 0);

@@ -2,7 +2,7 @@ local bdlc, l, f = select(2, ...):unpack()
 
 function bdlc:Config()
 	-- Config window
-	bdlcconfig = CreateFrame('frame', 'BDLC Config', UIParent)
+	bdlcconfig = CreateFrame('frame', 'BDLC Config', UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	bdlcconfig:SetFrameStrata("HIGH")
 	bdlcconfig:SetFrameLevel(9)
 	bdlcconfig.SetFrameLevel = function() return end
@@ -24,7 +24,7 @@ function bdlc:Config()
 	bdlcconfig.title:SetTextColor(1,1,1)
 	bdlcconfig.title:SetPoint("TOP", bdlcconfig, "TOP", 0,-6)
 	
-	bdlcconfig.close = CreateFrame("Button", nil, bdlcconfig)
+	bdlcconfig.close = CreateFrame("Button", nil, bdlcconfig, BackdropTemplateMixin and "BackdropTemplate")
 	bdlcconfig.close:SetPoint("TOPRIGHT", bdlcconfig, "TOPRIGHT", -4, -4)
 	bdlcconfig.close:SetText("x")
 	bdlc:skinButton(bdlcconfig.close,true,"red")
@@ -34,7 +34,7 @@ function bdlc:Config()
 		bdlc_config_toggle = false
 	end)
 
-	GuildRoster()
+	C_GuildInfo:GuildRoster()
 	local listOfRanks = {}
 	bdlcconfig.init = false
 	bdlcconfig:SetScript("OnShow",function()
@@ -99,8 +99,8 @@ function bdlc:createDropdown(option, info)
 	local panel = bdlcconfig
 	--local items = {strsplit(",",info.options)}
 	local items = info.options
-	local container = CreateFrame("Button",nil, panel)
-	local dropdown = CreateFrame("Frame", "BDLC_"..option, panel)
+	local container = CreateFrame("Button",nil, panel, BackdropTemplateMixin and "BackdropTemplate")
+	local dropdown = CreateFrame("Frame", "BDLC_"..option, panel, BackdropTemplateMixin and "BackdropTemplate")
 	container:SetWidth(300)
 	container:SetHeight(20)
 	bdlc:skinBackdrop(container)
@@ -160,7 +160,7 @@ function bdlc:createDropdown(option, info)
 
 	for i = 1, #items do
 		if (items[i]) then
-			local item = CreateFrame("Button", nil, dropdown)
+			local item = CreateFrame("Button", nil, dropdown, BackdropTemplateMixin and "BackdropTemplate")
 			item:SetSize(dropdown:GetWidth()-4, 20)
 			item:SetBackdrop({bgFile = media.flat, })
 			item:SetBackdropColor(0,0,0,0)
@@ -199,7 +199,7 @@ end
 function bdlc:createList(option,info)
 	local panel = bdlcconfig
 	
-	local container = CreateFrame("frame",nil,panel)
+	local container = CreateFrame("frame",nil,panel, BackdropTemplateMixin and "BackdropTemplate")
 	container:SetSize(300,160)
 	bdlc:skinBackdrop(container)
 	container:SetBackdropColor(.18,.22,.25,1)
@@ -218,7 +218,7 @@ function bdlc:createList(option,info)
 	container.scrollframe = scrollframe 
 
 	--scrollbar 
-	local scrollbar = CreateFrame("Slider", nil, scrollframe, "UIPanelScrollBarTemplate") 
+	local scrollbar = CreateFrame("Slider", nil, scrollframe, BackdropTemplateMixin and "BackdropTemplate", "UIPanelScrollBarTemplate") 
 	scrollbar:SetPoint("TOPRIGHT", container, "TOPRIGHT", -2, -18) 
 	scrollbar:SetPoint("BOTTOMLEFT", container, "BOTTOMRIGHT", -18, 18) 
 	scrollbar:SetMinMaxValues(1, 600) 
@@ -246,7 +246,7 @@ function bdlc:createList(option,info)
 	container.content.text:SetJustifyV("TOP")
 	
 	
-	container.insert = CreateFrame("EditBox",nil,container)
+	container.insert = CreateFrame("EditBox", nil, container, BackdropTemplateMixin and "BackdropTemplate")
 	container.insert:SetPoint("BOTTOMLEFT", container, "TOPLEFT",0,2)
 	container.insert:SetSize(234, 24)
 	bdlc:skinBackdrop(container.insert)
@@ -260,7 +260,7 @@ function bdlc:createList(option,info)
 	container.insert:SetScript("OnEscapePressed", function(self, key) self:ClearFocus() end)
 	
 	-- submit
-	container.button = CreateFrame("Button", nil, container)
+	container.button = CreateFrame("Button", nil, container, BackdropTemplateMixin and "BackdropTemplate")
 	container.button:SetPoint("TOPLEFT", container.insert, "TOPRIGHT", -1 ,0)
 	container.button:SetSize(68, 24)
 	container.button:SetBackdrop({
