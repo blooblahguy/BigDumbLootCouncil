@@ -10,7 +10,7 @@ bdlc.deliminator = "><";
 bdlc.colorString = "|cffA02C2FBig|r Dumb Loot Council "
 bdlc.localPlayer = UnitName("player").."-"..GetRealmName()
 bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
-bdlc.tt = CreateFrame('GameTooltip', 'BDLCTooltipScan', UIParent, 'GameTooltipTemplate')
+bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
 
@@ -23,6 +23,7 @@ bdlc.media = {
 	-- border = {.06, .08, .09, 1},
 	border = {.03, .04, .05, 1},
 	backdrop = {.08, .09, .11, 0.9},
+	hover = {.28, .29, .31, 0.9},
 	red = {.62, .17, .18, 1},
 	blue = {.2, .4, 0.8, 1},
 	green = {.1, .7, 0.3, 1},
@@ -33,10 +34,17 @@ bdlc.configDefaults = {
 	debug = true,
 	custom_council = {},
 	council_votes = 1,
-	custom_quick_notes = {
+	quick_notes = {
 		"BiS", 
-		"2p", 
-		"4p",
+		"20%", 
+		"10%",
+	},
+	buttons = {
+		[1] = {"Mainspec", {.2, 1, .2}},
+		[2] = {"Minor Up", {.6, 1, .6}},
+		[3] = {"Offspec", {.8, .6, .6}},
+		[4] = {"Reroll", {.1, .6, .6}},
+		[5] = {"Transmog", {.8, .4, 1}}
 	}
 }
 
@@ -131,7 +139,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 
 	-- config
 	if (msg == "config") then
-
+		bdlc.config_window:Show()
 		return
 	end
 

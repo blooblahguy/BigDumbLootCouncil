@@ -1,7 +1,5 @@
 local bdlc, c, l = unpack(select(2, ...))
 
-print("events")
-
 local events = CreateFrame("frame", nil, UIParent)
 events:RegisterEvent("BOSS_KILL");
 events:RegisterEvent("CHAT_MSG_LOOT");
@@ -22,12 +20,13 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 		bdlc:sendLC()
 
 		bdlc.item_drops = {}
+		bdlc.tradedItems = {}
 
 		return
 	end
 
 	-- starts sessions even without looting the item
-	if (event == "LOOT_OPENED") then
+	if (event == "LOOT_OPENED" and IsInRaid()) then
 		local num_free = 0
 		local remaining_loot = 0
 		
@@ -47,28 +46,12 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 				end
 
 				if (num_free == 0) then
-					bdlc.print("You have full bags! Attempting to delete a grey item so that you can loot this item.")
-					for bag = 0, 4 do
-						for slot = 1, GetContainerNumSlots(bag) do
-							local bagItemLink = GetContainerItemLink(bag, slot);
-							if bagItemLink and select(3, GetItemInfo(bagItemLink)) == 0 then
-								PickupContainerItem(bag, slot)
-								DeleteCursorItem()
-								num_free = 1
-								bdlc.print("Deleted "..bagItemLink.." to loot "..itemLink..".");
-								break;
-							end
-						end
-					end
+					bdlc:print("You have full bags! Delete something to loot "..itemLink)
 				end
 
 				-- alert my raid that this exists
 				if (num_free == 0) then
 					SendChatMessage("BDLC: I have full bags but I looted "..itemLink, "RAID")
-				else
-					-- force pick up this item since it is potentially a loot session item
-					remaining_loot = remaining_loot - 1
-					LootSlot(slot)
 				end
 			end
 		end
@@ -84,8 +67,8 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 			
 			if (quantity == 1) then 
 				-- Exists, not stackable
-				local _, _, _, itemLink = string.find(chatItemLink, "(|H(.+)|h)");
-				_, _, itemLink = string.find(itemLink, "(.-|h)");
+				local a1, a2, a3, itemLink = string.find(chatItemLink, "(|H(.+)|h)");
+				a1, a2, itemLink = string.find(itemLink, "(.-|h)");
 				
 				local itemUID = bdlc:GetItemUID(itemLink)
 

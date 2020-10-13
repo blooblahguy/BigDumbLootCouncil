@@ -10,6 +10,7 @@ libs\LibStub.lua
 libs\CallbackHandler-1.0.lua
 libs\ChatThrottleLib.lua
 libs\AceComm-3.0.lua
+libs\bdConfigLite\bdConfigLite.xml
 
 # init
 core\init.lua
@@ -21,5 +22,5 @@ core\functions.lua
 core\frames.lua
 core\council.lua
 core\session.lua
-core\config.lua
 core\events.lua
+core\config.lua

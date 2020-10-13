@@ -49,8 +49,8 @@ function bdlc:startMockSession()
 
 	-- now lets start fake sessions
 	for k, v in pairs(bdlc.item_drops) do
-		local itemUID = bdlc:GetItemUID(k, v)
-		bdlc:sendAction("startSession", k, v);
+		local itemUID = bdlc:GetItemUID(k, bdlc.localPlayer)
+		bdlc:sendAction("startSession", k, bdlc.localPlayer);
 
 		-- add our demo players in 
 		for name, data in pairs(demo_players) do
@@ -201,13 +201,13 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
 	roll.item.icon.wfsock:SetText(infostr)
 
-	roll.item:SetScript("OnEnter", function()
+	roll.item.icon:SetScript("OnEnter", function()
 		ShowUIPanel(GameTooltip)
 		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
 		GameTooltip:SetHyperlink(itemLink)
 		GameTooltip:Show()
 	end)
-	roll.item:SetScript("OnLeave", function()
+	roll.item.icon:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 	
@@ -409,7 +409,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 end
 
 ----------------------------------------
--- RemoveUserRoll
+-- removeUserRoll
 ----------------------------------------
 function bdlc:removeUserRoll(itemUID, playerName)
 	local playerName = FetchUnitName(playerName)
@@ -419,6 +419,34 @@ function bdlc:removeUserRoll(itemUID, playerName)
 		bdlc:repositionFrames()
 	end
 end
+
+----------------------------------------
+-- awardLoot
+-- This function alerts awarding and then sends a raid message
+----------------------------------------
+function bdlc:awardLoot(playerName, dropdown, itemUID)
+	playerName = FetchUnitName(playerName)
+	if (not itemUID) then return end
+	local lootedBy = bdlc.loot_sessions[itemUID]
+	local itemLink = bdlc.itemMap[itemUID]
+	if (not itemLink) then return end
+
+	print(itemLink, lootedBy)
+
+	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
+	SendChatMessage("BDLC: Please trade "..itemLink.." to "..playerName, "WHISPER", nil, lootedBy)
+	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
+
+	dropdown:Hide()
+end
+
+----------------------------------------
+-- addLootHistory
+-- store log of when / what user was awarded in the past
+----------------------------------------
+-- function bdlc:addLootHistory(itemUID, playerName)
+
+-- end
 
 --==========================================
 -- Receive messages

@@ -15,11 +15,21 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	BDLC_CONFIG = bdlc.configDefaults
 	BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
+
+	bdlc:Config()
+	bdlc.config_window:Show()
+
 	-- print(bdlc.config)
 
 	bdlc:print("loaded, enjoy!")
 
-	-- C_Timer.After(2, function()
-	-- 	bdlc:startMockSession()
-	-- end)
+	C_Timer.After(2, function()
+		-- require initialize function
+		-- if (not bdlc.module.initialize) then
+		-- 	bdlc:print(bdlc.module._name, "does not have an initialize() function and can't be loaded")
+		-- 	return
+		-- end
+
+		-- bdlc:startMockSession()
+	end)
 end)

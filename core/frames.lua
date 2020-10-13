@@ -208,7 +208,7 @@ local function create_tab(self)
 	local content = bdlc:createScrollFrame(vote_table)
 	content.scrollframe:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 0, -4);
 	content.scrollframe:SetPoint("BOTTOMRIGHT", vote_table, "BOTTOMRIGHT", 0, 4);
-	content.scrollchild:SetSize(content.scrollframe:GetWidth(), (content.scrollframe:GetHeight() * 2 ));
+	content.scrollchild:SetSize(content.scrollframe:GetWidth(), (content.scrollframe:GetHeight() * 1.5 ));
 	vote_table.content = content.content
 	bdlc:setBackdrop(content, .1,.2,.1,.8);
 
@@ -365,7 +365,7 @@ local function create_tab(self)
 		entry.award.yes:SetPoint("BOTTOMLEFT", entry.award, "BOTTOMLEFT", 2, 2)
 		bdlc:skinButton(entry.award.yes,false,"blue")
 		entry.award.yes:SetScript("OnClick", function(self)
-			awardLoot(entry.playerName, entry.award, entry.itemUID)
+			bdlc:awardLoot(entry.playerName, entry.award, entry.itemUID)
 		end)
 		
 		entry.award.no = CreateFrame("Button", nil, entry.award, BackdropTemplateMixin and "BackdropTemplate")
@@ -622,30 +622,35 @@ local function create_roll(self)
 	roll.buttons.main = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.main:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
 	roll.buttons.main:SetText(l["frameMain"])
+	roll.buttons.main:GetRegions():SetTextColor(unpack(bdlc.config.buttons[1][2]))
 	bdlc:skinButton(roll.buttons.main)
 	roll.buttons.main:SetScript("OnClick", function() roll.buttons.submit(1) end)
 	
 	roll.buttons.minor = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
 	roll.buttons.minor:SetText(l["frameMinorUp"])
+	roll.buttons.minor:GetRegions():SetTextColor(unpack(bdlc.config.buttons[2][2]))
 	bdlc:skinButton(roll.buttons.minor)
 	roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
 	
 	roll.buttons.off = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
 	roll.buttons.off:SetText(l["frameOffspec"])
+	roll.buttons.off:GetRegions():SetTextColor(unpack(bdlc.config.buttons[3][2]))
 	bdlc:skinButton(roll.buttons.off)
 	roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
 	
 	roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
 	roll.buttons.reroll:SetText(l["frameReroll"])
+	roll.buttons.reroll:GetRegions():SetTextColor(unpack(bdlc.config.buttons[4][2]))
 	bdlc:skinButton(roll.buttons.reroll)
 	roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
 	
 	roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
 	roll.buttons.xmog:SetText(l["frameTransmog"])
+	roll.buttons.xmog:GetRegions():SetTextColor(unpack(bdlc.config.buttons[5][2]))
 	bdlc:skinButton(roll.buttons.xmog)
 	roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
 	
@@ -781,7 +786,7 @@ bdlc.window:EnableMouse(true);
 bdlc.window:SetMovable(true);
 bdlc.window:SetUserPlaced(true);
 bdlc.window:SetFrameStrata("DIALOG");
-bdlc.window:SetFrameLevel(1);
+bdlc.window:SetFrameLevel(27);
 bdlc.window:SetSize(600, 400);
 bdlc.window:SetPoint("CENTER");
 bdlc.window:Hide();

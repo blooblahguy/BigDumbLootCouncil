@@ -114,7 +114,7 @@ end
 
 function bdlc:setBackdrop(frame, r, g, b, a)
 	local border = bdlc.media.border
-	local backdrop = r and {r, g, b, a} or bdlc.backdrop
+	local backdrop = r and {r, g, b, a} or bdlc.media.backdrop
 	local r, g, b, a = unpack(backdrop)
 	a = a or 1
 
@@ -124,8 +124,8 @@ function bdlc:setBackdrop(frame, r, g, b, a)
 end
 
 function bdlc:skinButton(f, small, color)
-	local colors = {.1,.1,.1,1}
-	local hovercolors = {0,0.55,.85,1}
+	local colors = bdlc.media.backdrop --{.1,.1,.1,1}
+	local hovercolors = bdlc.media.hover --{0,0.55,.85,1}
 	if (color == "red") then
 		colors = {.6,.1,.1,0.6}
 		hovercolors = {.6,.1,.1,1}
@@ -136,6 +136,7 @@ function bdlc:skinButton(f, small, color)
 		colors = {.1,.1,.1,1}
 		hovercolors = {.1,.1,.1,1}
 	end
+
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
 	f:SetBackdropColor(unpack(colors)) 
     f:SetBackdropBorderColor(0,0,0,1)
@@ -575,7 +576,7 @@ function IsRaidLeader()
 	end
 end
 
-function bdlc:IsInRaidGroup()
+function bdlc:IsInRaid()
 	local inInstance, instanceType = IsInInstance();
 	
 	if (inInstance and instanceType == "raid") then
@@ -587,9 +588,7 @@ end
 -- returns name-server for any valid unitID
 function FetchUnitName(name, strict)
 	local name, server = strsplit("-", name)
-	local name_server = false
-
-	
+	local name_server = false	
 
 	if (UnitExists(name) and UnitIsConnected(name)) then
 		name_server = GetUnitName(name, true)

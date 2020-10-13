@@ -59,6 +59,8 @@ function bdlc:addremoveLC(msg, name)
 	if (IsRaidLeader() or not IsInRaid()) then
 		bdlc:sendAction("buildLC");
 	end
+
+	return true
 end
 
 
@@ -103,6 +105,7 @@ function bdlc:requestLC()
 	if (not IsRaidLeader()) then return end
 	bdlc:sendLC()
 end
+
 function bdlc:sendLC()
 	if (not IsRaidLeader()) then return end
 	bdlc:debug("Building LC")
@@ -110,6 +113,7 @@ function bdlc:sendLC()
 	-- clear all the settings since we're rebuilding here
 	local council = {FetchUnitName("player")}
 	local quicknotes = {}
+	local buttons = {}
 
 	-------------------------------------------------------
 	-- MINIMUM LC RANK
@@ -152,7 +156,7 @@ function bdlc:sendLC()
 	-- QUICK NOTES
 	-- Add to table from saved variables or defaults
 	-------------------------------------------------------
-	for k, v in pairs(bdlc.config.custom_quick_notes) do
+	for k, v in pairs(bdlc.config.quick_notes) do
 		table.insert(quicknotes, v)
 	end
 
