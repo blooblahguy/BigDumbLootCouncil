@@ -14,6 +14,9 @@ bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipT
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
 
+-- hook into config library
+bdlc.bdConfig = engine.bdConfig:new("BigDumbLootCouncil", "BDLC_CONFIG", function() return end)
+
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
 	smooth = "Interface\\Addons\\bigdumblootcouncil\\media\\smooth.tga",
@@ -125,7 +128,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 
 	-- version
 	if (msg == "version") then
-		-- bdlc:checkRaidVersions()
+		bdlc:checkRaidVersions()
 
 		return
 	end
@@ -139,7 +142,8 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 
 	-- config
 	if (msg == "config") then
-		bdlc.config_window:Show()
+		bdlc.config_window:SetShown(not bdlc.config_window:IsShown())
+		
 		return
 	end
 

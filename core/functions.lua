@@ -18,6 +18,16 @@ function bdlc:calculate_scale()
 end
 bdlc:calculate_scale()
 
+function bdlc:get_border(frame)
+	local screenheight = select(2, GetPhysicalScreenSize())
+	local scale = 768 / screenheight
+	local frame_scale = frame:GetEffectiveScale()
+	local pixel = scale / frame_scale
+	local border = pixel * 2
+
+	return border
+end
+
 -- UID hash string
 function bdlc:GetItemUID(itemLink, lootedBy)
 	lootedBy = lootedBy or ""

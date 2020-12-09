@@ -15,13 +15,13 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	BDLC_CONFIG = bdlc.configDefaults
 	BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
-
-	bdlc:Config()
-	bdlc.config_window:Show()
-
-	-- print(bdlc.config)
+	bdUI.config_instance = bdUI.bdConfig:load()
+	c = bdUI.bdConfig:get_save("BDUI_SAVE")
 
 	bdlc:print("loaded, enjoy!")
+
+	-- bdlc.config_window:RegisterEvent("GUILD_ROSTER_UPDATE")
+	-- C_GuildInfo.GuildRoster()
 
 	C_Timer.After(2, function()
 		-- require initialize function
