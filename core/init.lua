@@ -82,9 +82,7 @@ end
 -- Commands
 SLASH_bdlc1 = "/bdlc"
 SlashCmdList["bdlc"] = function(original_msg, editbox)
-	local msg, msg2 = strsplit(" ", strtrim(original_msg, 1))
-
-	print(strsplit(" ", strtrim(original_msg, 1)))
+	local msg, msg2 = strsplit(" ", strtrim(original_msg), 2)
 
 	-- list of commands
 	if (msg == "" or msg == " ") then
