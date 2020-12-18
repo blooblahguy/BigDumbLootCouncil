@@ -15,8 +15,6 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	BDLC_CONFIG = bdlc.configDefaults
 	BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
-	bdUI.config_instance = bdUI.bdConfig:load()
-	c = bdUI.bdConfig:get_save("BDUI_SAVE")
 
 	bdlc:print("loaded, enjoy!")
 

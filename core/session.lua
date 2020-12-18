@@ -70,6 +70,7 @@ end
 -- Sessions
 --==========================================
 function bdlc:startSession(itemLink, lootedBy)
+	if (not itemLink) then return end
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)

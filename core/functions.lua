@@ -374,12 +374,15 @@ end
 
 function bdlc:itemEquippable(itemUID)
 	local itemLink = bdlc.itemMap[itemUID]
-	local _, _, _, _, _, _, _, _, equipSlot, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(itemLink)
+	-- local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, equipSlot, itemTexture, itemSellPrice = GetItemInfo(itemLink)
+	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, equipSlot, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(itemLink)
 	
 	if (bindType ~= 1) or (equipSlot == 'INVTYPE_FINGER') or (equipSlot == 'INVTYPE_CLOAK') or (equipSlot == 'INVTYPE_NECK') or (equipSlot == 'INVTYPE_TRINKET') then 
 		-- LQE, necks, rings, trinkets and cloaks are always 'usable'
 		return true
 	end
+
+	if (equipSlot == "") then return true end
 	
 	local playerClass = select(2, UnitClass("player"))
 	local classes = {}
@@ -397,8 +400,10 @@ function bdlc:itemEquippable(itemUID)
 	classes["DRUID"] = { [2]={4,5,6,10,13,14,15,20}, [4]={0,2,5}, }
 	classes["DEMONHUNTER"] = { [2]={0,7,9,13,14,15,20}, [4]={2,5}, }
 	
-	if tContains(classes[playerClass][itemClassID], itemSubClassID) then
-		return true 
+	if (classes[playerClass][itemClassID]) then
+		if tContains(classes[playerClass][itemClassID], itemSubClassID) then
+			return true 
+		end
 	end
 	
 	print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
@@ -406,21 +411,61 @@ function bdlc:itemEquippable(itemUID)
 end
 
 function bdlc:IsTier(itemLink)
+	local isTier = false
+
+	-- tier names
 	local tier_names = {
 		[l["tierProtector"]] = true,
 		[l["tierConqueror"]] = true,
 		[l["tierVanquisher"]] = true
 	}
 
+	-- store class names
+	local classes = {}
+	for i = 1, 12 do
+		local name, global, index = GetClassInfo(i)
+		classes[name] = name
+	end
+
+	local tier_classes = {
+		-- old
+		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
+		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+		-- newer
+		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+	}
+
+	local weapon_classes = {
+		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
+		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
+		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
+		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+	}
+
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
 	
-	local isTier = false
-	for k, v in pairs(tier_names) do
-		if (strfind(name:lower(), k:lower())) then isTier = true end
+	-- scan for class requirements
+	for i = 1, GameTooltip:NumLines() do
+		local line = _G['BDLC:TooltipScanTextLeft'..i]
+		local text = line:GetText();
+		
+		for k, v in pairs(weapon_classes) do
+			if (text == v) then
+				isTier = true
+			end
+		end
+		
+		for k, v in pairs(tier_classes) do
+			if (text == v) then
+				isTier = true
+			end
+		end
 	end
-	
+
 	return isTier
 end
 

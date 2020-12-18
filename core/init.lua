@@ -14,9 +14,6 @@ bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipT
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
 
--- hook into config library
-bdlc.bdConfig = engine.bdConfig:new("BigDumbLootCouncil", "BDLC_CONFIG", function() return end)
-
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
 	smooth = "Interface\\Addons\\bigdumblootcouncil\\media\\smooth.tga",
@@ -85,7 +82,9 @@ end
 -- Commands
 SLASH_bdlc1 = "/bdlc"
 SlashCmdList["bdlc"] = function(original_msg, editbox)
-	local msg, msg2, msg3 = strsplit(" ", strtrim(original_msg))
+	local msg, msg2 = strsplit(" ", strtrim(original_msg, 1))
+
+	print(strsplit(" ", strtrim(original_msg, 1)))
 
 	-- list of commands
 	if (msg == "" or msg == " ") then
@@ -116,6 +115,16 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 			bdlc:print("Can't show window - you are not in the loot council.")
 		end
 
+		return
+	end
+
+	-- start
+	if (msg == "start") then
+		if (not msg2) then
+			bdlc:print("3rd parameter needs to be an itemLink")
+		end
+		bdlc:startSession(msg2, "")
+		
 		return
 	end
 

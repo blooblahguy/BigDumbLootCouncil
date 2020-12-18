@@ -4,8 +4,6 @@ local config = {
 
 }
 
--- bdlc.module = select(2, ...).bdConfig:register_module("BigDumbLootCouncil", config, "config_callback", options)
-
 -- local config = CreateFrame('frame', 'BDLC Config', UIParent, BackdropTemplateMixin and "BackdropTemplate")
 -- config:SetFrameStrata("HIGH")
 -- config:SetFrameLevel(9)
