@@ -22,5 +22,5 @@ core\frames.lua
 core\council.lua
 core\session.lua
 core\events.lua
-core\config.lua
 core\versions.lua
+config\config.lua
