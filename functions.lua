@@ -216,68 +216,111 @@ function bdlc:itemEquippable(itemUID)
 	
 	local playerClass = select(2, UnitClass("player"))
 	local classes = {}
-		--[[
-			[4] = Armor
-				Miscellaneous=0, (trinkets/necks/rings filtered above, so the only way to get there are caster offhands)
-				Cloth=1,
-				Leather=2,
-				Mail=3,
-				Plate=4,
-				Cosmetic=5,
-				Shields=6
-			
-			[2] = Weapons
-				One-handed Axes=0, Two-handed Axes=1,
-				Bows=2, Guns=3,
-				One-handed Maces=4, Two-handed Maces=5,
-				Polearms=6,
-				One-handed Swords=7, Two-handed Swords=8,
-				Warglaives=9,
-				Staves=10,
-				Fist Weapons=13,
-				Miscellaneous=14, ??
-				Daggers=15,
-				Thrown=16,
-				Crossbows=18,
-				Wands=19,
-				Fishing Poles=20
-		--]]
+
+	--[[
+		[4] = Armor
+			Miscellaneous=0, (trinkets/necks/rings filtered above, so the only way to get there are caster offhands)
+			Cloth=1,
+			Leather=2,
+			Mail=3,
+			Plate=4,
+			Cosmetic=5,
+			Shields=6
 		
-		classes["WARRIOR"] = { [2]={0,1,4,5,6,7,8,10,13,14,15,20}, [4]={4,5,6}, }
-		classes["PALADIN"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={0,4,5,6}, }
-		classes["HUNTER"] = { [2]={0,1,2,3,6,7,8,10,13,14,15,18,20}, [4]={3,5}, }
-		classes["ROGUE"] = { [2]={0,4,7,13,14,15,20}, [4]={2,5}, }
-		classes["PRIEST"] = { [2]={4,10,14,15,19,20}, [4]={0,1,5}, }
-		classes["DEATHKNIGHT"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={4,5}, }
-		classes["SHAMAN"] = { [2]={0,1,4,5,10,13,14,15,20}, [4]={0,3,5,6}, }
-		classes["MAGE"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
-		classes["WARLOCK"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
-		classes["MONK"] = { [2]={0,4,6,7,10,13,14,20}, [4]={0,2,5}, }
-		classes["DRUID"] = { [2]={4,5,6,10,13,14,15,20}, [4]={0,2,5}, }
-		classes["DEMONHUNTER"] = { [2]={0,7,9,13,14,15,20}, [4]={2,5}, }
+		[2] = Weapons
+			One-handed Axes=0, Two-handed Axes=1,
+			Bows=2, Guns=3,
+			One-handed Maces=4, Two-handed Maces=5,
+			Polearms=6,
+			One-handed Swords=7, Two-handed Swords=8,
+			Warglaives=9,
+			Staves=10,
+			Fist Weapons=13,
+			Miscellaneous=14, ??
+			Daggers=15,
+			Thrown=16,
+			Crossbows=18,
+			Wands=19,
+			Fishing Poles=20
+	--]]
 	
-	if tContains(classes[playerClass][itemClassID], itemSubClassID) then
-		return true 
+	classes["WARRIOR"] = { [2]={0,1,4,5,6,7,8,10,13,14,15,20}, [4]={4,5,6}, }
+	classes["PALADIN"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={0,4,5,6}, }
+	classes["HUNTER"] = { [2]={0,1,2,3,6,7,8,10,13,14,15,18,20}, [4]={3,5}, }
+	classes["ROGUE"] = { [2]={0,4,7,13,14,15,20}, [4]={2,5}, }
+	classes["PRIEST"] = { [2]={4,10,14,15,19,20}, [4]={0,1,5}, }
+	classes["DEATHKNIGHT"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={4,5}, }
+	classes["SHAMAN"] = { [2]={0,1,4,5,10,13,14,15,20}, [4]={0,3,5,6}, }
+	classes["MAGE"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
+	classes["WARLOCK"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
+	classes["MONK"] = { [2]={0,4,6,7,10,13,14,20}, [4]={0,2,5}, }
+	classes["DRUID"] = { [2]={4,5,6,10,13,14,15,20}, [4]={0,2,5}, }
+	classes["DEMONHUNTER"] = { [2]={0,7,9,13,14,15,20}, [4]={2,5}, }
+
+	if (classes[playerClass][itemClassID]) then
+		if tContains(classes[playerClass][itemClassID], itemSubClassID) then
+			return true 
+		end
 	end
 	
-	print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
+	-- print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
 	return false
 end
 
 function bdlc:IsTier(itemLink)
+	local isTier = false
+
+	-- tier names
 	local tier_names = {
 		[l["tierProtector"]] = true,
 		[l["tierConqueror"]] = true,
 		[l["tierVanquisher"]] = true
 	}
 
+	-- store class names
+	local classes = {}
+	for i = 1, 12 do
+		local name, global, index = GetClassInfo(i)
+		classes[name] = name
+	end
+
+	local tier_classes = {
+		-- old
+		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
+		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+		-- newer
+		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+	}
+
+	local weapon_classes = {
+		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
+		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
+		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
+		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+	}
+
 	tts:SetOwner(UIParent, 'ANCHOR_NONE')
 	tts:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
-	
-	local isTier = false
-	for k, v in pairs(tier_names) do
-		if (strfind(name:lower(), k:lower())) then isTier = true end
+
+	-- scan for class requirements
+	for i = 1, tts:NumLines() do
+		local line = _G['BDLC:TooltipScanTextLeft'..i]
+		local text = line:GetText();
+
+		for k, v in pairs(weapon_classes) do
+			if (text == v) then
+				isTier = true
+			end
+		end
+
+		for k, v in pairs(tier_classes) do
+			if (text == v) then
+				isTier = true
+			end
+		end
 	end
 	
 	return isTier

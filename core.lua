@@ -13,6 +13,8 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	local isRelic = bdlc:IsRelic(itemLink)
 
+	print("tier", isTier, "relic", isRelic, "equi[", equipSlot)
+
 	-- if (not bdlc.loot_sessions[itemUID]) then
 	-- 	value = true
 	-- end
@@ -35,6 +37,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 	return valid
 end
 function bdlc:startSession(itemLink, lootedBy)
+	
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
