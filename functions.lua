@@ -261,6 +261,8 @@ function bdlc:itemEquippable(itemUID)
 		if tContains(classes[playerClass][itemClassID], itemSubClassID) then
 			return true 
 		end
+	else
+		return true
 	end
 	
 	-- print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
