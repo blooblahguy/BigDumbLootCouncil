@@ -287,14 +287,16 @@ function bdlc:IsTier(itemLink)
 		local text = line:GetText();
 
 		for k, v in pairs(weapon_classes) do
-			if (text == v) then
+			if (strfind(text, v) ~= nil) then
 				isTier = true
+				break
 			end
 		end
 
 		for k, v in pairs(tier_classes) do
-			if (text == v) then
+			if (strfind(text, v) ~= nil) then
 				isTier = true
+				break
 			end
 		end
 	end
