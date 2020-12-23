@@ -843,6 +843,18 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 				print("  /bdlc removefromlc playername - Adds a player to the loot council (if you're the Masterlooter)")
 			elseif (msg == "version") then
 				bdlc:checkRaidVersions()
+			elseif (msg == "canuse") then
+				local s, e = string.find(origmsg, msg)
+				local newmsg = strtrim(string.sub(origmsg, e+1))
+
+				-- print(newmsg)
+				-- return
+				-- local uid = bdlc:GetItemUID(newmsg, "bloo")
+				-- print(uid)
+				-- bdlc.itemMap[uid] = newmsg
+				-- print(bdlc:itemEquippable(uid))
+				-- bdlc_config = bdlc.defaults
+				-- ReloadUI()
 			elseif (msg == "reset") then
 				bdlc_config = bdlc.defaults
 				ReloadUI()

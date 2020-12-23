@@ -207,43 +207,19 @@ end
 
 function bdlc:itemEquippable(itemUID)
 	local itemLink = bdlc.itemMap[itemUID]
-	local _, _, _, _, _, _, _, _, equipSlot, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(itemLink)
+	-- local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, equipSlot, itemTexture, itemSellPrice = GetItemInfo(itemLink)
+	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, equipSlot, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(itemLink)
 	
 	if (bindType ~= 1) or (equipSlot == 'INVTYPE_FINGER') or (equipSlot == 'INVTYPE_CLOAK') or (equipSlot == 'INVTYPE_NECK') or (equipSlot == 'INVTYPE_TRINKET') then 
 		-- LQE, necks, rings, trinkets and cloaks are always 'usable'
 		return true
 	end
+
+	if (equipSlot == "") then return true end
 	
 	local playerClass = select(2, UnitClass("player"))
 	local classes = {}
-
-	--[[
-		[4] = Armor
-			Miscellaneous=0, (trinkets/necks/rings filtered above, so the only way to get there are caster offhands)
-			Cloth=1,
-			Leather=2,
-			Mail=3,
-			Plate=4,
-			Cosmetic=5,
-			Shields=6
 		
-		[2] = Weapons
-			One-handed Axes=0, Two-handed Axes=1,
-			Bows=2, Guns=3,
-			One-handed Maces=4, Two-handed Maces=5,
-			Polearms=6,
-			One-handed Swords=7, Two-handed Swords=8,
-			Warglaives=9,
-			Staves=10,
-			Fist Weapons=13,
-			Miscellaneous=14, ??
-			Daggers=15,
-			Thrown=16,
-			Crossbows=18,
-			Wands=19,
-			Fishing Poles=20
-	--]]
-	
 	classes["WARRIOR"] = { [2]={0,1,4,5,6,7,8,10,13,14,15,20}, [4]={4,5,6}, }
 	classes["PALADIN"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={0,4,5,6}, }
 	classes["HUNTER"] = { [2]={0,1,2,3,6,7,8,10,13,14,15,18,20}, [4]={3,5}, }
@@ -256,13 +232,11 @@ function bdlc:itemEquippable(itemUID)
 	classes["MONK"] = { [2]={0,4,6,7,10,13,14,20}, [4]={0,2,5}, }
 	classes["DRUID"] = { [2]={4,5,6,10,13,14,15,20}, [4]={0,2,5}, }
 	classes["DEMONHUNTER"] = { [2]={0,7,9,13,14,15,20}, [4]={2,5}, }
-
+	
 	if (classes[playerClass][itemClassID]) then
 		if tContains(classes[playerClass][itemClassID], itemSubClassID) then
 			return true 
 		end
-	else
-		return true
 	end
 	
 	-- print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
