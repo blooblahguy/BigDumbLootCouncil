@@ -13,7 +13,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	local isRelic = bdlc:IsRelic(itemLink)
 
-	-- print("tier", isTier, "relic", isRelic, "equi[", equipSlot)
+	-- print("tier", isTier, "relic", isRelic, "equip", equipSlot)
 
 	-- if (not bdlc.loot_sessions[itemUID]) then
 	-- 	value = true
@@ -849,10 +849,10 @@ bdlc:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
 
 				-- print(newmsg)
 				-- return
-				-- local uid = bdlc:GetItemUID(newmsg, "bloo")
+				local uid = bdlc:GetItemUID(newmsg, "bloo")
 				-- print(uid)
-				-- bdlc.itemMap[uid] = newmsg
-				-- print(bdlc:itemEquippable(uid))
+				bdlc.itemMap[uid] = newmsg
+				print(bdlc:itemEquippable(uid))
 				-- bdlc_config = bdlc.defaults
 				-- ReloadUI()
 			elseif (msg == "reset") then

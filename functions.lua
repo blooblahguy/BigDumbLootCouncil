@@ -52,7 +52,7 @@ end
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier = bdlc:IsTier(itemLink)
+	local isTier, tierType = bdlc:IsTier(itemLink)
 	
 	if (isTier) then
 		if (strfind(name:lower(), l["tierHelm"]:lower())) then
@@ -69,6 +69,13 @@ function bdlc:fetchUserGear(unit, itemLink)
 			equipSlot = "INVTYPE_HAND"
 		end
 	end
+
+	if (tierType == "weapon") then
+		equipSlot = "INVTYPE_WEAPONMAINHAND"
+	end
+	if (tierType == "offhand") then
+		equipSlot = "INVTYPE_WEAPONMAINHAND"
+	end
 	
 	local slotID = 0;
 	if (equipSlot == "INVTYPE_HEAD") then slotID = 1 end
@@ -83,7 +90,6 @@ function bdlc:fetchUserGear(unit, itemLink)
 	if (equipSlot == "INVTYPE_HAND") then slotID = 10 end
 	if (equipSlot == "INVTYPE_BACK") then slotID = 15 end
 	if (equipSlot == "INVTYPE_CLOAK") then slotID = 15 end
-	if (equipSlot == "INVTYPE_OFFHAND") then slotID = 17 end
 	if (equipSlot == "INVTYPE_RANGED") then slotID = 18 end
 	
 	
@@ -100,7 +106,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 		itemLink2 = GetInventoryItemLink(unit, 14)
 		slotID = 13
 	end
-	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND") then
+	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND" or equipSlot == "INVTYPE_OFFHAND") then
 		itemLink1 = GetInventoryItemLink(unit, 16)
 		itemLink2 = GetInventoryItemLink(unit, 17)
 		slotID = 16
@@ -245,6 +251,7 @@ end
 
 function bdlc:IsTier(itemLink)
 	local isTier = false
+	local tierType = false
 
 	-- tier names
 	local tier_names = {
@@ -271,10 +278,16 @@ function bdlc:IsTier(itemLink)
 	}
 
 	local weapon_classes = {
+		-- main hands
 		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
 		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
 		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
 		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+	}
+	local offhand_classes = {
+		-- offhands
+		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
+		[6] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
 	}
 
 	tts:SetOwner(UIParent, 'ANCHOR_NONE')
@@ -289,6 +302,16 @@ function bdlc:IsTier(itemLink)
 		for k, v in pairs(weapon_classes) do
 			if (strfind(text, v) ~= nil) then
 				isTier = true
+				tierType = "weapon"
+				break
+			end
+		end
+
+		for k, v in pairs(offhand_classes) do
+			-- print(text, ":", v, "\n")
+			if (strfind(text, v) ~= nil) then
+				isTier = true
+				tierType = "offhand"
 				break
 			end
 		end
@@ -296,12 +319,13 @@ function bdlc:IsTier(itemLink)
 		for k, v in pairs(tier_classes) do
 			if (strfind(text, v) ~= nil) then
 				isTier = true
+				tierType = "armor"
 				break
 			end
 		end
 	end
 	
-	return isTier
+	return isTier, tierType
 end
 
 function bdlc:GetItemValue(itemLink)
