@@ -518,7 +518,7 @@ end
 -- return relic type (life, iron, blood, etc)
 function bdlc:GetRelicType(relicLink)
 	local relicType
-	local ss = EJ_LOOT_SLOT_FILTER_ARTIFACT_RELIC:lower()
+	local ss = substr(RELIC_TOOLTIP_TYPE, 3):lower()
 	
 	tts:SetOwner(UIParent, 'ANCHOR_NONE')
 	tts:SetHyperlink(relicLink)
