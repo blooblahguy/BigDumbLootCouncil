@@ -125,7 +125,7 @@ function bdlc:sendLC()
 	-- clear all the settings since we're rebuilding here
 	local council = {FetchUnitName("player")}
 	local quicknotes = {}
-	local buttons = {}
+	local buttons_string = ""
 
 	-------------------------------------------------------
 	-- MINIMUM LC RANK
@@ -173,22 +173,44 @@ function bdlc:sendLC()
 	
 	-------------------------------------------------------
 	-- QUICK NOTES
-	-- Add to table from saved variables or defaults
 	-------------------------------------------------------
 	for k, v in pairs(bdlc.config.quick_notes) do
 		table.insert(quicknotes, v)
 	end
 
+	-------------------------------------------------------
+	-- CUSTOM BUTTONS
+	-------------------------------------------------------
+	-- for i = 1, #bdlc.config.buttons do
+	-- 	v = bdlc.config.buttons[i]
+
+	-- 	table.insert(quicknotes, v)
+	-- 	local name, color, enable, req = unpack(v)
+	-- 	local r, g, b = unpack(color)
+	-- 	local k = tostring(i)
+	-- 	enable = enable and "1" or "0"
+	-- 	req = req and "1" or "0"
+	-- 	local info = {k, name, r, g, b, enable, req}
+	-- 	buttons_string = buttons_string..table.concat(info, ",").."//"
+	-- end
+
+	-- print(buttons_string)
+
 	-- loot council
 	if (council and #council > 0) then
 		bdlc:sendAction("addToLC", unpack(council) )
 	end
+
 	-- custom quicknotes
 	if (quicknotes and #quicknotes > 0) then
 		bdlc:sendAction("customQN", unpack(quicknotes) );
 	end
+
 	-- council votes
 	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
+
+	-- buttons
+	-- bdlc:sendAction("buttons", buttons_string);
 end
 
 
