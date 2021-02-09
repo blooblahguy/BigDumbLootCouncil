@@ -102,8 +102,9 @@ end
 -- Wipes default loot council, quick notes, and enchanters. Then rebuilds in bulk
 ----------------------------------------
 function bdlc:requestLC()
-	if (not IsRaidLeader()) then return end
-	bdlc:sendLC()
+	if (IsRaidLeader()) then
+		bdlc:sendLC()
+	end
 end
 
 function bdlc:sendLC()
@@ -169,3 +170,22 @@ function bdlc:sendLC()
 		bdlc:sendAction("customQN", unpack(quicknotes) );
 	end
 end
+
+
+local council_events = CreateFrame("frame")
+council_events:RegisterEvent("PLAYER_ENTERING_WORLD")
+council_events:RegisterEvent("BOSS_KILL")
+council_events:SetScript("OnEvent", function(self, event, arg1)
+	if (event == "PLAYER_ENTERING_WORLD") then
+		bdlc:sendAction("requestLC");
+		
+		return
+	end
+	
+	-- when a boss dies it's time for more sessions
+	if (event == "BOSS_KILL") then
+		bdlc:sendLC()
+		
+		return
+	end
+end)
