@@ -145,10 +145,10 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
 	
 	if bdlc:itemEquippable(itemUID) then
-		bdlc:debug("turns out I can use this, considering.")
+		bdlc:debug("I can use", itemLink)
 		bdlc:sendAction("addUserConsidering", itemUID, bdlc.localPlayer, player_itemlvl, guildRank);
 	else
-		bdlc:debug("I guess I can't use this, autopassing")
+		bdlc:debug("I can't use", itemLink, "so I pass.")
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 		bdlc.rolls:Release(roll)
 	end
@@ -177,7 +177,7 @@ end
 ----------------------------------------
 -- AddUserConsidering
 ----------------------------------------
-function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerClass)
+function bdlc:addUserConsidering(itemUID, playerName, ilvl, guildRank, playerClass)
 	local playerName = FetchUnitName(playerName)
 	local itemLink = bdlc.itemMap[itemUID]
 	
@@ -205,7 +205,8 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	entry.interest.text:SetText(l["frameConsidering"]);
 	entry.interest.text:SetTextColor(.5,.5,.5);
 	entry.rank:SetText(guildRank)
-	entry.ilvl:SetText(iLvL)
+	entry.ilvl:SetText(ilvl)
+	entry.myilvl = tonumber(ilvl)
 	entry.gear1:Hide()
 	entry.gear2:Hide()
 	
@@ -223,7 +224,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	if (not notes) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
 
-	if (not bdlc.loot_sessions[itemUID]) then bdlc:debug(playerName.." rolled on an item with no session") return end
+	if (not bdlc.loot_sessions[itemUID]) then return end
 	if (not bdlc:inLC()) then return false end
 	
 	-- -- actual want text
@@ -234,12 +235,16 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	
 	local wantText, wantColor = unpack(bdlc.config.buttons[want])
 	
-	bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
+	-- bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
+	-- bdlc:debug(playerName.." rolling on "..itemLink..": "..entry.roll)
 	
 	entry.interest.text:SetText(wantText)
 	entry.interest.text:SetTextColor(unpack(wantColor))
 	entry.voteUser:Show()
+	entry.roll = roll
 	entry.wantLevel = want
+	entry.itemUID = itemUID
+	entry.playerName = playerName
 
 	-- player items
 	if (GetItemInfo(itemLink1)) then
@@ -284,17 +289,11 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	
 	bdlc:repositionFrames()
 
-	-- notes
-	bdlc:debug("Add "..playerName.." notes")
-
+	-- add notes
 	if (notes and string.len(notes) > 0) then
 		entry.notes = notes
 		entry.user_notes:Show()
 	end
-
-	-- roll
-	entry.roll = roll
-	bdlc:debug(playerName.." rolling on "..itemLink..": "..entry.roll)
 end
 
 
@@ -307,6 +306,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	-- reset frame
 	local tab = bdlc:getTab(itemUID)
 	local entry = bdlc:getEntry(itemUID, playerName)
+	local itemLink = bdlc.itemMap[itemUID]
 
 	tab.entries:Release(entry)
 
@@ -333,11 +333,8 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	bdlc.loot_want[itemUID][playerName] = nil
 	
 	bdlc:repositionFrames()
-
-	--local itemLink = bdlc.itemMap[itemUID]
-	--if (not itemLink) then return end
 	
-	bdlc:debug("removed "..playerName.." considering "..itemUID)
+	bdlc:debug("Removed", playerName, "considering", itemLink)
 end
 
 ----------------------------------------
@@ -356,20 +353,18 @@ end
 -- awardLoot
 -- This function alerts awarding and then sends a raid message
 ----------------------------------------
-function bdlc:awardLoot(playerName, dropdown, itemUID)
-	playerName = FetchUnitName(playerName)
+function bdlc:awardLoot(playerName, itemUID)
 	if (not itemUID) then return end
 	local lootedBy = bdlc.loot_sessions[itemUID]
 	local itemLink = bdlc.itemMap[itemUID]
 	if (not itemLink) then return end
 
-	print(itemLink, lootedBy)
+	playerName = FetchUnitName(playerName)
+	playerName = Ambiguate(playerName, "all")
 
 	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..playerName, "WHISPER", nil, lootedBy)
 	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
-
-	dropdown:Hide()
 end
 
 ----------------------------------------

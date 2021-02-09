@@ -1,6 +1,6 @@
 local bdlc, c, l = unpack(select(2, ...))
 
-demo_samples = {
+bdlc.demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
 	ranks = {},
 	names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
@@ -10,21 +10,24 @@ local ranks = 0
 local guildranks = CreateFrame("frame")
 guildranks:RegisterEvent("GUILD_ROSTER_UPDATE")
 guildranks:RegisterEvent("PLAYER_GUILD_UPDATE")
-guildranks:SetScript("OnEvent", function(self)
-	self:UnregisterEvent("GUILD_ROSTER_UPDATE")
-	self:UnregisterEvent("PLAYER_GUILD_UPDATE")
-
+local function get_ranks()
+	guildranks:UnregisterEvent("GUILD_ROSTER_UPDATE")
+	guildranks:UnregisterEvent("PLAYER_GUILD_UPDATE")
+	
 	for i = 1, 100 do
 		local name, rank, rankIndex, level = GetGuildRosterInfo(i);
-
-		demo_samples.ranks[rankIndex] = rank
+		
+		bdlc.demo_samples.ranks[rankIndex] = rank
 	end
-
-end)
+end
 C_GuildInfo.GuildRoster()
+guildranks:SetScript("OnEvent", get_ranks)
+C_Timer.After(2, function()
+	get_ranks()
+end)
 
 local function rando_name()
-	return demo_samples.names[math.random(#demo_samples.names)]
+	return bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)]
 end
 local function rando_ilvl()
 	local ilvl = GetAverageItemLevel()
@@ -32,10 +35,10 @@ local function rando_ilvl()
 	return math.random(ilvl * 0.7, ilvl * 1.3)
 end
 local function rando_rank()
-	return demo_samples.ranks[math.random(#demo_samples.ranks)]
+	return bdlc.demo_samples.ranks[math.random(#bdlc.demo_samples.ranks)]
 end
 local function rando_class()
-	return demo_samples.classes[math.random(#demo_samples.classes)]
+	return bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
 end
 
 function bdlc:startMockSession()
@@ -54,7 +57,6 @@ function bdlc:startMockSession()
 	end
 	
 	-- fake build an LC
-	bdlc:sendLC()
 	local itemslots = {1, 2, 3, 5, 8, 9, 10, 11, 12, 13, 14, 15}
 	bdlc.item_drops = {}
 	for i = 1, 4 do

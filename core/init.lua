@@ -13,6 +13,7 @@ bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
 bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
+bdlc.enabledebug = true
 
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
@@ -40,11 +41,11 @@ bdlc.configDefaults = {
 		"10%",
 	},
 	buttons = {
-		[1] = {"Mainspec", {.2, 1, .2}},
-		[2] = {"Minor Up", {.6, 1, .6}},
-		[3] = {"Offspec", {.8, .6, .6}},
-		[4] = {"Reroll", {.1, .6, .6}},
-		[5] = {"Transmog", {.8, .4, 1}}
+		[1] = {"Mainspec", {.2, 1, .2}, true},
+		[2] = {"Minor Up", {.6, 1, .6}, true},
+		[3] = {"Offspec", {.8, .6, .6}, false},
+		[4] = {"Reroll", {.1, .6, .6}, false},
+		[5] = {"Transmog", {.8, .4, 1, false}}
 	}
 }
 

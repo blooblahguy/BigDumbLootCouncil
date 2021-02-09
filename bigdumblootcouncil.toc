@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90100
 ## Title: |cffA02C2FBig|r Dumb Loot Council
 ## Version: @project-version@
 ## DefaultState: Enabled

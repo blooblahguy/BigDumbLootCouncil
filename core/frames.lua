@@ -44,8 +44,8 @@ function bdlc:repositionFrames()
 			if a.rankIndex ~= b.rankIndex then
 				return a.rankIndex < b.rankIndex
 			end
-			if a.roll ~= b.roll then
-				return a.roll > b.roll
+			if a.myilvl ~= b.myilvl then
+				return a.myilvl > b.myilvl
 			end
 			
 			return a.name:GetText() > b.name:GetText()
@@ -372,6 +372,34 @@ local function create_tab(self)
 		bdlc:endSession(tab.itemUID)
 	end)
 
+
+	vote_table.award = CreateFrame("Frame", nil, tab, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.award:SetSize(100, 42)
+	-- vote_table.award:SetFrameStrata()
+	vote_table.award:Hide()
+	bdlc:setBackdrop(vote_table.award, .1, .1, .1, 1)
+	
+	vote_table.award.text = vote_table.award:CreateFontString(nil, "OVERLAY")
+	vote_table.award.text:SetFontObject(bdlc:get_font(14, "NONE"))
+	vote_table.award.text:SetText("Award loot to ?");
+	vote_table.award.text:SetPoint("TOP", vote_table.award, "TOP", 0, -2)
+	
+	vote_table.award.yes = CreateFrame("Button", nil, vote_table.award, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.award.yes:SetText(l["frameYes"])
+	vote_table.award.yes:SetPoint("BOTTOMLEFT", vote_table.award, "BOTTOMLEFT", 2, 2)
+	bdlc:skinButton(vote_table.award.yes, false, "blue")
+	
+	vote_table.award.no = CreateFrame("Button", nil, vote_table.award, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.award.no:SetText(l["frameNo"])
+	vote_table.award.no:SetPoint("BOTTOMRIGHT", vote_table.award, "BOTTOMRIGHT", -2, 2)
+	bdlc:skinButton(vote_table.award.no,false,"red")
+	
+	vote_table.award.no:SetScript("OnClick", function() vote_table.award:Hide() end)
+	vote_table.award.yes:SetScript("OnClick", function(self)
+		bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
+		vote_table.award:Hide()
+	end)
+
 	-- entries
 	local function create_entry(self)
 		-- Create entry in table
@@ -388,42 +416,21 @@ local function create_tab(self)
 		entry.name:SetTextColor(1, 1, 1);
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
 		
-		entry.award = CreateFrame("Frame",nil, entry, BackdropTemplateMixin and "BackdropTemplate")
-		entry.award:SetPoint("TOPLEFT", entry.name, "BOTTOMLEFT", 0, -2)
-		entry.award:SetSize(100, 42)
-		entry.award:Hide()
-		bdlc:setBackdrop(entry.award, .1, .1, .1, 1)
-		
-		entry.award.text = entry.award:CreateFontString(nil, "OVERLAY")
-		entry.award.text:SetFontObject(bdlc:get_font(14, "NONE"))
-		entry.award.text:SetText("Award loot to ?");
-		entry.award.text:SetPoint("TOP", entry.award, "TOP", 0, -2)
-		
-		entry.award.yes = CreateFrame("Button", nil, entry.award, BackdropTemplateMixin and "BackdropTemplate")
-		entry.award.yes:SetText(l["frameYes"])
-		entry.award.yes:SetPoint("BOTTOMLEFT", entry.award, "BOTTOMLEFT", 2, 2)
-		bdlc:skinButton(entry.award.yes,false,"blue")
-		entry.award.yes:SetScript("OnClick", function(self)
-			bdlc:awardLoot(entry.playerName, entry.award, entry.itemUID)
-		end)
-		
-		entry.award.no = CreateFrame("Button", nil, entry.award, BackdropTemplateMixin and "BackdropTemplate")
-		entry.award.no:SetText(l["frameNo"])
-		entry.award.no:SetPoint("BOTTOMRIGHT", entry.award, "BOTTOMRIGHT", -2, 2)
-		entry.award.no:SetScript("OnClick", function() entry.award:Hide() end)
-		bdlc:skinButton(entry.award.no,false,"red")
-		
-		entry:SetScript("OnClick", function() 	
+		entry:SetScript("OnClick", function(self)	
 			if (IsRaidLeader()) then
-				if (entry.award:IsShown()) then
-					entry.award:Hide()
+				if (vote_table.award:IsShown()) then
+					vote_table.award:Hide()
 				else
-					entry.award:Show()
-					entry.award.text:SetText(l["frameAward"]..entry.name:GetText().."?")
-					entry.award:SetWidth(entry.award.text:GetWidth()+12)
+					vote_table.award:Show()
+					vote_table.award:SetFrameLevel(self:GetFrameLevel() + 1)
+					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
+					vote_table.award.text:SetText(l["frameAward"]..self.name:GetText().."?")
+					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth())
+					vote_table.award.playerName = self.playerName
+					vote_table.award.itemUID = self.itemUID
 				end
 			else
-				entry.award:Hide()
+				vote_table.award:Hide()
 			end
 		end)
 		
@@ -564,6 +571,7 @@ local function create_tab(self)
 		entry.playerName = ""
 		entry.notes = ""
 		entry.wantLevel = 0
+		entry.myilvl = 0
 		entry.voteUser:Hide()
 		entry.votes.text:SetText("0")
 		entry:Hide()

@@ -8,8 +8,7 @@ function bdlc:customQN(...)
 	bdlc.master_looter_qn = {}
 
 	local notes = {...}
-	bdlc:debug("Current Quicknotes: ")
-	bdlc:debug(unpack(notes));
+	bdlc:debug("Current Quicknotes: ", unpack(notes))
 
 	for k, v in pairs(notes) do
 		bdlc.master_looter_qn[v] = true
@@ -24,14 +23,12 @@ function bdlc:addToLC(...)
 	bdlc.loot_council = {}
 	
 	local council = {...}
-	bdlc:debug("Current Council: ")
-	bdlc:debug(unpack(council));
+	bdlc:debug("Current Council: ", unpack(council))
 
 	for k, v in pairs(council) do
 		local playerName = FetchUnitName(v)
 
 		bdlc.loot_council[playerName] = true
-		bdlc:debug(playerName..' added to lc')
 	end
 end
 
@@ -121,12 +118,6 @@ function bdlc:sendLC()
 	-- gets the saved or default min_rank
 	-------------------------------------------------------
 	local min_rank = bdlc:GetLCMinRank()
-	
-	-------------------------------------------------------
-	-- RAID MEMBERS
-	-- generates a list of players who are in the raid
-	-------------------------------------------------------
-	local inraid = bdlc:GetRaidMembers()
 
 	-------------------------------------------------------
 	-- GUILD-RANK COUNCIL
@@ -134,11 +125,11 @@ function bdlc:sendLC()
 	-------------------------------------------------------
 	local numGuildMembers = select(1, GetNumGuildMembers())
 	for i = 1, numGuildMembers do
-		local fullName, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
-		local name = FetchUnitName(fullName)
+		local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
+		-- local name = FetchUnitName(fullName)
 
-		if (rankIndex <= min_rank and inraid[name]) then
-			table.insert(council, name)
+		if (rankIndex <= min_rank and UnitExists(name) and tIndexOf(council, FetchUnitName(name)) == nil) then
+			table.insert(council, FetchUnitName(name))
 		end
 	end
 
@@ -147,9 +138,9 @@ function bdlc:sendLC()
 	-- People who are in your custom loot council and in raid
 	-------------------------------------------------------
 	for k, v in pairs (bdlc.config.custom_council) do
-		local name = FetchUnitName(k)
-		if (inraid[name]) then
-			table.insert(council, name)
+		-- local name = FetchUnitName(k)
+		if (UnitExists(k) and tIndexOf(council, FetchUnitName(name)) == nil) then
+			table.insert(council, FetchUnitName(name))
 		end
 	end
 	
@@ -163,7 +154,7 @@ function bdlc:sendLC()
 
 	-- loot council
 	if (council and #council > 0) then
-		bdlc:sendAction("addToLC", unpack(council))
+		bdlc:sendAction("addToLC", unpack(council) )
 	end
 	-- custom quicknotes
 	if (quicknotes and #quicknotes > 0) then

@@ -1,12 +1,12 @@
 local bdlc, c, l = unpack(select(2, ...))
 
 -- Debug
-function bdlc:print(msg)
-	print(bdlc.colorString..msg)
+function bdlc:print(...)
+	print("|cffA02C2FBDLC:|r", ...)
 end
-function bdlc:debug(msg)
-	if (bdlc.config.debug) then
-		bdlc:print(msg)
+function bdlc:debug(...)
+	if (bdlc.config.debug or bdlc.enabledebug) then
+		bdlc:print(...)
 	end
 end
 
@@ -79,7 +79,7 @@ function bdlc:sendAction(action, ...)
 
 	-- merge then send
 	local data = action..delim..paramString
-	bdlc:debug(bdlc.message_prefix, data, channel, recipient, priority)
+	-- bdlc:debug(bdlc.message_prefix, data, channel, recipient, priority)
 	bdlc.comm:SendCommMessage(bdlc.messagePrefix, data, channel, recipient, priority)
 
 	-- unset these, probably shouldn't have them in the first place but it works
@@ -109,7 +109,7 @@ end
 function bdlc:prettyName(playerName, returnString)
 	local name, server = strsplit("-", playerName)
 
-	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass
+	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
 
 	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
