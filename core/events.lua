@@ -1,11 +1,20 @@
 local bdlc, c, l = unpack(select(2, ...))
 
+-- Cache player inventory immediately, just makes things easier
+if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
+	LoadAddOn("Blizzard_ArtifactUI")
+end
+
+-- inventory
+for i = 1, 19 do
+	local link = GetInventoryItemLink("player", i)
+end
+
 local events = CreateFrame("frame", nil, UIParent)
 events:RegisterEvent("BOSS_KILL");
 events:RegisterEvent("CHAT_MSG_LOOT");
 events:RegisterEvent("LOOT_OPENED");
 events:RegisterEvent('TRADE_ACCEPT_UPDATE')
-
 events:SetScript("OnEvent", function(self, event, arg1, arg2)
 	-- when a boss dies it's time for more sessions
 	if (event == "BOSS_KILL") then

@@ -5,7 +5,7 @@ function bdlc:print(msg)
 	print(bdlc.colorString..msg)
 end
 function bdlc:debug(msg)
-	if (c.debug) then
+	if (bdlc.config.debug) then
 		bdlc:print(msg)
 	end
 end

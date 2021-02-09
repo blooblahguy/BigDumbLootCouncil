@@ -1,8 +1,8 @@
 local bdlc, c, l = unpack(select(2, ...))
 
-local config = {
+-- local config = {
 
-}
+-- }
 
 -- local config = CreateFrame('frame', 'BDLC Config', UIParent, BackdropTemplateMixin and "BackdropTemplate")
 -- config:SetFrameStrata("HIGH")

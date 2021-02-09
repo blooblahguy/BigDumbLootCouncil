@@ -233,8 +233,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText, wantColor = unpack(bdlc.config.buttons[want])
-	-- local wantText = bdlc.wantTable[want][1]
-	-- local wantColor = bdlc.wantTable[want][2]
 	
 	bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
 	

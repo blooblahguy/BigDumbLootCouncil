@@ -31,7 +31,7 @@ bdlc.media = {
 
 bdlc.configDefaults = {
 	council_min_rank = 2,
-	debug = true,
+	debug = false,
 	custom_council = {},
 	council_votes = 1,
 	quick_notes = {
@@ -48,15 +48,6 @@ bdlc.configDefaults = {
 	}
 }
 
--- want coloring and priority
-bdlc.wantTable = {
-	[1] = {"Mainspec", {.2, 1, .2}},
-	[2] = {"Minor Up", {.6, 1, .6}},
-	[3] = {"Offspec", {.8, .6, .6}},
-	[4] = {"Reroll", {.1, .6, .6}},
-	[5] = {"Transmog", {.8, .4, 1}}
-}
-
 -- info holders
 bdlc.loot_council = {}
 bdlc.loot_council_votes = {}
@@ -68,16 +59,6 @@ bdlc.tradedItems = {}
 bdlc.itemMap = {}
 bdlc.loot_sessions = {}
 bdlc.loot_want = {}
-
--- Cache player inventory immediately, just makes things easier
-if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
-	LoadAddOn("Blizzard_ArtifactUI")
-end
-
--- inventory
-for i = 1, 19 do
-	local link = GetInventoryItemLink("player", i)
-end
 
 -- Commands
 SLASH_bdlc1 = "/bdlc"
@@ -188,14 +169,6 @@ end
 -- bdlc.master_looter_qn = {}
 
 -- bdlc.itemMap = {}
-
--- bdlc.wantTable = {
--- 	[1] = {"Mainspec", {.2, 1, .2}},
--- 	[2] = {"Minor Up", {.6, 1, .6}},
--- 	[3] = {"Offspec", {.8, .6, .6}},
--- 	[4] = {"Reroll", {.1, .6, .6}},
--- 	[5] = {"Transmog", {.8, .4, 1}}
--- }
 
 -- -- Config
 -- bdlc.config = {
