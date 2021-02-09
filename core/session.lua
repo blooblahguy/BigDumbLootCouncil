@@ -137,12 +137,9 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
 	roll.item.icon.wfsock:SetText(infostr)
 	
-	local guildRank = select(2, GetGuildInfo("player")) or ""
-	local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
-	
 	if bdlc:itemEquippable(itemUID) then
 		bdlc:debug("I can use", itemLink)
-		bdlc:sendAction("addUserConsidering", itemUID, bdlc.localPlayer, player_itemlvl, guildRank);
+		bdlc:sendAction("addUserConsidering", itemUID, bdlc.localPlayer);
 	else
 		bdlc:debug("I can't use", itemLink, "so I pass.")
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
@@ -173,7 +170,7 @@ end
 ----------------------------------------
 -- AddUserConsidering
 ----------------------------------------
-function bdlc:addUserConsidering(itemUID, playerName, ilvl, guildRank, playerClass)
+function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 	local playerName = FetchUnitName(playerName)
 	local itemLink = bdlc.itemMap[itemUID]
 	
@@ -200,11 +197,11 @@ function bdlc:addUserConsidering(itemUID, playerName, ilvl, guildRank, playerCla
 	entry.name:SetTextColor(color.r,color.g,color.b);
 	entry.interest.text:SetText(l["frameConsidering"]);
 	entry.interest.text:SetTextColor(.5,.5,.5);
-	entry.rank:SetText(guildRank)
-	entry.ilvl:SetText(ilvl)
 	entry.myilvl = tonumber(ilvl)
 	entry.gear1:Hide()
 	entry.gear2:Hide()
+	entry.ilvl:SetText("")
+	entry.rank:SetText("")
 	
 	if (IsMasterLooter() or not IsInRaid()) then
 		entry.removeUser:Show()
@@ -215,7 +212,7 @@ function bdlc:addUserConsidering(itemUID, playerName, ilvl, guildRank, playerCla
 	bdlc:repositionFrames()
 end
 
-function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, notes)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, notes, ilvl, guildRank)
 	local playerName = FetchUnitName(playerName)
 	if (not notes) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
@@ -241,6 +238,10 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	entry.wantLevel = want
 	entry.itemUID = itemUID
 	entry.playerName = playerName
+	entry.rank:SetText(guildRank)
+	entry.ilvl:SetText(ilvl)
+
+	-- print(want, itemLink1, itemLink2, roll, notes, ilvl, guildRank)
 
 	-- player items
 	if (GetItemInfo(itemLink1)) then

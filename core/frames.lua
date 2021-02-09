@@ -645,7 +645,7 @@ local function create_roll(self)
 		local itemLink = bdlc.itemMap[roll.itemUID]
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
-		local notes = roll.notes or ''
+		local notes = strlen(roll.notes) > 0 and roll.notes or 0
 		if (string.len(roll.qn) > 0) then
 			roll.qn = string.sub(roll.qn, 0, -3)
 			if (string.len(notes) > 0) then
@@ -657,7 +657,10 @@ local function create_roll(self)
 
 		local lootRoll = math.random(1, 100)
 
-		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.localPlayer, wantLevel, itemLink1, itemLink2, lootRoll, notes);
+		local guildRank = select(2, GetGuildInfo("player")) or ""
+		local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
+
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.localPlayer, wantLevel, itemLink1, itemLink2, lootRoll, notes, player_itemlvl, guildRank);
 
 		bdlc.rolls:Release(roll)
 

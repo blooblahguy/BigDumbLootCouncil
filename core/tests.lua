@@ -33,7 +33,7 @@ function bdlc:startMockSession()
 	-- add random people, up to a whole raid worth of fakers
 	local demo_players = {}
 	for i = 5, math.random(6, 30) do
-		demo_players[rando_name()] = {rando_ilvl(), rando_rank(), rando_class()}
+		demo_players[rando_name()] = {rando_class()}
 	end
 	
 	-- fake build an LC
@@ -58,7 +58,7 @@ function bdlc:startMockSession()
 		-- send a random "want" after 2-5s, something like a real person
 		C_Timer.After(math.random(2, 5), function()
 			for name, data in pairs(demo_players) do
-				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0, math.random(1, 100));
+				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 5), 0, 0, math.random(1, 100), 0, rando_ilvl(), rando_rank());
 			end
 		end)
 	end
