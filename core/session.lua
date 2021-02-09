@@ -1,71 +1,5 @@
 local bdlc, c, l = unpack(select(2, ...))
 
---=======================================
--- StartMockSession
---=======================================
-local function rando_name()
-	return bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)]
-end
-local function rando_ilvl()
-	return math.random(900, 980)
-end
-local function rando_rank()
-	return bdlc.demo_samples.ranks[math.random(#bdlc.demo_samples.ranks)]
-end
-local function rando_class()
-	return bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
-end
-
-bdlc.demo_samples = {
-	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
-	ranks = {"Officer","Raider","Trial","Social","Alt","Officer Alt","Guild Idiot", "King"},
-	names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
-}
-
-function bdlc:startMockSession()
-	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
-		if (not bdlc:inLC()) then
-			bdlc:print("You cannot run a test while inside of a raid group unless you are on the Loot Council.")
-		end
-	end
-
-	bdlc:print("Starting mock session")
-	
-	-- add random people, up to a whole raid worth of fakers
-	local demo_players = {}
-	for i = 5, math.random(6, 30) do
-		demo_players[rando_name()] = {rando_ilvl(), rando_rank(), rando_class()}
-	end
-	
-	-- fake build an LC
-	bdlc:sendLC()
-	local itemslots = {1, 2, 3, 5, 8, 9, 10, 11, 12, 13, 14, 15}
-	bdlc.item_drops = {}
-	for i = 1, 4 do
-		local index = itemslots[math.random(#itemslots)]
-		bdlc.item_drops[GetInventoryItemLink("player", index)] = rando_name()
-		table.remove(itemslots,index)
-	end
-
-	-- now lets start fake sessions
-	for k, v in pairs(bdlc.item_drops) do
-		local itemUID = bdlc:GetItemUID(k, bdlc.localPlayer)
-		bdlc:sendAction("startSession", k, bdlc.localPlayer);
-
-		-- add our demo players in 
-		for name, data in pairs(demo_players) do
-			bdlc:sendAction("addUserConsidering", itemUID, name, unpack(data));
-		end
-
-		-- send a random "want" after 2-5s, something like a real person
-		C_Timer.After(math.random(2, 5), function()
-			for name, data in pairs(demo_players) do
-				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 4), 0, 0, math.random(1, 100));
-			end
-		end)
-	end
-end
-
 --==========================================
 -- Sessions
 --==========================================
@@ -169,6 +103,11 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	roll.item.icon.tex:SetTexture(texture)
 	roll.item.item_text:SetText(itemLink)
 
+	-- for tooltips
+	roll.item.icon.itemLink = itemLink
+	roll.item.item_text_bg.itemLink = itemLink
+	-- roll.item.item_text_bg:SetWidth(roll.item.item_text:GetStringWidth())
+
 	roll.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
 	roll.item.num_items:SetTextColor(1,1,1)
 	
@@ -201,16 +140,6 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
 	roll.item.icon.wfsock:SetText(infostr)
-
-	roll.item.icon:SetScript("OnEnter", function()
-		ShowUIPanel(GameTooltip)
-		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(itemLink)
-		GameTooltip:Show()
-	end)
-	roll.item.icon:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
 	
 	local guildRank = select(2, GetGuildInfo("player")) or ""
 	local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
@@ -256,10 +185,13 @@ function bdlc:addUserConsidering(itemUID, playerName, iLvL, guildRank, playerCla
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 
 	local entry = bdlc:getEntry(itemUID, playerName)
+	
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo(Ambiguate(playerName, "guild"));
+	entry.rankIndex = guildRankName and guildRankIndex or 10
 
 	entry.wantLevel = 15
 	entry.notes = ""
-	
+
 	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local name, server = strsplit("-", playerName)
 
@@ -300,8 +232,9 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
-	local wantText = bdlc.wantTable[want][1]
-	local wantColor = bdlc.wantTable[want][2]
+	local wantText, wantColor = unpack(bdlc.config.buttons[want])
+	-- local wantText = bdlc.wantTable[want][1]
+	-- local wantColor = bdlc.wantTable[want][2]
 	
 	bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
 	

@@ -108,9 +108,8 @@ end
 -- To colorize lootedBy player
 function bdlc:prettyName(playerName, returnString)
 	local name, server = strsplit("-", playerName)
-	local demo_samples = bdlc.demo_samples
 
-	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or demo_samples.classes[math.random(#demo_samples.classes)]
+	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass
 	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
 
 	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
@@ -150,8 +149,8 @@ function bdlc:skinButton(f, small, color)
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
 	f:SetBackdropColor(unpack(colors)) 
     f:SetBackdropBorderColor(0,0,0,1)
-    f:SetNormalFontObject("bdlc_button")
-	f:SetHighlightFontObject("bdlc_button")
+    f:SetNormalFontObject(bdlc:get_font(13))
+	f:SetHighlightFontObject(bdlc:get_font(13))
 	f:SetPushedTextOffset(0,-1)
 	
 	f:SetSize(f:GetTextWidth()+16,24)
@@ -234,7 +233,7 @@ end
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier = bdlc:IsTier(itemLink)
+	local isTier, tierType = bdlc:IsTier(itemLink)
 	
 	if (isTier) then
 		if (strfind(name:lower(), l["tierHelm"]:lower())) then
@@ -251,6 +250,13 @@ function bdlc:fetchUserGear(unit, itemLink)
 			equipSlot = "INVTYPE_HAND"
 		end
 	end
+
+	if (tierType == "weapon") then
+		equipSlot = "INVTYPE_WEAPONMAINHAND"
+	end
+	if (tierType == "offhand") then
+		equipSlot = "INVTYPE_WEAPONMAINHAND"
+	end
 	
 	local slotID = 0;
 	if (equipSlot == "INVTYPE_HEAD") then slotID = 1 end
@@ -265,7 +271,6 @@ function bdlc:fetchUserGear(unit, itemLink)
 	if (equipSlot == "INVTYPE_HAND") then slotID = 10 end
 	if (equipSlot == "INVTYPE_BACK") then slotID = 15 end
 	if (equipSlot == "INVTYPE_CLOAK") then slotID = 15 end
-	if (equipSlot == "INVTYPE_OFFHAND") then slotID = 17 end
 	if (equipSlot == "INVTYPE_RANGED") then slotID = 18 end
 	
 	
@@ -282,7 +287,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 		itemLink2 = GetInventoryItemLink(unit, 14)
 		slotID = 13
 	end
-	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND") then
+	if (equipSlot == "INVTYPE_WEAPON" or equipSlot == "INVTYPE_2HWEAPON" or equipSlot == "INVTYPE_SHIELD" or equipSlot == "INVTYPE_HOLDABLE" or equipSlot == "INVTYPE_RANGEDRIGHT" or equipSlot == "INVTYPE_RANGED" or equipSlot == "INVTYPE_WEAPONMAINHAND" or equipSlot == "INVTYPE_OFFHAND") then
 		itemLink1 = GetInventoryItemLink(unit, 16)
 		itemLink2 = GetInventoryItemLink(unit, 17)
 		slotID = 16
@@ -306,7 +311,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 	end
 	
 	if (slotID == 0 and not isRelic) then
-		bdlc:print("Can't find compare for slot: "..equipSlot..". Let the developer know");
+		bdlc.print("Can't find compare for slot: "..equipSlot..". Let the developer know");
 	end
 	
 	return itemLink1, itemLink2
@@ -406,19 +411,13 @@ function bdlc:itemEquippable(itemUID)
 		end
 	end
 	
-	print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
+	-- print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
 	return false
 end
 
 function bdlc:IsTier(itemLink)
 	local isTier = false
-
-	-- tier names
-	local tier_names = {
-		[l["tierProtector"]] = true,
-		[l["tierConqueror"]] = true,
-		[l["tierVanquisher"]] = true
-	}
+	local tierType = false
 
 	-- store class names
 	local classes = {}
@@ -426,6 +425,13 @@ function bdlc:IsTier(itemLink)
 		local name, global, index = GetClassInfo(i)
 		classes[name] = name
 	end
+
+	-- tier names
+	local tier_names = {
+		[l["tierProtector"]] = true,
+		[l["tierConqueror"]] = true,
+		[l["tierVanquisher"]] = true
+	}
 
 	local tier_classes = {
 		-- old
@@ -438,35 +444,54 @@ function bdlc:IsTier(itemLink)
 	}
 
 	local weapon_classes = {
+		-- main hands
 		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
 		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
 		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
 		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
 	}
+	local offhand_classes = {
+		-- offhands
+		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
+		[6] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
+	}
 
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
-	
+
 	-- scan for class requirements
-	for i = 1, GameTooltip:NumLines() do
+	for i = 1, bdlc.tt:NumLines() do
 		local line = _G['BDLC:TooltipScanTextLeft'..i]
 		local text = line:GetText();
-		
+
 		for k, v in pairs(weapon_classes) do
-			if (text == v) then
+			if (strfind(text, v) ~= nil) then
 				isTier = true
+				tierType = "weapon"
+				break
 			end
 		end
-		
-		for k, v in pairs(tier_classes) do
-			if (text == v) then
+
+		for k, v in pairs(offhand_classes) do
+			-- print(text, ":", v, "\n")
+			if (strfind(text, v) ~= nil) then
 				isTier = true
+				tierType = "offhand"
+				break
+			end
+		end
+
+		for k, v in pairs(tier_classes) do
+			if (strfind(text, v) ~= nil) then
+				isTier = true
+				tierType = "armor"
+				break
 			end
 		end
 	end
-
-	return isTier
+	
+	return isTier, tierType
 end
 
 -- determines if given string is a relic string
@@ -493,6 +518,10 @@ function bdlc:RelicString(str)
 end
 
 function bdlc:IsRelic(relicLink)
+	-- don't run unless its legion
+	local version, build, date, tocversion = GetBuildInfo()
+	if (tocversion >= 80000 or tocversion < 70000) then return false end
+
 	local isRelic = false
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(relicLink)
@@ -518,7 +547,7 @@ end
 -- return relic type (life, iron, blood, etc)
 function bdlc:GetRelicType(relicLink)
 	local relicType
-	local ss = EJ_LOOT_SLOT_FILTER_ARTIFACT_RELIC:lower()
+	local ss = substr(RELIC_TOOLTIP_TYPE, 3):lower()
 	
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(relicLink)

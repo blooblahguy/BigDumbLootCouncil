@@ -5,6 +5,8 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	if (addon ~= bdlc.addonName) then return end
 	loader:UnregisterEvent("ADDON_LOADED")
 
+	bdlc.version = GetAddOnMetadata(bdlc.addonName, "Version") 
+
 	-- Register Messages
 	bdlc.comm:RegisterComm(bdlc.messagePrefix, function(...)
 		bdlc:messageCallback(...)

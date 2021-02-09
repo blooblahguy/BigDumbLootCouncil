@@ -4,21 +4,11 @@ local events = CreateFrame("frame", nil, UIParent)
 events:RegisterEvent("BOSS_KILL");
 events:RegisterEvent("CHAT_MSG_LOOT");
 events:RegisterEvent("LOOT_OPENED");
-events:RegisterEvent('PLAYER_ENTERING_WORLD')
 events:RegisterEvent('TRADE_ACCEPT_UPDATE')
 
 events:SetScript("OnEvent", function(self, event, arg1, arg2)
-	if (event == "PLAYER_ENTERING_WORLD") then
-		-- bdlc:checkForUpdates()
-		bdlc:sendAction("requestLC");
-
-		return
-	end
-
 	-- when a boss dies it's time for more sessions
 	if (event == "BOSS_KILL") then
-		bdlc:sendLC()
-
 		bdlc.item_drops = {}
 		bdlc.tradedItems = {}
 
