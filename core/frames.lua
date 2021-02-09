@@ -1,6 +1,32 @@
 local bdlc, c, l = unpack(select(2, ...))
 
 --======================================
+-- Fonts
+--======================================
+bdlc.fonts = {}
+-- dynamic font creation/fetching
+function bdlc:get_font(size, outline)
+	outline = outline or "NONE"
+	local name = size.."_"..outline
+	
+	if (not bdlc.fonts[name]) then
+		local font = CreateFont("BDLC_"..name)
+		font:SetFont(bdlc.media.font, tonumber(size), outline)
+		if (outline == "NONE") then
+			font:SetShadowColor(0, 0, 0)
+			font:SetShadowOffset(1, -1)
+		else
+			font:SetShadowColor(0, 0, 0)
+			font:SetShadowOffset(0, 0)
+		end
+
+		bdlc.fonts[name] = font
+	end
+
+	return bdlc.fonts[name]
+end
+
+--======================================
 -- Reposition Frames
 --======================================
 function bdlc:repositionFrames()
@@ -16,7 +42,7 @@ function bdlc:repositionFrames()
 				return a.wantLevel < b.wantLevel
 			end
 			if a.rankIndex ~= b.rankIndex then
-				return a.rankIndex > b.rankIndex
+				return a.rankIndex < b.rankIndex
 			end
 			if a.roll ~= b.roll then
 				return a.roll > b.roll
@@ -191,9 +217,9 @@ local function create_tab(self)
 	tab.icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -2, 2)
 	
 	tab.wfsock = tab:CreateFontString(nil, "ARTWORK")
-	tab.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
+	tab.wfsock:SetFontObject(bdlc:get_font(15, "OUTLINE"))
 	tab.wfsock:SetText("")
-	tab.wfsock:SetTextColor(0.7,0.7,0.7)
+	tab.wfsock:SetTextColor(1, 1, 1)
 	tab.wfsock:SetPoint("CENTER", tab, "CENTER", 0, 0)
 	tab.wfsock:SetJustifyH("CENTER")
 	
@@ -238,42 +264,50 @@ local function create_tab(self)
 	-- scrollframe:SetScrollChild(vote_table.content)
 	
 	-- Headers
-	vote_table.name_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.name_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.name_text:SetFontObject(bdlc:get_font(14))
 	vote_table.name_text:SetText(l["frameName"]);
 	vote_table.name_text:SetTextColor(1, 1, 1);
 	vote_table.name_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 10, 16);
 	
-	vote_table.rank_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.rank_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.rank_text:SetFontObject(bdlc:get_font(14))
 	vote_table.rank_text:SetText(l["frameRank"]);
 	vote_table.rank_text:SetTextColor(1, 1, 1);
 	vote_table.rank_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 80, 16);
 	
-	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.ilvl_text:SetFontObject(bdlc:get_font(14))
 	vote_table.ilvl_text:SetText(l["frameIlvl"]);
 	vote_table.ilvl_text:SetTextColor(1, 1, 1);
 	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 170, 16);
 	
-	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.ilvl_text:SetFontObject(bdlc:get_font(14))
 	vote_table.ilvl_text:SetText(l["frameInterest"]);
 	vote_table.ilvl_text:SetTextColor(1, 1, 1);
 	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 200, 16);
 	
-	vote_table.notes_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.notes_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.notes_text:SetFontObject(bdlc:get_font(14))
 	vote_table.notes_text:SetText(l["frameNotes"]);
 	vote_table.notes_text:SetTextColor(1, 1, 1);
 	vote_table.notes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -250, 16);
 	
-	vote_table.current_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.current_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.current_text:SetFontObject(bdlc:get_font(14))
 	vote_table.current_text:SetText(l["frameCurrentGear"]);
 	vote_table.current_text:SetTextColor(1, 1, 1);
 	vote_table.current_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -160, 16);
 	
-	vote_table.votes_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.votes_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.votes_text:SetFontObject(bdlc:get_font(14))
 	vote_table.votes_text:SetText(l["frameVotes"]);
 	vote_table.votes_text:SetTextColor(1, 1, 1);
 	vote_table.votes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -100, 16);
 	
-	vote_table.actions_text = vote_table:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.actions_text = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.actions_text:SetFontObject(bdlc:get_font(14))
 	vote_table.actions_text:SetText("Vote   Remove");
 	vote_table.actions_text:SetTextColor(1, 1, 1);
 	vote_table.actions_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 16);
@@ -284,16 +318,19 @@ local function create_tab(self)
 	vote_table.item:SetAlpha(1)
 	vote_table.item:SetSize(340, 40)
 
-	vote_table.item.itemtext = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+	vote_table.item.itemtext = vote_table.item:CreateFontString(nil, "OVERLAY")
+	vote_table.item.itemtext:SetFontObject(bdlc:get_font(15))
 	vote_table.item.itemtext:SetText(l["frameItem"])
 	vote_table.item.itemtext:SetPoint("TOPLEFT", vote_table.item, "TOPLEFT", 50, -6)
 	
-	vote_table.item.num_items = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.item.num_items = vote_table.item:CreateFontString(nil, "OVERLAY")
+	vote_table.item.num_items:SetFontObject(bdlc:get_font(14))
 	vote_table.item.num_items:SetTextColor(1,1,1,1);
 	vote_table.item.num_items:SetText("x1");
 	vote_table.item.num_items:SetPoint("LEFT", vote_table.item.itemtext, "RIGHT", 6, 0)
 
-	vote_table.item.itemdetail = vote_table.item:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+	vote_table.item.itemdetail = vote_table.item:CreateFontString(nil, "OVERLAY")
+	vote_table.item.itemdetail:SetFontObject(bdlc:get_font(14))
 	vote_table.item.itemdetail:SetText(l["frameIlvl"]..": ");
 	vote_table.item.itemdetail:SetTextColor(1,1,1,.7);
 	vote_table.item.itemdetail:SetPoint("BOTTOMLEFT", vote_table.item, "BOTTOMLEFT", 50, 6)
@@ -304,9 +341,9 @@ local function create_tab(self)
 	bdlc:setBackdrop(vote_table.item.icon, 0,0,0,.8);
 	
 	vote_table.item.wfsock = vote_table.item.icon:CreateFontString(nil, "ARTWORK")
-	vote_table.item.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
+	vote_table.item.wfsock:SetFontObject(bdlc:get_font(14))
 	vote_table.item.wfsock:SetText("")
-	vote_table.item.wfsock:SetTextColor(0.7,0.7,0.7)
+	vote_table.item.wfsock:SetTextColor(1, 1, 1)
 	vote_table.item.wfsock:SetPoint("CENTER", vote_table.item.icon, "CENTER", 0, 0)
 	vote_table.item.wfsock:SetJustifyH("CENTER")
 
@@ -319,7 +356,7 @@ local function create_tab(self)
 	
 	-- num votes left
 	vote_table.numvotes = vote_table:CreateFontString(nil, "OVERLAY")
-	vote_table.numvotes:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 13)
+	vote_table.numvotes:SetFontObject(bdlc:get_font(12))
 	vote_table.numvotes:SetText("Votes Remaining: ")
 	vote_table.numvotes:SetJustifyH("RIGHT")
 	vote_table.numvotes:SetTextColor(.8,.8,.8)
@@ -345,7 +382,8 @@ local function create_tab(self)
 		entry.roll = 0
 		entry:SetSize(vote_table.content:GetWidth(), 22)
 
-		entry.name = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.name = entry:CreateFontString(nil, "OVERLAY")
+		entry.name:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.name:SetText("test");
 		entry.name:SetTextColor(1, 1, 1);
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
@@ -356,7 +394,8 @@ local function create_tab(self)
 		entry.award:Hide()
 		bdlc:setBackdrop(entry.award, .1, .1, .1, 1)
 		
-		entry.award.text = entry.award:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.award.text = entry.award:CreateFontString(nil, "OVERLAY")
+		entry.award.text:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.award.text:SetText("Award loot to ?");
 		entry.award.text:SetPoint("TOP", entry.award, "TOP", 0, -2)
 		
@@ -388,12 +427,14 @@ local function create_tab(self)
 			end
 		end)
 		
-		entry.rank = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.rank = entry:CreateFontString(nil, "OVERLAY")
+		entry.rank:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.rank:SetText(l["frameRank"]);
 		entry.rank:SetTextColor(1,1,1);
 		entry.rank:SetPoint("LEFT", entry, "LEFT", 80, 0)
 		
-		entry.ilvl = entry:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.ilvl = entry:CreateFontString(nil, "OVERLAY")
+		entry.ilvl:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.ilvl:SetText(0);
 		entry.ilvl:SetTextColor(1,1,1);
 		entry.ilvl:SetPoint("LEFT", entry, "LEFT", 166, 0)
@@ -401,7 +442,8 @@ local function create_tab(self)
 		entry.interest = CreateFrame('frame', nil, entry)
 		entry.interest:SetPoint("LEFT", entry, "LEFT", 198, 0)
 		entry.interest:SetSize(64,16)
-		entry.interest.text = entry.interest:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.interest.text = entry.interest:CreateFontString(nil, "OVERLAY")
+		entry.interest.text:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.interest:SetScript("OnEnter", function()
 			if (entry.roll > 0) then
 				ShowUIPanel(GameTooltip)
@@ -486,7 +528,8 @@ local function create_tab(self)
 		entry.votes = CreateFrame('frame', nil, entry)
 		entry.votes:SetPoint("RIGHT", entry, "RIGHT", -106, 0);
 		entry.votes:SetSize(18, 20)
-		entry.votes.text = entry.votes:CreateFontString(nil, "OVERLAY", "BDLC_FONT")
+		entry.votes.text = entry.votes:CreateFontString(nil, "OVERLAY")
+		entry.votes.text:SetFontObject(bdlc:get_font(14, "NONE"))
 		entry.votes.text:SetText("0");
 		entry.votes.text:SetTextColor(1, 1, 1);
 		entry.votes.text:SetPoint("CENTER", entry.votes, "CENTER", 0, 0)
@@ -565,12 +608,21 @@ local function create_roll(self)
 	roll.item.icon = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
 	roll.item.icon:SetSize(50, 50)
 	roll.item.icon:SetPoint("TOPLEFT", roll, "TOPLEFT", 5, -5)
+	roll.item.icon:SetScript("OnEnter", function(self)
+		ShowUIPanel(GameTooltip)
+		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+		GameTooltip:SetHyperlink(self.itemLink)
+		GameTooltip:Show()
+	end)
+	roll.item.icon:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
 	bdlc:setBackdrop(roll.item.icon, 0,0,0,.8);
 	
 	roll.item.icon.wfsock = roll.item.icon:CreateFontString(nil, "ARTWORK")
-	roll.item.icon.wfsock:SetFont("Interface\\Addons\\BigDumbLootCouncil\\media\\font.ttf", 14,"OUTLINE")
+	roll.item.icon.wfsock:SetFontObject(bdlc:get_font(15, "OUTLINE"))
 	roll.item.icon.wfsock:SetText("")
-	roll.item.icon.wfsock:SetTextColor(0.7,0.7,0.7)
+	roll.item.icon.wfsock:SetTextColor(1, 1, 1)
 	roll.item.icon.wfsock:SetPoint("CENTER", roll.item.icon, "CENTER", 0, 0)
 	roll.item.icon.wfsock:SetJustifyH("CENTER")
 	
@@ -581,12 +633,28 @@ local function create_roll(self)
 	roll.item.icon.tex:SetPoint("TOPLEFT", roll.item.icon, "TOPLEFT", 2, -2)
 	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -2, 2)
 	
-	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK","BDLC_FONT_LARGE")
+	roll.item.item_text_bg = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
+	roll.item.item_text_bg:SetPoint("TOPLEFT", roll, "TOPLEFT", 60, -8)
+	roll.item.item_text_bg:SetWidth(120)
+	bdlc:setBackdrop(roll.item.item_text_bg, 0,0,0,.8);
+	roll.item.item_text_bg:SetScript("OnEnter", function(self)
+		ShowUIPanel(GameTooltip)
+		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+		GameTooltip:SetHyperlink(self.itemLink)
+		GameTooltip:Show()
+	end)
+	roll.item.item_text_bg:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK")
+	roll.item.item_text:SetFontObject(bdlc:get_font(15))
 	roll.item.item_text:SetText(l["frameItem"])
 	roll.item.item_text:SetPoint("TOPLEFT", roll, "TOPLEFT", 60, -8)
 	roll.item.item_text:SetJustifyH("LEFT")
 	
-	roll.item.num_items = roll:CreateFontString(nil, "OVERLAY","BDLC_FONT")
+	roll.item.num_items = roll:CreateFontString(nil, "OVERLAY")
+	roll.item.num_items:SetFontObject(bdlc:get_font(14))
 	roll.item.num_items:SetText("x1")
 	roll.item.num_items:SetPoint("LEFT", roll.item.item_text, "RIGHT", 6, 0)
 	roll.item.num_items:SetJustifyH("LEFT")
@@ -618,45 +686,66 @@ local function create_roll(self)
 
 		bdlc:repositionFrames()
 	end
+
+	local last = nil
+	for i = 1, #bdlc.config.buttons do
+		local name, colors = unpack(bdlc.config.buttons[i])
+
+		local button = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+		button:SetText(name)
+		button:GetRegions():SetTextColor(unpack(colors))
+		button:SetScript("OnClick", function() roll.buttons.submit(i) end)
+		bdlc:skinButton(button)
+
+		if (not last) then
+			button:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
+		else
+			button:SetPoint("LEFT", last, "RIGHT", 4, 0)
+		end
+
+		roll.buttons[name] = button
+		last = button
+	end
 	
-	roll.buttons.main = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.main:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
-	roll.buttons.main:SetText(l["frameMain"])
-	roll.buttons.main:GetRegions():SetTextColor(unpack(bdlc.config.buttons[1][2]))
-	bdlc:skinButton(roll.buttons.main)
-	roll.buttons.main:SetScript("OnClick", function() roll.buttons.submit(1) end)
 	
-	roll.buttons.minor = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
-	roll.buttons.minor:SetText(l["frameMinorUp"])
-	roll.buttons.minor:GetRegions():SetTextColor(unpack(bdlc.config.buttons[2][2]))
-	bdlc:skinButton(roll.buttons.minor)
-	roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
+	-- roll.buttons.mains = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+	-- roll.buttons.mains:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
+	-- roll.buttons.mains:SetText(l["frameMain"])
+	-- roll.buttons.mains:GetRegions():SetTextColor(unpack(bdlc.config.buttons[1][2]))
+	-- bdlc:skinButton(roll.buttons.mains)
+	-- roll.buttons.mains:SetScript("OnClick", function() roll.buttons.submit(1) end)
 	
-	roll.buttons.off = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
-	roll.buttons.off:SetText(l["frameOffspec"])
-	roll.buttons.off:GetRegions():SetTextColor(unpack(bdlc.config.buttons[3][2]))
-	bdlc:skinButton(roll.buttons.off)
-	roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
+	-- roll.buttons.minor = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+	-- roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
+	-- roll.buttons.minor:SetText(l["frameMinorUp"])
+	-- roll.buttons.minor:GetRegions():SetTextColor(unpack(bdlc.config.buttons[2][2]))
+	-- bdlc:skinButton(roll.buttons.minor)
+	-- roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
 	
-	roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
-	roll.buttons.reroll:SetText(l["frameReroll"])
-	roll.buttons.reroll:GetRegions():SetTextColor(unpack(bdlc.config.buttons[4][2]))
-	bdlc:skinButton(roll.buttons.reroll)
-	roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
+	-- roll.buttons.off = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+	-- roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
+	-- roll.buttons.off:SetText(l["frameOffspec"])
+	-- roll.buttons.off:GetRegions():SetTextColor(unpack(bdlc.config.buttons[3][2]))
+	-- bdlc:skinButton(roll.buttons.off)
+	-- roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
 	
-	roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
-	roll.buttons.xmog:SetText(l["frameTransmog"])
-	roll.buttons.xmog:GetRegions():SetTextColor(unpack(bdlc.config.buttons[5][2]))
-	bdlc:skinButton(roll.buttons.xmog)
-	roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
+	-- roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+	-- roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
+	-- roll.buttons.reroll:SetText(l["frameReroll"])
+	-- roll.buttons.reroll:GetRegions():SetTextColor(unpack(bdlc.config.buttons[4][2]))
+	-- bdlc:skinButton(roll.buttons.reroll)
+	-- roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
+	
+	-- roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+	-- roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
+	-- roll.buttons.xmog:SetText(l["frameTransmog"])
+	-- roll.buttons.xmog:GetRegions():SetTextColor(unpack(bdlc.config.buttons[5][2]))
+	-- bdlc:skinButton(roll.buttons.xmog)
+	-- roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
 	
 	roll.buttons.note = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.note:SetSize(40, 25)
-	roll.buttons.note:SetPoint("LEFT", roll.buttons.xmog, "RIGHT", 4, 0)
+	roll.buttons.note:SetPoint("LEFT", last, "RIGHT", 4, 0)
 	roll.buttons.note:SetText(l["frameNote"])
 	bdlc:skinButton(roll.buttons.note,false,"blue")
 	roll.buttons.note:SetScript("OnClick", function()
@@ -722,7 +811,7 @@ local function create_roll(self)
 	roll.buttons.notes:SetMaxLetters(100)
 	roll.buttons.notes:IsMultiLine(1)
 	roll.buttons.notes:SetTextInsets(6, 2, 2, 2)
-	roll.buttons.notes:SetFontObject("BDLC_FONT")
+	roll.buttons.notes:SetFontObject(bdlc:get_font(14, "NONE"))
 	roll.buttons.notes:SetFrameLevel(27)
 	roll.buttons.notes:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
 	roll.buttons.notes:SetBackdropColor(.1,.1,.1,1)
@@ -755,28 +844,6 @@ local function reset_roll(self, roll)
 	roll.buttons.notes:SetText("")
 end
 bdlc.rolls = CreateObjectPool(create_roll, reset_roll)
-
--------------------------------------------------------
---	Fonts
--------------------------------------------------------
-bdlc.font_small = CreateFont("BDLC_FONT_SMALL")
-bdlc.font_small:SetFont(bdlc.media.font, 12)
-bdlc.font_small:SetShadowColor(0, 0, 0)
-bdlc.font_small:SetShadowOffset(1, -1)
-bdlc.font = CreateFont("BDLC_FONT")
-bdlc.font:SetFont(bdlc.media.font, 13)
-bdlc.font:SetShadowColor(0, 0, 0)
-bdlc.font:SetShadowOffset(1, -1)
-bdlc.font_large = CreateFont("BDLC_FONT_LARGE")
-bdlc.font_large:SetFont(bdlc.media.font, 14)
-bdlc.font_large:SetShadowColor(0, 0, 0)
-bdlc.font_large:SetShadowOffset(1, -1)
-bdlc.normal_text = CreateFont("bdlc_button")
-bdlc.normal_text:SetFont(bdlc.media.font, 13)
-bdlc.normal_text:SetTextColor(1,1,1,1)
-bdlc.normal_text:SetShadowColor(0, 0, 0)
-bdlc.normal_text:SetShadowOffset(1, -1)
-bdlc.normal_text:SetJustifyH("CENTER")
 
 --=====================================================
 -- Create Main Window
@@ -814,7 +881,8 @@ bdlc.window.header.close:SetScript("OnClick", function()
 	bdlc.window:Hide()
 end)
 
-bdlc.window.header.text = bdlc.window.header:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+bdlc.window.header.text = bdlc.window.header:CreateFontString(nil, "OVERLAY")
+bdlc.window.header.text:SetFontObject(bdlc:get_font(15))
 bdlc.window.header.text:SetText(bdlc.colorString)
 bdlc.window.header.text:SetPoint("CENTER", bdlc.window.header, "CENTER")
 
@@ -825,7 +893,8 @@ bdlc.window.loot_council = CreateFrame("frame", nil, bdlc.window, BackdropTempla
 bdlc.window.loot_council:SetPoint("BOTTOMLEFT", bdlc.window, "BOTTOMLEFT", 10, 6)
 bdlc.window.loot_council:SetSize(84, 18)
 bdlc:setBackdrop(bdlc.window.loot_council, .1,.1,.1,.8);
-bdlc.window.loot_council.text = bdlc.window.loot_council:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+bdlc.window.loot_council.text = bdlc.window.loot_council:CreateFontString(nil, "OVERLAY")
+bdlc.window.loot_council.text:SetFontObject(bdlc:get_font(14))
 bdlc.window.loot_council.text:SetPoint("LEFT", bdlc.window.loot_council, "LEFT", 4, 0)
 bdlc.window.loot_council.text:SetText(l["frameLC"])
 bdlc.window.loot_council.text:SetJustifyH("LEFT")
@@ -909,6 +978,7 @@ bdlc.rollFrame:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMovin
 bdlc.rollFrame:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
 bdlc.rollFrame:Hide()
 
-bdlc.rollFrame.title = bdlc.rollFrame:CreateFontString(nil, "OVERLAY", "BDLC_FONT_LARGE")
+bdlc.rollFrame.title = bdlc.rollFrame:CreateFontString(nil, "OVERLAY")
+bdlc.rollFrame.title:SetFontObject(bdlc:get_font(15, "OUTLINE"))
 bdlc.rollFrame.title:SetText(bdlc.colorString)
 bdlc.rollFrame.title:SetPoint("BOTTOM", bdlc.rollFrame, "TOP", 0, 2)
