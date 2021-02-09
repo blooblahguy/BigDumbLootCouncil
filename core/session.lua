@@ -212,9 +212,9 @@ function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 	bdlc:repositionFrames()
 end
 
-function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, notes, ilvl, guildRank)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, ilvl, guildRank, notes)
 	local playerName = FetchUnitName(playerName)
-	if (not notes) then notes = false end
+	if (not notes or strlen(notes) == 0) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
 
 	if (not bdlc.loot_sessions[itemUID]) then return end
@@ -287,7 +287,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	bdlc:repositionFrames()
 
 	-- add notes
-	if (notes and string.len(notes) > 0) then
+	if (notes and tostring(notes) ~= "0" and string.len(notes) > 1) then
 		entry.notes = notes
 		entry.user_notes:Show()
 	end

@@ -58,7 +58,7 @@ function bdlc:startMockSession()
 		-- send a random "want" after 2-5s, something like a real person
 		C_Timer.After(math.random(2, 5), function()
 			for name, data in pairs(demo_players) do
-				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 5), 0, 0, math.random(1, 100), 0, rando_ilvl(), rando_rank());
+				bdlc:sendAction("addUserWant", itemUID, name, math.random(1, 5), 0, 0, math.random(1, 100), rando_ilvl(), rando_rank(), "");
 			end
 		end)
 	end
