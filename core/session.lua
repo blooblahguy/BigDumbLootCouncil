@@ -67,7 +67,7 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	tab.icon:SetTexture(texture)
 	tab.table.item.itemtext:SetText(itemLink)
 	tab.table.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
-	tab.table.item.num_items:SetTextColor(1,1,1)
+	tab.table.item.num_items:SetTextColor(1, 1, 1)
 	tab.table.item.icon.tex:SetTexture(texture)
 
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
@@ -105,11 +105,7 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 
 	-- for tooltips
 	roll.item.icon.itemLink = itemLink
-	roll.item.item_text_bg.itemLink = itemLink
-	-- roll.item.item_text_bg:SetWidth(roll.item.item_text:GetStringWidth())
-
 	roll.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
-	roll.item.num_items:SetTextColor(1,1,1)
 	
 	-- custom quick notes
 	for i = 1, 10 do

@@ -425,7 +425,7 @@ local function create_tab(self)
 					vote_table.award:SetFrameLevel(self:GetFrameLevel() + 1)
 					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
 					vote_table.award.text:SetText(l["frameAward"]..self.name:GetText().."?")
-					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth())
+					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth() + 12)
 					vote_table.award.playerName = self.playerName
 					vote_table.award.itemUID = self.itemUID
 				end
@@ -640,20 +640,6 @@ local function create_roll(self)
 	roll.item.icon.tex:SetTexture(nil)
 	roll.item.icon.tex:SetPoint("TOPLEFT", roll.item.icon, "TOPLEFT", 2, -2)
 	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -2, 2)
-	
-	roll.item.item_text_bg = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
-	roll.item.item_text_bg:SetPoint("TOPLEFT", roll, "TOPLEFT", 60, -8)
-	roll.item.item_text_bg:SetWidth(120)
-	bdlc:setBackdrop(roll.item.item_text_bg, 0,0,0,.8);
-	roll.item.item_text_bg:SetScript("OnEnter", function(self)
-		ShowUIPanel(GameTooltip)
-		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(self.itemLink)
-		GameTooltip:Show()
-	end)
-	roll.item.item_text_bg:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
 
 	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK")
 	roll.item.item_text:SetFontObject(bdlc:get_font(15))
@@ -664,6 +650,8 @@ local function create_roll(self)
 	roll.item.num_items = roll:CreateFontString(nil, "OVERLAY")
 	roll.item.num_items:SetFontObject(bdlc:get_font(14))
 	roll.item.num_items:SetText("x1")
+	roll.item.num_items:SetTextColor(1, 1, 1)
+	roll.item.num_items:SetAlpha(.8)
 	roll.item.num_items:SetPoint("LEFT", roll.item.item_text, "RIGHT", 6, 0)
 	roll.item.num_items:SetJustifyH("LEFT")
 	

@@ -123,13 +123,26 @@ function bdlc:sendLC()
 	-- GUILD-RANK COUNCIL
 	-- add players automatically via guild rank
 	-------------------------------------------------------
-	local numGuildMembers = select(1, GetNumGuildMembers())
-	for i = 1, numGuildMembers do
-		local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
-		-- local name = FetchUnitName(fullName)
+	-- local numGuildMembers = select(1, GetNumGuildMembers())
+	-- for i = 1, numGuildMembers do
+	-- 	local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
+	-- 	-- local name = FetchUnitName(fullName)
 
-		if (rankIndex <= min_rank and UnitExists(name) and tIndexOf(council, FetchUnitName(name)) == nil) then
-			table.insert(council, FetchUnitName(name))
+	-- 	if (rankIndex <= min_rank and UnitExists(name) and tIndexOf(council, FetchUnitName(name)) == nil) then
+	-- 		table.insert(council, FetchUnitName(name))
+	-- 	end
+	-- end
+
+	local myGuild = select(1, GetGuildInfo("player"))
+	local numRaid = GetNumGroupMembers() or 1
+	for i = 1, numRaid do
+		local unit = UnitExists("raid"..i) and "raid"..i or "party"..i
+		local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
+
+		if (guildName == myGuild and guildRankIndex <= min_rank) then
+			if (tIndexOf(council, FetchUnitName(name)) == nil) then
+				table.insert(council, FetchUnitName(name))
+			end
 		end
 	end
 
@@ -166,8 +179,10 @@ end
 local council_events = CreateFrame("frame")
 council_events:RegisterEvent("PLAYER_ENTERING_WORLD")
 council_events:RegisterEvent("BOSS_KILL")
+council_events:RegisterEvent("GUILD_ROSTER_UPDATE")
 council_events:SetScript("OnEvent", function(self, event, arg1)
-	if (event == "PLAYER_ENTERING_WORLD") then
+	if (event == "PLAYER_ENTERING_WORLD" or event == "GUILD_ROSTER_UPDATE") then
+		council_events:UnregisterEvent("GUILD_ROSTER_UPDATE")
 		bdlc:sendAction("requestLC");
 		
 		return
