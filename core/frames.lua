@@ -317,7 +317,7 @@ local function create_tab(self)
 	bdlc:setBackdrop(vote_table.item.icon, 0,0,0,.8);
 	
 	vote_table.item.wfsock = vote_table.item.icon:CreateFontString(nil, "ARTWORK")
-	vote_table.item.wfsock:SetFontObject(bdlc:get_font(14))
+	vote_table.item.wfsock:SetFontObject(bdlc:get_font(15, "OUTLINE"))
 	vote_table.item.wfsock:SetText("")
 	vote_table.item.wfsock:SetTextColor(1, 1, 1)
 	vote_table.item.wfsock:SetPoint("CENTER", vote_table.item.icon, "CENTER", 0, 0)
@@ -345,6 +345,10 @@ local function create_tab(self)
 	bdlc:skinButton(vote_table.endSession,false,"red")
 	vote_table.endSession:SetScript("OnClick", function()
 		bdlc:sendAction("endSession", tab.itemUID);
+		
+		local itemLink = bdlc.itemMap[tab.itemUID]
+		bdlc:print("Ending session:", itemLink)
+
 		bdlc:endSession(tab.itemUID)
 	end)
 
@@ -373,7 +377,7 @@ local function create_tab(self)
 	vote_table.award.no:SetScript("OnClick", function() vote_table.award:Hide() end)
 	vote_table.award.yes:SetScript("OnClick", function(self)
 		-- print("clicked?"..nil)
-		-- bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
+		bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
 		vote_table.award:Hide()
 	end)
 
@@ -661,8 +665,8 @@ local function create_roll(self)
 	end
 
 	local last = nil
-	for i = 1, #bdlc.config.buttons do
-		local name, colors = unpack(bdlc.config.buttons[i])
+	for i = 1, 5 do
+		local name, colors, enable, req = unpack(bdlc.config.buttons[i])
 
 		local button = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 		button:SetText(name)
@@ -680,42 +684,6 @@ local function create_roll(self)
 		last = button
 	end
 	
-	
-	-- roll.buttons.mains = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	-- roll.buttons.mains:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
-	-- roll.buttons.mains:SetText(l["frameMain"])
-	-- roll.buttons.mains:GetRegions():SetTextColor(unpack(bdlc.config.buttons[1][2]))
-	-- bdlc:skinButton(roll.buttons.mains)
-	-- roll.buttons.mains:SetScript("OnClick", function() roll.buttons.submit(1) end)
-	
-	-- roll.buttons.minor = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	-- roll.buttons.minor:SetPoint("LEFT", roll.buttons.main, "RIGHT", 4, 0)
-	-- roll.buttons.minor:SetText(l["frameMinorUp"])
-	-- roll.buttons.minor:GetRegions():SetTextColor(unpack(bdlc.config.buttons[2][2]))
-	-- bdlc:skinButton(roll.buttons.minor)
-	-- roll.buttons.minor:SetScript("OnClick", function() roll.buttons.submit(2) end)
-	
-	-- roll.buttons.off = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	-- roll.buttons.off:SetPoint("LEFT", roll.buttons.minor, "RIGHT", 4, 0)
-	-- roll.buttons.off:SetText(l["frameOffspec"])
-	-- roll.buttons.off:GetRegions():SetTextColor(unpack(bdlc.config.buttons[3][2]))
-	-- bdlc:skinButton(roll.buttons.off)
-	-- roll.buttons.off:SetScript("OnClick", function() roll.buttons.submit(3) end)
-	
-	-- roll.buttons.reroll = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	-- roll.buttons.reroll:SetPoint("LEFT", roll.buttons.off, "RIGHT", 4, 0)
-	-- roll.buttons.reroll:SetText(l["frameReroll"])
-	-- roll.buttons.reroll:GetRegions():SetTextColor(unpack(bdlc.config.buttons[4][2]))
-	-- bdlc:skinButton(roll.buttons.reroll)
-	-- roll.buttons.reroll:SetScript("OnClick", function() roll.buttons.submit(4) end)
-	
-	-- roll.buttons.xmog = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	-- roll.buttons.xmog:SetPoint("LEFT", roll.buttons.reroll, "RIGHT", 4, 0)
-	-- roll.buttons.xmog:SetText(l["frameTransmog"])
-	-- roll.buttons.xmog:GetRegions():SetTextColor(unpack(bdlc.config.buttons[5][2]))
-	-- bdlc:skinButton(roll.buttons.xmog)
-	-- roll.buttons.xmog:SetScript("OnClick", function() roll.buttons.submit(5) end)
-	
 	roll.buttons.note = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.note:SetSize(40, 25)
 	roll.buttons.note:SetPoint("LEFT", last, "RIGHT", 4, 0)
@@ -724,7 +692,6 @@ local function create_roll(self)
 	roll.buttons.note:SetScript("OnClick", function()
 		roll.buttons.notes:Show()
 		roll.buttons.notes:SetFocus()
-		
 	end)
 	
 	roll.qn = "";

@@ -17,10 +17,17 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	BDLC_CONFIG = BDLC_CONFIG or bdlc.configDefaults
 	BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
+	
+	-- do a one time reset
+	if (not bdlc.config.shadowlands) then
+		bdlc.config.shadowlands = true
+		BDLC_CONFIG = bdlc.configDefaults
+		bdlc.config = BDLC_CONFIG
+	end
 
 	bdlc:print("loaded, enjoy!")
 
-	bdlc.config_window:Show()
+	-- bdlc.config_window:Show()
 	bdlc.council_votes = bdlc.config.council_votes
 	bdlc.buttons = bdlc.config.buttons
 

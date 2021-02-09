@@ -8,10 +8,12 @@ end
 -- 	bdlc:debug("Current Council Votes: ", votes)
 -- 	bdlc.council_votes = tonumber(votes)
 -- end
+
 function bdlc:councilVotes(votes)
 	bdlc:debug("Current Council Votes: ", votes)
 	bdlc.council_votes = tonumber(votes)
 end
+
 function bdlc:customQN(...)
 	bdlc.master_looter_qn = {}
 
@@ -195,15 +197,15 @@ council_events:RegisterEvent("PLAYER_ENTERING_WORLD")
 council_events:RegisterEvent("BOSS_KILL")
 council_events:RegisterEvent("GUILD_ROSTER_UPDATE")
 council_events:SetScript("OnEvent", function(self, event, arg1)
-	if (event == "PLAYER_ENTERING_WORLD" or event == "GUILD_ROSTER_UPDATE") then
-		council_events:UnregisterEvent("GUILD_ROSTER_UPDATE")
+	if (event == "PLAYER_ENTERING_WORLD") then
 		bdlc:sendAction("requestLC");
 		
 		return
 	end
 	
 	-- when a boss dies it's time for more sessions
-	if (event == "BOSS_KILL") then
+	if (event == "BOSS_KILL" or event == "GUILD_ROSTER_UPDATE") then
+		council_events:UnregisterEvent("GUILD_ROSTER_UPDATE")
 		bdlc:sendLC()
 		
 		return

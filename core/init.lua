@@ -13,7 +13,7 @@ bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
 bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
-bdlc.enabledebug = true
+bdlc.enabledebug = false
 
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
