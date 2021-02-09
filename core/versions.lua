@@ -1,47 +1,38 @@
 local bdlc, c, l = unpack(select(2, ...))
-bdlc.version = "@project-version@"
+
 bdlc.guild_versions = {}
-bdlc.developer = 999999
+bdlc.newestVersion = 0
 
 -- store various versions in here
 bdlc.versions = CreateFrame("frame", nil, UIParent)
-bdlc.versions:RegisterEvent("LOADING_SCREEN_DISABLED")
+bdlc.versions:RegisterEvent("PLAYER_LOGIN")
 bdlc.versions:SetScript("OnEvent", function(self)
-
+	bdlc:checkForUpdates()
 end)
-
-
---------------------------------------------------
--- BDLC VERSION
--- Returns version or bdlc.developer for developer version
---------------------------------------------------
-local function get_version()
-	-- this is the developer version
-	if (not tonumber(bdlc.config.version) or bdlc.config.version == "@project-version@") then
-		bdlc.config.version = bdlc.developer
-	end
-
-	return tonumber(bdlc.config.version)
-end
 
 --------------------------------------------------
 -- ASK FOR GUILD VERSIONS
 -- When a user logs in, check if they should update by using the guild
 --------------------------------------------------
 function bdlc:guildTopVersion(versionToBeat, sendBackTo)
-	local myVersion = get_version()
+	-- don't count developer
+	if (bdlc.version == "@project-version@") then return end
 
 	-- We have a more recent version than them
-	if (myVersion < bdlc.developer and myVersion > versionToBeat) then
+	if (bdlc.version > versionToBeat) then
 		bdlc.overrideChannel = "WHISPER"
 		bdlc.overrideRecipient = sendBackTo
-		bdlc:sendAction("newerVersion", myVersion);
+		bdlc:sendAction("newerVersion", bdlc.version);
 	end
 
 	-- Wait a second, they are more up to date than us
-	if (myVersion < bdlc.developer and versionToBeat > myVersion) then
+	if (versionToBeat > bdlc.version) then
 		bdlc:alertOutOfDate()
 	end
+end
+
+function bdlc:newerVersion(version)
+	bdlc.newestVersion = math.max(bdlc.newestVersion, version)
 end
 
 --------------------------------------------------
@@ -49,33 +40,29 @@ end
 -- When a user logs in, check if they should update by using the guild
 --------------------------------------------------
 function bdlc:checkForUpdates()
-	bdlc.newestVersion = 0
 	-- Only ask if you're not a developer
-	if (bdlc:version() < bdlc.developer) then
-		bdlc.overrideChannel = "GUILD"
-		bdlc:sendAction("guildTopVersion", get_version(), bdlc.localPlayer);
-	end
+	if (bdlc.version == "@project-version@") then return end
+	
+	bdlc.newestVersion = 0
 
-	-- wait 4 seconds for all responses to come back
-	C_Timer.After(4, function()
-		if (bdlc.newestVersion > get_version()) then
+	-- ask the guild
+	bdlc.overrideChannel = "GUILD"
+	bdlc:sendAction("guildTopVersion", bdlc.version, bdlc.localPlayer);
+
+	-- wait x seconds for all responses to come back
+	C_Timer.After(5, function()
+		if (bdlc.newestVersion > bdlc.version) then
 			bdlc:alertOutOfDate()
+		else
+			bdlc.print("You're up to date. Version: "..bdlc.version)
 		end
 	end)
 end
 
-
-
-function bdlc:newerVersion(version)
-	if (version > bdlc.newestVersion) then
-		bdlc.newestVersion = version
-	end
-end
-
 function bdlc:alertOutOfDate()
 	if (not bdlc.alertedOutOfDate) then
-		bdlc.print("You're out of date! Please update as soon as possible, old versions will often break and send lua errors to other players.")
-		bdlc.print("Your version: "..get_version())
+		bdlc.print("You're out of date! Please update as soon as possible, old versions will break and send lua errors to other players.")
+		bdlc.print("Your version: "..bdlc.version)
 		bdlc.print("Most recent version: "..bdlc.newestVersion)
 		bdlc.alertedOutOfDate = true
 	end
@@ -135,11 +122,9 @@ function bdlc:checkRaidVersions()
 end
 
 function bdlc:returnVersion(sendBackTo)
-	local myVersion = bdlc:version()
-
 	bdlc.overrideChannel = "WHISPER"
 	bdlc.overrideRecipient = sendBackTo
-	bdlc:sendAction("raiderVersion", myVersion, bdlc.local_player);
+	bdlc:sendAction("raiderVersion", bdlc.version, bdlc.local_player);
 end
 
 function bdlc:raiderVersion(version, player)
