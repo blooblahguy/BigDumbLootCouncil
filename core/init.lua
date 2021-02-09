@@ -107,6 +107,20 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 		return
 	end
 
+	-- start
+	if (msg == "valid") then
+		if (not msg2) then
+			bdlc:print("3rd parameter needs to be an itemLink")
+		end
+		if (bdlc:itemValidForSession(msg2, "player")) then
+			bdlc:print(msg2, "valid for session.")
+		else
+			bdlc:print(msg2, "not valid for session.")
+		end
+		
+		return
+	end
+
 	-- hide
 	if (msg == "hide") then
 		bdlc.window:Hide()
