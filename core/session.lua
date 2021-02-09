@@ -415,7 +415,7 @@ function bdlc:updateVotesRemaining(itemUID, councilName)
 	if (councilName ~= FetchUnitName('player')) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
-	local numvotes = 1--bdlc.item_drops[itemLink]
+	local numvotes = tonumber(bdlc.council_votes) --1--bdlc.item_drops[itemLink]
 	local currentvotes = 0;
 	local color = "|cff00FF00"
 	local tab = bdlc:getTab(itemUID)
@@ -427,7 +427,7 @@ function bdlc:updateVotesRemaining(itemUID, councilName)
 			end
 		end
 		
-		if (numvotes-currentvotes == 0) then
+		if (numvotes - currentvotes == 0) then
 			color = "|cffFF0000"
 		end
 	end
@@ -456,7 +456,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 
 	if (not lcl and FetchUnitName('player') == councilName) then return end
 	local itemLink = bdlc.itemMap[itemUID]
-	local numvotes = 1 --#bdlc.item_drops[itemLink]
+	local numvotes = tonumber(bdlc.council_votes) --1 --#bdlc.item_drops[itemLink]
 	local votes = bdlc.loot_council_votes[itemUID]
 
 	-- if they haven't voted yet, then give them # votes

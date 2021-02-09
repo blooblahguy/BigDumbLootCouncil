@@ -239,30 +239,6 @@ local function create_tab(self)
 	bdlc:setBackdrop(content, .1,.2,.1,.8);
 
 	
-	--scrollframe 
-	-- scrollframe = CreateFrame("ScrollFrame", nil, vote_table) 
-	-- scrollframe:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 0, -2) 
-	-- scrollframe:SetPoint("BOTTOMRIGHT", vote_table, "BOTTOMRIGHT", 0, 2) 
-	-- vote_table.scrollframe = scrollframe 
-	 
-	-- --scrollbar 
-	-- scrollbar = CreateFrame("Slider", nil, scrollframe, BackdropTemplateMixin and "BackdropTemplate", "UIPanelScrollBarTemplate") 
-	-- scrollbar:SetPoint("TOPLEFT", vote_table, "TOPRIGHT", 6, -16) 
-	-- scrollbar:SetPoint("BOTTOMLEFT", vote_table, "BOTTOMRIGHT", 0, 16) 
-	-- scrollbar:SetMinMaxValues(1, 200) 
-	-- scrollbar:SetValueStep(1) 
-	-- scrollbar.scrollStep = 1
-	-- scrollbar:SetValue(0) 
-	-- scrollbar:SetWidth(16) 
-	-- scrollbar:SetScript("OnValueChanged", function (self, value) self:GetParent():SetVerticalScroll(value) end) 
-	-- bdlc:setBackdrop(scrollbar, .1,.1,.1,.8);
-	-- vote_table.scrollbar = scrollbar 
-	 
-	-- --content frame 
-	-- vote_table.content = CreateFrame("Frame", nil, scrollframe) 
-	-- vote_table.content:SetSize(560, 380) 
-	-- scrollframe:SetScrollChild(vote_table.content)
-	
 	-- Headers
 	vote_table.name_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.name_text:SetFontObject(bdlc:get_font(14))
@@ -396,7 +372,8 @@ local function create_tab(self)
 	
 	vote_table.award.no:SetScript("OnClick", function() vote_table.award:Hide() end)
 	vote_table.award.yes:SetScript("OnClick", function(self)
-		bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
+		-- print("clicked?"..nil)
+		-- bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
 		vote_table.award:Hide()
 	end)
 

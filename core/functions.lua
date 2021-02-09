@@ -183,26 +183,31 @@ function bdlc:createScrollFrame(parent)
 	-- now create the template Scroll Frame (this frame must be given a name so that it can be looked up via the _G function (you'll see why later on in the code)
 	self.scrollframe = self.scrollframe or CreateFrame("ScrollFrame", "BDLC_Scroll", self, "UIPanelScrollFrameTemplate")
 	self.scrollchild = self.scrollchild or CreateFrame("Frame", nil, self, BackdropTemplateMixin and "BackdropTemplate")
+
+	self.position_scroll = function()
+		-- all of these objects will need to be re-anchored (if not, they appear outside the frame and about 30 pixels too high)
+		self.scrollupbutton:ClearAllPoints();
+		self.scrollupbutton:SetPoint("TOPRIGHT", self.scrollframe, "TOPRIGHT", 20, -2);
+		self.scrolldownbutton:ClearAllPoints();
+		self.scrolldownbutton:SetPoint("BOTTOMRIGHT", self.scrollframe, "BOTTOMRIGHT", 20, 2);
+		self.scrollbar:ClearAllPoints();
+		self.scrollbar:SetPoint("TOP", self.scrollupbutton, "BOTTOM", 0, -2);
+		self.scrollbar:SetPoint("BOTTOM", self.scrolldownbutton, "TOP", 0, 2);
+		
+		-- now officially set the scrollchild as your Scroll Frame's scrollchild (this also parents self.scrollchild to self.scrollframe)
+		-- IT IS IMPORTANT TO ENSURE THAT YOU SET THE SCROLLCHILD'S SIZE AFTER REGISTERING IT AS A SCROLLCHILD:
+		self.scrollframe:SetScrollChild(self.scrollchild);
+		self.scrollframe:SetAllPoints(self);
+	end
 	
 	-- define the scrollframe's objects/elements:
 	local scrollbarName = self.scrollframe:GetName()
 	self.scrollbar = _G[scrollbarName.."ScrollBar"];
 	self.scrollupbutton = _G[scrollbarName.."ScrollBarScrollUpButton"];
 	self.scrolldownbutton = _G[scrollbarName.."ScrollBarScrollDownButton"];
-	
-	-- all of these objects will need to be re-anchored (if not, they appear outside the frame and about 30 pixels too high)
-	self.scrollupbutton:ClearAllPoints();
-	self.scrollupbutton:SetPoint("TOPRIGHT", self.scrollframe, "TOPRIGHT", 20, -2);
-	self.scrolldownbutton:ClearAllPoints();
-	self.scrolldownbutton:SetPoint("BOTTOMRIGHT", self.scrollframe, "BOTTOMRIGHT", 20, 2);
-	self.scrollbar:ClearAllPoints();
-	self.scrollbar:SetPoint("TOP", self.scrollupbutton, "BOTTOM", 0, -2);
-	self.scrollbar:SetPoint("BOTTOM", self.scrolldownbutton, "TOP", 0, 2);
-	
-	-- now officially set the scrollchild as your Scroll Frame's scrollchild (this also parents self.scrollchild to self.scrollframe)
-	-- IT IS IMPORTANT TO ENSURE THAT YOU SET THE SCROLLCHILD'S SIZE AFTER REGISTERING IT AS A SCROLLCHILD:
-	self.scrollframe:SetScrollChild(self.scrollchild);
-	self.scrollframe:SetAllPoints(self);
+
+	-- position
+	self.position_scroll()
 	
 	-- now that SetScrollChild has been defined, you are safe to define your scrollchild's size. Would make sense to make it's height > scrollframe's height,
 	-- otherwise there's no point having a scrollframe!
@@ -680,8 +685,9 @@ function FetchUnitName(name, strict)
 
 	if (name_server) then
 		name = name_server
+		name, server = strsplit("-", name)
 	end
-	name, server = strsplit("-", name)
+
 	if (not server) then
 		server = GetRealmName()
 	end

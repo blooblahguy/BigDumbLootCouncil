@@ -38,12 +38,13 @@ bdlc.configDefaults = {
 		"20%", 
 		"10%",
 	},
+	-- text, color, enable, require note
 	buttons = {
-		[1] = {"Mainspec", {.2, 1, .2}, true},
-		[2] = {"Minor Up", {.6, 1, .6}, true},
-		[3] = {"Offspec", {.8, .6, .6}, false},
-		[4] = {"Reroll", {.1, .6, .6}, false},
-		[5] = {"Transmog", {.8, .4, 1, false}}
+		[1] = {"Mainspec", {.2, 1, .2}, true, true},
+		[2] = {"Minor Up", {.6, 1, .6}, true, true},
+		[3] = {"Offspec", {.8, .6, .6}, true, false},
+		[4] = {"Reroll", {.1, .6, .6}, true, false},
+		[5] = {"Transmog", {.8, .4, 1}, true, false}
 	}
 }
 
@@ -138,6 +139,8 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 	if (msg == "reset") then
 		BDLC_CONFIG = bdlc.configDefaults
 		bdlc.config = BDLC_CONFIG
+
+		ReloadUI();
 
 		return
 	end

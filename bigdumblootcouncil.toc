@@ -24,4 +24,5 @@ core\session.lua
 core\events.lua
 core\versions.lua
 core\tests.lua
+config\config_frames.lua
 config\config.lua

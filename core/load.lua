@@ -14,11 +14,15 @@ loader:SetScript("OnEvent", function(self, event, addon)
 
 	-- config initialize
 	-- BDLC_CONFIG = BDLC_CONFIG or bdlc.defaults
-	BDLC_CONFIG = bdlc.configDefaults
+	BDLC_CONFIG = BDLC_CONFIG or bdlc.configDefaults
 	BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
 
 	bdlc:print("loaded, enjoy!")
+
+	bdlc.config_window:Show()
+	bdlc.council_votes = bdlc.config.council_votes
+	bdlc.buttons = bdlc.config.buttons
 
 	-- bdlc.config_window:RegisterEvent("GUILD_ROSTER_UPDATE")
 	-- C_GuildInfo.GuildRoster()

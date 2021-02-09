@@ -4,6 +4,14 @@ function bdlc:inLC()
 	return bdlc.loot_council[FetchUnitName("player")] or IsRaidLeader() or not IsInGroup()
 end
 
+-- function bdlc:buttons(buttons)
+-- 	bdlc:debug("Current Council Votes: ", votes)
+-- 	bdlc.council_votes = tonumber(votes)
+-- end
+function bdlc:councilVotes(votes)
+	bdlc:debug("Current Council Votes: ", votes)
+	bdlc.council_votes = tonumber(votes)
+end
 function bdlc:customQN(...)
 	bdlc.master_looter_qn = {}
 
@@ -37,12 +45,17 @@ end
 -- this will add/remove the player from your custom council. 
 -- If you're group leader it'll then rebuild the council list and redistribute it to the raid
 -----------------------------------------------
-function bdlc:addremoveLC(msg, name)
-	if (not name) then bdlc:print("Please provide a name to add to the loot council") return end
-	if (not FetchUnitName(name, true)) then bdlc:print("Couldn't find any player named "..name..". (they must be in the same group as you) ") return end
+function bdlc:addremoveLC(msg, name, trust)
+	if (not name) then bdlc:print("Please provide a name to add to the loot council") return false end
+
+	if (not FetchUnitName(name, true)) then 
+		bdlc:print("Warning: couldn't find any player named "..name..". (they must be in the same group as you) ")
+	end
 	
 	-- always add them by name-server format
-	name = FetchUnitName(name)
+	if (not trust) then
+		name = FetchUnitName(name)
+	end
 	
 	if (msg == "addtolc") then -- add
 		bdlc.config.custom_council[name] = true
@@ -53,9 +66,7 @@ function bdlc:addremoveLC(msg, name)
 	end
 
 	-- rebuild and redistribute your list if you're LM or leader
-	if (IsRaidLeader() or not IsInRaid()) then
-		bdlc:sendAction("buildLC");
-	end
+	bdlc:sendLC()
 
 	return true
 end
@@ -68,11 +79,12 @@ function bdlc:GetLCMinRank()
 	local min_rank = bdlc.config.council_min_rank
 	min_rank = tonumber(min_rank)
 
-	bdlc:debug("Minimum LC Rank: "..min_rank)
+	bdlc:debug("Minimum LC Rank: ", min_rank)
 
 	if (not min_rank) then
-		min_rank = bdlc.defaults.council_min_rank
-		print("BDLC major error: min_rank didn't return a value! Using default value of "..min_rank..".")
+		bdlc.config.council_min_rank = bdlc.configDefaults.council_min_rank
+		min_rank = bdlc.configDefaults.council_min_rank
+		bdlc:print("Major error: min_rank didn't return a value! Using default value of ", min_rank)
 	end
 
 	return min_rank
@@ -136,7 +148,7 @@ function bdlc:sendLC()
 	local myGuild = select(1, GetGuildInfo("player"))
 	local numRaid = GetNumGroupMembers() or 1
 	for i = 1, numRaid do
-		local unit = UnitExists("raid"..i) and "raid"..i or "party"..i
+		local unit = select(1, GetRaidRosterInfo(i))
 		local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
 
 		if (guildName == myGuild and guildRankIndex <= min_rank) then
@@ -152,7 +164,7 @@ function bdlc:sendLC()
 	-------------------------------------------------------
 	for k, v in pairs (bdlc.config.custom_council) do
 		-- local name = FetchUnitName(k)
-		if (UnitExists(k) and tIndexOf(council, FetchUnitName(name)) == nil) then
+		if (UnitExists(k) and tIndexOf(council, FetchUnitName(k)) == nil) then
 			table.insert(council, FetchUnitName(name))
 		end
 	end
@@ -173,6 +185,8 @@ function bdlc:sendLC()
 	if (quicknotes and #quicknotes > 0) then
 		bdlc:sendAction("customQN", unpack(quicknotes) );
 	end
+	-- council votes
+	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
 end
 
 

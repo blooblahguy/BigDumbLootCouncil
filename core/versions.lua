@@ -76,7 +76,13 @@ end
 function bdlc:checkRaidVersions()
 	bdlc.versions = {}
 
-	bdlc:sendAction("returnVersion", bdlc.local_player);
+	bdlc:print("Version:", bdlc.version)
+	if (not IsInRaid() or not bdlc:inLC() ) then
+		bdlc:print("You can only do a version check while in raid and on the loot council")
+		return
+	end
+
+	bdlc:sendAction("returnVersion", bdlc.localPlayer);
 
 	local noAddon = {}
 	for i = 1, GetNumGroupMembers() do
@@ -84,7 +90,7 @@ function bdlc:checkRaidVersions()
 		noAddon[name] = true
 	end
 
-	bdlc.print("Building version list, waiting 4 seconds for responses.");
+	bdlc:print("Building version list, waiting 4 seconds for responses.");
 
 	C_Timer.After(4, function()
 		local newestVersion = 0
@@ -124,7 +130,7 @@ end
 function bdlc:returnVersion(sendBackTo)
 	bdlc.overrideChannel = "WHISPER"
 	bdlc.overrideRecipient = sendBackTo
-	bdlc:sendAction("raiderVersion", bdlc.version, bdlc.local_player);
+	bdlc:sendAction("raiderVersion", bdlc.version, bdlc.localPlayer);
 end
 
 function bdlc:raiderVersion(version, player)
