@@ -23,4 +23,5 @@ core\council.lua
 core\session.lua
 core\events.lua
 core\versions.lua
+core\tests.lua
 config\config.lua
