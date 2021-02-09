@@ -2,29 +2,9 @@ local bdlc, c, l = unpack(select(2, ...))
 
 bdlc.demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
-	ranks = {},
+	ranks = {"Officer", "Raider", "Trial", "Social", "Alt", "Officer Alt", "Guild Idiot", "King"},
 	names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
 }
-
-local ranks = 0
-local guildranks = CreateFrame("frame")
-guildranks:RegisterEvent("GUILD_ROSTER_UPDATE")
-guildranks:RegisterEvent("PLAYER_GUILD_UPDATE")
-local function get_ranks()
-	guildranks:UnregisterEvent("GUILD_ROSTER_UPDATE")
-	guildranks:UnregisterEvent("PLAYER_GUILD_UPDATE")
-	
-	for i = 1, 100 do
-		local name, rank, rankIndex, level = GetGuildRosterInfo(i);
-		
-		bdlc.demo_samples.ranks[rankIndex] = rank
-	end
-end
-C_GuildInfo.GuildRoster()
-guildranks:SetScript("OnEvent", get_ranks)
-C_Timer.After(2, function()
-	get_ranks()
-end)
 
 local function rando_name()
 	return bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)]
