@@ -358,17 +358,17 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 	local valid = false
 
 	local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
-
+	
 	-- this session already exists, don't create again
 	if (bdlc.loot_sessions[itemUID] == lootedBy) then
 		return false
 	end
-
+	
 	local equipSlot = select(9, GetItemInfo(itemLink))
 	if (equipSlot and string.len(equipSlot) > 0) then
 		return true
 	end
-
+	
 	local isRelic = bdlc:IsRelic(itemLink)
 	local isTier = bdlc:IsTier(itemLink)
 	if (isTier or isRelic) then
@@ -661,7 +661,7 @@ function IsRaidLeader()
 	if (inInstance and instanceType == "raid" and UnitIsGroupLeader("player")) then
 		return true
 	else
-		return not IsInGroup()
+		return UnitIsGroupLeader("player") or not IsInGroup()
 	end
 end
 
@@ -676,24 +676,26 @@ end
 
 -- returns name-server for any valid unitID
 function FetchUnitName(name, strict)
-	local name, server = strsplit("-", name)
-	local name_server = false	
 
-	if (UnitExists(name) and UnitIsConnected(name)) then
-		name_server = GetUnitName(name, true)
-	end
+	return Ambiguate(name, "mail")
+	-- local name, server = strsplit("-", name)
+	-- local name_server = false	
 
-	if (name_server) then
-		name = name_server
-		name, server = strsplit("-", name)
-	end
+	-- if (UnitExists(name) and UnitIsConnected(name)) then
+	-- 	name_server = GetUnitName(name, true)
+	-- end
 
-	if (not server) then
-		server = GetRealmName()
-	end
+	-- if (name_server) then
+	-- 	name = name_server
+	-- 	name, server = strsplit("-", name)
+	-- end
+
+	-- if (not server) then
+	-- 	server = GetRealmName()
+	-- end
 	
-	if (not name) then return end
-	if (strict and not UnitExists(name.."-"..server)) then return end
+	-- if (not name) then return end
+	-- if (strict and not UnitExists(name.."-"..server)) then return end
 
-	return name.."-"..server
+	-- return name.."-"..server
 end

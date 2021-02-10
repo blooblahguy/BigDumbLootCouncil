@@ -162,6 +162,8 @@ function bdlc:getEntry(itemUID, playerName)
 		end
 	end
 
+	if (not current_entry) then return end
+
 	current_entry.playerName = playerName
 	current_entry.itemUID = itemUID
 

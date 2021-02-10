@@ -59,6 +59,7 @@ bdlc.tradedItems = {}
 bdlc.itemMap = {}
 bdlc.loot_sessions = {}
 bdlc.loot_want = {}
+bdlc.item_drops = {}
 
 -- Commands
 SLASH_bdlc1 = "/bdlc"
@@ -76,6 +77,15 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAremovefromlc|r playername - Adds a player to the loot council (if you're the Masterlooter)")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAreset|r - Resets configuration to defaults")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAArequestlc|r - Requests LC information to be resent, use if LC is innacurate")
+		print("  /|cffA02C2Fbdlc|r |cffEEFFAAdebug|r - Toggles debug mode")
+
+		return
+	end
+
+	-- debug
+	if (msg == "debug") then
+		bdlc.config.debug = not bdlc.config.debug
+		bdlc:print("Debug mode:", bdlc.config.debug and "On" or "Off")
 
 		return
 	end
@@ -103,7 +113,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 		if (not msg2) then
 			bdlc:print("3rd parameter needs to be an itemLink")
 		end
-		bdlc:startSession(msg2, "")
+		bdlc:sendAction("startSession", msg2, bdlc.localPlayer, "1");
 		
 		return
 	end

@@ -51,6 +51,8 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 				-- alert my raid that this exists
 				if (num_free == 0) then
 					SendChatMessage("BDLC: I have full bags but I looted "..itemLink, "RAID")
+				else
+					LootSlot(slot)
 				end
 			end
 		end

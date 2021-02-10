@@ -32,7 +32,7 @@ function bdlc:startMockSession()
 	
 	-- add random people, up to a whole raid worth of fakers
 	local demo_players = {}
-	for i = 5, math.random(6, 30) do
+	for i = 2, math.random(3, 5) do
 		demo_players[rando_name()] = {rando_class()}
 	end
 	

@@ -20,9 +20,9 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	
 	-- do a one time reset
 	if (not bdlc.config.shadowlands) then
-		bdlc.config.shadowlands = true
 		BDLC_CONFIG = bdlc.configDefaults
 		bdlc.config = BDLC_CONFIG
+		bdlc.config.shadowlands = true
 	end
 
 	bdlc:print("loaded, enjoy!")
@@ -34,7 +34,7 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	-- bdlc.config_window:RegisterEvent("GUILD_ROSTER_UPDATE")
 	-- C_GuildInfo.GuildRoster()
 
-	C_Timer.After(2, function()
+	-- C_Timer.After(2, function()
 		-- require initialize function
 		-- if (not bdlc.module.initialize) then
 		-- 	bdlc:print(bdlc.module._name, "does not have an initialize() function and can't be loaded")
@@ -42,5 +42,5 @@ loader:SetScript("OnEvent", function(self, event, addon)
 		-- end
 
 		-- bdlc:startMockSession()
-	end)
+	-- end)
 end)

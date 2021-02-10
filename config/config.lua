@@ -110,7 +110,7 @@ config:SetScript("OnShow", function(self)
 		['width'] = 400,
 		['lower'] = true,
 		['callback'] = function(container, value)
-			value = FetchUnitName(value)
+			value = Ambiguate(value, "mail"):lower()
 
 			if(bdlc.config.custom_council[value]) then
 				container.insert.alert:SetText(value.." removed")
