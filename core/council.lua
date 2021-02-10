@@ -92,7 +92,7 @@ end
 function bdlc:GetRaidMembers()
 	local inraid = {}
 	inraid[FetchUnitName('player')] = true
-	local numRaid = GetNumGroupMembers()
+	local numRaid = 40
 	if (numRaid == 0) then numRaid = 1 end
 
 	for i = 1, numRaid do

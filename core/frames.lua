@@ -51,7 +51,7 @@ function bdlc:repositionFrames()
 			return a.name:GetText() > b.name:GetText()
 		end) do
 			entry:ClearAllPoints()
-			if (entry.itemUID) then
+			if (entry.itemUID and entry:IsShown()) then
 				if (lastentry) then
 					entry:SetPoint("TOPLEFT", lastentry, "BOTTOMLEFT", 0, 1)
 				else
