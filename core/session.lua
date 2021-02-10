@@ -53,6 +53,11 @@ function bdlc:endSession(itemUID)
 	bdlc.loot_want[itemUID] = nil
 	
 	bdlc:repositionFrames()
+
+	-- just to kill fringe cases
+	C_Timer.After(1, function()
+		bdlc:repositionFrames()
+	end)
 end
 
 function bdlc:createVoteWindow(itemUID, lootedBy)
