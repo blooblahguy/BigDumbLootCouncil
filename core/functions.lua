@@ -372,11 +372,14 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 	end
 
 	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier = bdlc:IsTier(itemLink)
+	local isTier, tierType = bdlc:IsTier(itemLink)
 
 	if (test) then
-		bdlc:print(ItemLink, "is: ")
+		bdlc:print(itemLink, "is: ")
 		bdlc:print("Tier: ", isTier and "Yes" or "No")
+		if (isTier) then
+			bdlc:print("Tier Type: ", tierType)
+		end
 		bdlc:print("Relic: ", isRelic and "Yes" or "No")
 		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
 	end
