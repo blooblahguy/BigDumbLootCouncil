@@ -98,7 +98,7 @@ function bdlc:checkRaidVersions()
 		for version, players in pairs(bdlc.versions) do
 			-- print(version, player)
 			local version = tonumber(version)
-			if (version < 10000) then
+			if (version and version < 10000) then
 				local printString = version..": " 
 
 				if (version > newestVersion) then 
@@ -140,10 +140,10 @@ function bdlc:raiderVersion(version, player)
 end
 
 function bdlc:alertRecent(newestVersion)
-	local myVersion = bdlc:version()
+	local myVersion = bdlc.version
 	bdlc.newestVersion = newestVersion
 
-	if (myVersion < newestVersion) then
+	if (tonumber(myVersion) and myVersion < newestVersion) then
 		bdlc:alertOutOfDate()
 	end
 end
