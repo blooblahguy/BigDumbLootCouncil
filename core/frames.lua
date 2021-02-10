@@ -711,7 +711,7 @@ local function create_roll(self)
 	roll.buttons.note.quicknotes:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMoving() end)
 	roll.buttons.note.quicknotes:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
 	roll.buttons.note.quicknotes.append = function(text)
-		if (string.len(text) > 0 and not strfind(roll.qn, text)) then
+		if (string.len(text) > 0 and not strfind(roll.qn, text, 1, true)) then
 			roll.qn = roll.qn..text..", "
 		end
 	end
