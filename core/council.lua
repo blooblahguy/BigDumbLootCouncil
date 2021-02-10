@@ -220,7 +220,9 @@ council_events:RegisterEvent("CHAT_MSG_SYSTEM")
 bdlc.am_leader = IsRaidLeader()
 council_events:SetScript("OnEvent", function(self, event, arg1)
 	if (event == "PLAYER_ENTERING_WORLD") then
-		bdlc:sendAction("requestLC");
+		C_Timer.After(1, function()
+			bdlc:sendAction("requestLC");
+		end)
 		
 		return
 	end

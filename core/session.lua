@@ -116,22 +116,24 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	end
 
 	local ml_qn = {}
-	for k, v in pairs(bdlc.master_looter_qn) do
-		table.insert(ml_qn, k)
-	end
-	table.sort(ml_qn)
-	for k, v in pairs(ml_qn) do
-		local qn
-		for i = 1, 10 do
-			local rqn = roll.buttons.note.quicknotes[i]
-			if (not rqn:IsShown()) then
-				qn = rqn
-				break
-			end
+	if (bdlc.master_looter_qn) then
+		for k, v in pairs(bdlc.master_looter_qn) do
+			table.insert(ml_qn, k)
 		end
-		qn:Show()
-		qn:SetText(v)
-		bdlc:skinButton(qn,false)
+		table.sort(ml_qn)
+		for k, v in pairs(ml_qn) do
+			local qn
+			for i = 1, 10 do
+				local rqn = roll.buttons.note.quicknotes[i]
+				if (not rqn:IsShown()) then
+					qn = rqn
+					break
+				end
+			end
+			qn:Show()
+			qn:SetText(v)
+			bdlc:skinButton(qn,false)
+		end
 	end
 
 	local ilvl, wf_tf, socket, infostr = bdlc:GetItemValue(itemLink)
@@ -543,15 +545,15 @@ end
 
 --==========================================
 -- Async Item Info
+-- update - blizzard broke GET_ITEM_INFO_RECEIVED so using this for now
 --==========================================
-bdlc.async = CreateFrame("frame", nil, UIParent)
-bdlc.async:RegisterEvent("GET_ITEM_INFO_RECEIVED")
-bdlc.async:SetScript("OnEvent", function( event, incomingItemID)
+-- bdlc.async = CreateFrame("frame", nil, UIParent)
+-- bdlc.async:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+C_Timer.NewTicker(0.1, function()
+
 	-- Queue items that need to verify tradability
 	for itemID, v in pairs(bdlc.items_waiting_for_verify) do
-		local num1 = tonumber(incomingItemID)
-		local num2 = tonumber(itemID)
-		if (num1 == num2) then
+		if (GetItemInfo(itemID)) then
 			
 			if not bdlc.tradedItems[v] then
 			-- TODO: This event can't fire after a trade so this test should be removed?
@@ -568,9 +570,7 @@ bdlc.async:SetScript("OnEvent", function( event, incomingItemID)
 
 	-- Queue items that are starting sessions
 	for itemID, v in pairs(bdlc.items_waiting_for_session) do
-		local num1 = tonumber(incomingItemID)
-		local num2 = tonumber(itemID)
-		if (num1 == num2) then
+		if (GetItemInfo(itemID)) then
 			bdlc:startSession(v[1], v[2], v[3])
 			bdlc.items_waiting_for_session[itemID] = nil
 		end
@@ -578,11 +578,53 @@ bdlc.async:SetScript("OnEvent", function( event, incomingItemID)
 	
 	-- Queue items that are showing user's current gear
 	for itemID, v in pairs(bdlc.player_items_waiting) do
-		local num1 = tonumber(incomingItemID)
-		local num2 = tonumber(itemID)
-		if (num1 == num2) then
+		if (GetItemInfo(itemID)) then
 			bdlc:updateUserItem(v[1], v[2])
 			bdlc.player_items_waiting[itemID] = nil
 		end
 	end
+
 end)
+-- bdlc.async:SetScript("OnEvent", function(event, incomingItemID, success)
+-- 	if (not success) then
+-- 		bdlc:print("Server failed to return ItemInfo for itemID:", incomingItemID)
+-- 	end
+-- 	-- Queue items that need to verify tradability
+-- 	for itemID, v in pairs(bdlc.items_waiting_for_verify) do
+-- 		local num1 = tonumber(incomingItemID)
+-- 		local num2 = tonumber(itemID)
+-- 		if (num1 == num2) then
+			
+-- 			if not bdlc.tradedItems[v] then
+-- 			-- TODO: This event can't fire after a trade so this test should be removed?
+-- 				if (bdlc:verifyTradability(v)) then
+-- 					bdlc:sendAction("startSession", v, FetchUnitName('player'))
+-- 				end
+-- 			else
+-- 				print('Experimental: Item received via trading, will not be announced again.')
+-- 			end
+			
+-- 			bdlc.items_waiting_for_verify[itemID] = nil
+-- 		end
+-- 	end
+
+-- 	-- Queue items that are starting sessions
+-- 	for itemID, v in pairs(bdlc.items_waiting_for_session) do
+-- 		local num1 = tonumber(incomingItemID)
+-- 		local num2 = tonumber(itemID)
+-- 		if (num1 == num2) then
+-- 			bdlc:startSession(v[1], v[2], v[3])
+-- 			bdlc.items_waiting_for_session[itemID] = nil
+-- 		end
+-- 	end
+	
+-- 	-- Queue items that are showing user's current gear
+-- 	for itemID, v in pairs(bdlc.player_items_waiting) do
+-- 		local num1 = tonumber(incomingItemID)
+-- 		local num2 = tonumber(itemID)
+-- 		if (num1 == num2) then
+-- 			bdlc:updateUserItem(v[1], v[2])
+-- 			bdlc.player_items_waiting[itemID] = nil
+-- 		end
+-- 	end
+-- end)
