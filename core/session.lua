@@ -79,8 +79,6 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	tab.wfsock:SetText(infostr)
 	tab.table.item.wfsock:SetText(infostr)
 
-	-- bdlc:updateVotesRemaining(itemUID, FetchUnitName('player'))
-
 	local slotname = string.lower(string.gsub(equipSlot, "INVTYPE_", ""));
 	slotname = slotname:gsub("^%l", string.upper)
 	tab.table.item.itemdetail:SetText("ilvl: "..iLevel.."    "..subclass..", "..slotname);
@@ -346,8 +344,8 @@ end
 -- removeUserRoll
 ----------------------------------------
 function bdlc:removeUserRoll(itemUID, playerName)
-	local playerName = FetchUnitName(playerName)
-	if (FetchUnitName('player') == playerName) then
+	local playerName = FetchUnitName("player")
+	if (FetchUnitName("player") == playerName) then
 		local roll = bdlc:getRoll(itemUID)
 		bdlc.rolls:Release(roll)
 		bdlc:repositionFrames()

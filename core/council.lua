@@ -1,7 +1,7 @@
 local bdlc, c, l = unpack(select(2, ...))
 
 function bdlc:inLC()
-	return bdlc.loot_council[UnitName("player"):lower()] or IsRaidLeader() or not IsInGroup()
+	return bdlc.loot_council[FetchUnitName('player'):lower()] or IsRaidLeader() or not IsInGroup()
 end
 
 -- function bdlc:buttons(buttons)
@@ -91,7 +91,7 @@ end
 
 function bdlc:GetRaidMembers()
 	local inraid = {}
-	inraid[FetchUnitName('player')] = true
+	inraid[UnitName('player')] = true
 	local numRaid = 40
 	if (numRaid == 0) then numRaid = 1 end
 
@@ -120,7 +120,7 @@ function bdlc:sendLC()
 	bdlc:debug("Building LC")
 
 	-- clear all the settings since we're rebuilding here
-	local council = {UnitName("player"):lower()}
+	local council = {FetchUnitName('player'):lower()}
 	local quicknotes = {}
 	local buttons_string = ""
 

@@ -69,7 +69,7 @@ function bdlc:sendAction(action, ...)
 	local paramString = strjoin(delim, ...)
 
 	-- allow the user to whisper through this function
-	local recipient = bdlc.overrideRecipient or UnitName("player")
+	local recipient = bdlc.overrideRecipient or FetchUnitName('player')
 	local priority = bdlc.overridePriority or "NORMAL"
 	local channel = "WHISPER"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then 
@@ -102,6 +102,13 @@ function bdlc:RGBToHex(r, g, b)
 	g = g <= 1 and g >= 0 and g or 0
 	b = b <= 1 and b >= 0 and b or 0
 	
+	return string.format("%02x%02x%02x", r*255, g*255, b*255)
+end
+
+local function RGBPercToHex(r, g, b)
+	r = r <= 1 and r >= 0 and r or 0
+	g = g <= 1 and g >= 0 and g or 0
+	b = b <= 1 and b >= 0 and b or 0
 	return string.format("%02x%02x%02x", r*255, g*255, b*255)
 end
 
@@ -676,6 +683,9 @@ end
 
 -- returns name-server for any valid unitID
 function FetchUnitName(name, strict)
+	if (name == "player") then
+		name = UnitName("player")
+	end
 
 	return Ambiguate(name, "mail")
 	-- local name, server = strsplit("-", name)

@@ -199,6 +199,7 @@ local function create_tab(self)
 			for other_tab, v in bdlc.tabs:EnumerateActive() do
 				other_tab:SetAlpha(0.3)
 				other_tab.table:Hide()
+				other_tab.table.award:Hide()
 				other_tab.icon:SetDesaturated(true)
 				other_tab.selected = false
 			end
@@ -407,7 +408,9 @@ local function create_tab(self)
 					vote_table.award:Show()
 					vote_table.award:SetFrameLevel(self:GetFrameLevel() + 1)
 					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
-					vote_table.award.text:SetText(l["frameAward"]..self.name:GetText().."?")
+					local r, g, b = self.name:GetTextColor()
+					local hex = RGBPercToHex(r, g, b)
+					vote_table.award.text:SetText(l["frameAward"].."|cff"..hex..self.name:GetText().."|r?")
 					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth() + 12)
 					vote_table.award.playerName = self.playerName
 					vote_table.award.itemUID = self.itemUID

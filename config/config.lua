@@ -3,7 +3,7 @@ local bdlc, c, l = unpack(select(2, ...))
 local config = CreateFrame('frame', 'BDLC Config', UIParent, BackdropTemplateMixin and "BackdropTemplate")
 config:SetFrameStrata("HIGH")
 config:SetFrameLevel(9)
-config:SetSize(500, 400)
+config:SetSize(500, 430)
 config:SetPoint("CENTER")
 config:EnableMouse(true)
 config:SetMovable(true)
@@ -164,7 +164,7 @@ config:SetScript("OnShow", function(self)
 	}
 
 	local quick_notes = bdlc:createList(options)
-	quick_notes:SetPoint("TOPLEFT", custom_council, "BOTTOMLEFT", 0, -50)
+	quick_notes:SetPoint("TOPLEFT", custom_council, "BOTTOMLEFT", 0, -70)
 
 	--======================
 	-- custom buttons
