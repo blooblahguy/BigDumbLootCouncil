@@ -365,6 +365,8 @@ function bdlc:awardLoot(playerName, itemUID)
 	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..playerName, "WHISPER", nil, lootedBy)
 	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
+
+	bdlc:repositionFrames()
 end
 
 ----------------------------------------
