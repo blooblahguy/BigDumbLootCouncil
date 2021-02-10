@@ -7,7 +7,7 @@ bdlc.newestVersion = 0
 bdlc.versions = CreateFrame("frame", nil, UIParent)
 bdlc.versions:RegisterEvent("PLAYER_LOGIN")
 bdlc.versions:SetScript("OnEvent", function(self)
-	bdlc:checkForUpdates()
+	-- bdlc:checkForUpdates()
 end)
 
 --------------------------------------------------

@@ -408,7 +408,7 @@ function bdlc:messageCallback(prefix, message, channel, sender)
 			bdlc[action](self)
 		end
 	else
-		bdlc:print("Can't find any function for "..action.." - this usually means you are out of date");
+		-- bdlc:print("Can't find any function for "..action.." - this usually means you are out of date");
 	end
 end
 
