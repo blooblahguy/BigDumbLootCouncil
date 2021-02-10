@@ -92,7 +92,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 			
 				if (not bdlc.tradedItems[itemUID]) then
 					if (bdlc:verifyTradability(itemLink)) then
-						bdlc:sendAction("startSession", itemLink, UnitName('player'))
+						bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
 					end
 				end
 			end

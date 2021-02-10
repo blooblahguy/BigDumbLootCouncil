@@ -15,7 +15,7 @@ function bdlc:startSession(itemLink, lootedBy, forced)
 
 		if (bdlc:itemValidForSession(itemLink, lootedBy) or tonumber(forced) == 1) then
 			bdlc:debug("Starting session for "..itemLink)
-			bdlc.loot_sessions[itemUID] = lootedBy 
+			bdlc.loot_sessions[itemUID] = lootedBy
 			bdlc.loot_want[itemUID] = {}
 
 			if (bdlc:inLC()) then

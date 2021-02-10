@@ -692,7 +692,7 @@ end
 -- returns name-server for any valid unitID
 function FetchUnitName(name, strict)
 	if (name == "player") then
-		name = UnitName("player")
+		name = UnitName("player").."-"..GetRealmName()
 	end
 
 	return Ambiguate(name, "mail")
