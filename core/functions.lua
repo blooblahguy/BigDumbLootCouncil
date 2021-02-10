@@ -361,14 +361,24 @@ function bdlc:GetItemValue(itemLink)
 	return ilvl, wf_tf, socket, infostr
 end
 
-function bdlc:itemValidForSession(itemLink, lootedBy)
+function bdlc:itemValidForSession(itemLink, lootedBy, test)
 	local valid = false
 
 	local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
-	
+
 	-- this session already exists, don't create again
-	if (bdlc.loot_sessions[itemUID] == lootedBy) then
+	if (bdlc.loot_sessions[itemUID] == lootedBy and not test) then
 		return false
+	end
+
+	local isRelic = bdlc:IsRelic(itemLink)
+	local isTier = bdlc:IsTier(itemLink)
+
+	if (test) then
+		bdlc:print(ItemLink, "is: ")
+		bdlc:print("Tier: ", isTier and "Yes" or "No")
+		bdlc:print("Relic: ", isRelic and "Yes" or "No")
+		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
 	end
 	
 	local equipSlot = select(9, GetItemInfo(itemLink))
@@ -376,8 +386,6 @@ function bdlc:itemValidForSession(itemLink, lootedBy)
 		return true
 	end
 	
-	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier = bdlc:IsTier(itemLink)
 	if (isTier or isRelic) then
 		return true
 	end
@@ -438,34 +446,31 @@ function bdlc:IsTier(itemLink)
 		classes[name] = name
 	end
 
-	-- tier names
-	local tier_names = {
-		[l["tierProtector"]] = true,
-		[l["tierConqueror"]] = true,
-		[l["tierVanquisher"]] = true
-	}
-
 	local tier_classes = {
+		-- older
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Rogue"], classes["Shaman"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Priest"], classes["Druid"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Warlock"]}, ", ")),
 		-- old
-		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
-		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
 		-- newer
-		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
 	}
 
 	local weapon_classes = {
 		-- main hands
-		[1] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
-		[2] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
-		[3] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
-		[4] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
+		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
+		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
+		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
 	}
 	local offhand_classes = {
 		-- offhands
-		[5] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
-		[6] = string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
 	}
 
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')

@@ -3,7 +3,7 @@ local bdlc, c, l = unpack(select(2, ...))
 bdlc.demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
 	ranks = {"Officer", "Raider", "Trial", "Social", "Alt", "Officer Alt", "Guild Idiot", "King"},
-	names = {"OReilly", "Billy", "Tìncan", "Mango", "Ugh", "Onebutton", "Thor", "Deadpool", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
+	names = {"Bloo", "Nodis", "Comfy", "Lozy", "Ugh", "Onebutton", "Thor", "Deadpool", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
 }
 
 local function rando_name()
