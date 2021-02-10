@@ -68,16 +68,18 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 
 	-- list of commands
 	if (msg == "" or msg == " ") then
+		print("|cffA02C2FBDLC|r commands:")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAtest|r - Tests the addon outside of raid")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAconfig|r - Shows the configuration window")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAshow|r - Shows the vote window (if you're in the LC)")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAhide|r - Hides the vote window (if you're in the LC)")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAversion|r - Check the bdlc versions that the raid is using")
-		print("  /|cffA02C2Fbdlc|r |cffEEFFAAaddtolc|r playername - Adds a player to the loot council (if you're the Masterlooter)")
-		print("  /|cffA02C2Fbdlc|r |cffEEFFAAremovefromlc|r playername - Adds a player to the loot council (if you're the Masterlooter)")
+		print("  /|cffA02C2Fbdlc|r |cffEEFFAAaddtolc|r |cffAAEEFFplayername|r - Adds a player to the loot council (if you're the Masterlooter)")
+		print("  /|cffA02C2Fbdlc|r |cffEEFFAAremovefromlc|r |cffAAEEFFplayername|r - Adds a player to the loot council (if you're the Masterlooter)")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAreset|r - Resets configuration to defaults")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAArequestlc|r - Requests LC information to be resent, use if LC is innacurate")
 		print("  /|cffA02C2Fbdlc|r |cffEEFFAAdebug|r - Toggles debug mode")
+		print("  /|cffA02C2Fbdlc|r |cffEEFFAAvalid|r |cffAAEEFF[itemlink]|r - Checks item information and if its valid for an automatic session.")
 
 		return
 	end
