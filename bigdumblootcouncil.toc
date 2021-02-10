@@ -1,25 +1,28 @@
-## Interface: 90001
+## Interface: 90100
 ## Title: |cffA02C2FBig|r Dumb Loot Council
 ## Version: @project-version@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: bdlc_config, bdlc_history
-
-# Init
-init.lua
-localization.lua
+## SavedVariables: BDLC_CONFIG, BDLC_HISTORY
 
 # Libs
 libs\LibStub.lua
-libs\ChatThrottleLib.lua
 libs\CallbackHandler-1.0.lua
+libs\ChatThrottleLib.lua
 libs\AceComm-3.0.lua
-libs\LibSharedMedia-3.0.lua
+
+# init
+core\init.lua
+core\localization.lua
 
 # core
-functions.lua
-versions.lua
-loot_council.lua
-frames.lua
-core.lua
-config.lua
+core\load.lua
+core\functions.lua
+core\frames.lua
+core\council.lua
+core\session.lua
+core\events.lua
+core\versions.lua
+core\tests.lua
+config\config_frames.lua
+config\config.lua

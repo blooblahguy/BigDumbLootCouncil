@@ -1,4 +1,4 @@
-local bdlc, l, f = select(2, ...):unpack()
+local bdlc, c, l = unpack(select(2, ...))
 
 --------------------------------------
 -- EN Localization Defaults (dont touch, use as reference)
