@@ -148,12 +148,14 @@ function bdlc:sendLC()
 	local numRaid = GetNumGroupMembers() or 1
 	for i = 1, numRaid do
 		local unit = select(1, GetRaidRosterInfo(i))
-		local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
-		local name = Ambiguate(unit, "mail"):lower()
+		if (unit) then
+			local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
+			local name = Ambiguate(unit, "mail"):lower()
 
-		if (guildName == myGuild and guildRankIndex <= min_rank) then
-			if (tIndexOf(council, name) == nil) then
-				table.insert(council, name)
+			if (guildName == myGuild and guildRankIndex <= min_rank) then
+				if (tIndexOf(council, name) == nil) then
+					table.insert(council, name)
+				end
 			end
 		end
 	end
