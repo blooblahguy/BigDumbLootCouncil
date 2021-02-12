@@ -185,7 +185,7 @@ function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 	local entry = bdlc:getEntry(itemUID, playerName)
 	if (not entry) then return end
 	
-	local guildName, guildRankName, guildRankIndex = GetGuildInfo(Ambiguate(playerName, "guild"));
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo(FetchUnitName(playerName, "guild"));
 	entry.rankIndex = guildRankName and guildRankIndex or 10
 
 	entry.wantLevel = 15
@@ -363,7 +363,7 @@ function bdlc:awardLoot(playerName, itemUID)
 	if (not itemLink) then return end
 
 	playerName = FetchUnitName(playerName)
-	playerName = Ambiguate(playerName, "all")
+	-- playerName = Ambiguate(playerName, "all")
 
 	SendChatMessage("BDLC: "..itemLink.." awarded to "..playerName, "RAID")
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..playerName, "WHISPER", nil, lootedBy)
@@ -423,7 +423,7 @@ end
 -- supports multiple votes per officer
 ----------------------------------------
 function bdlc:updateVotesRemaining(itemUID, councilName)
-	if (bdlc.localPlayer ~= councilName) then return end
+	if (bdlc.localPlayer:lower() ~= councilName:lower()) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = tonumber(bdlc.council_votes) --1--bdlc.item_drops[itemLink]
@@ -465,7 +465,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if not bdlc:inLC() then return false end
 	
 	-- allow local voting
-	if (not lcl and bdlc.localPlayer == councilName) then return end
+	if (not lcl and bdlc.localPlayer:lower() == councilName:lower()) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = tonumber(bdlc.council_votes) --1 --#bdlc.item_drops[itemLink]
@@ -487,7 +487,7 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 		
 	if (hasVotedForPlayer) then
 		votes[councilName][hasVotedForPlayer] = false
-		if (bdlc.localPlayer == councilName) then
+		if (bdlc.localPlayer:lower() == councilName:lower()) then
 			local entry = bdlc:getEntry(itemUID, playerName)
 			entry.voteUser:SetText(l["frameVote"])
 		end
@@ -512,14 +512,14 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 			votes[councilName] = new -- reset the tables keys
 
 			-- remove the least recent vote
-			if (bdlc.localPlayer == councilName) then
+			if (bdlc.localPlayer:lower() == councilName:lower()) then
 				local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
 				entry.voteUser:SetText(l["frameVote"])
 			end
 			votes[councilName][numvotes+1] = nil 
 
 			votes[councilName][1] = playerName -- prepend the vote
-			if (bdlc.localPlayer == councilName) then
+			if (bdlc.localPlayer:lower() == councilName:lower()) then
 				local entry = bdlc:getEntry(itemUID, playerName)
 				entry.voteUser:SetText(l["frameVoted"])
 			end

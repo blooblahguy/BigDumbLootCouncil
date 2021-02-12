@@ -72,6 +72,7 @@ config:SetScript("OnShow", function(self)
 		['width'] = 200,
 		['default'] = guild_ranks[default],
 		['callback'] = function(dropdown_frame, dropdown_val)
+			-- print(dropdown_val)
 			bdlc:sendLC()
 		end
 	}
@@ -110,7 +111,7 @@ config:SetScript("OnShow", function(self)
 		['width'] = 400,
 		['lower'] = true,
 		['callback'] = function(container, value)
-			value = Ambiguate(value, "mail"):lower()
+			value = FetchUnitName(value, "mail"):lower()
 
 			if(bdlc.config.custom_council[value]) then
 				container.insert.alert:SetText(value.." removed")

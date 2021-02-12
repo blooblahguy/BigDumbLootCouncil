@@ -36,7 +36,7 @@ function bdlc:addToLC(...)
 	bdlc:debug("Current Council: ", unpack(council))
 
 	for k, v in pairs(council) do
-		local playerName = Ambiguate(v, "mail"):lower()
+		local playerName = FetchUnitName(v, "mail"):lower()
 
 		bdlc.loot_council[playerName] = true
 	end

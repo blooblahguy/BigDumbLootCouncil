@@ -691,9 +691,17 @@ end
 
 -- returns name-server for any valid unitID
 function FetchUnitName(name, strict)
-	if (name == "player") then
-		name = UnitName("player").."-"..GetRealmName()
+	local fullName, realm = UnitFullName(name)
+	if (not fullName) then return name end
+	if (not realm) then
+		realm = GetRealmName()
 	end
+
+	-- if (name == "player") then
+	-- 	fullName = UnitName("player").."-"..GetRealmName()
+	-- end
+
+	local name = fullName.."-"..realm
 
 	return Ambiguate(name, "mail")
 	-- local name, server = strsplit("-", name)
