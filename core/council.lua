@@ -150,7 +150,7 @@ function bdlc:sendLC()
 		local unit = select(1, GetRaidRosterInfo(i))
 		if (unit) then
 			local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
-			local name = Ambiguate(unit, "mail"):lower()
+			local name = FetchUnitName(unit):lower()
 
 			if (guildName == myGuild and guildRankIndex <= min_rank) then
 				if (tIndexOf(council, name) == nil) then
@@ -165,7 +165,7 @@ function bdlc:sendLC()
 	-- People who are in your custom loot council and in raid
 	-------------------------------------------------------
 	for k, v in pairs (bdlc.config.custom_council) do
-		local name = Ambiguate(k, "mail"):lower()
+		local name = FetchUnitName(k):lower()
 		if (UnitExists(k) and tIndexOf(council, name) == nil) then
 			table.insert(council, name)
 		end
