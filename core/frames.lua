@@ -80,7 +80,7 @@ function bdlc:repositionFrames()
 	-- rolls
 	local lastroll = nil
 	for roll, v in bdlc.rolls:EnumerateActive() do
-		if (roll.itemUID and roll:IsShown()) then
+		if (roll.itemUID) then
 			if (lastroll) then
 				roll:SetPoint("TOPLEFT", lastroll, "BOTTOMLEFT", 0, bdlc.border)
 			else
