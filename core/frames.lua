@@ -392,6 +392,7 @@ local function create_tab(self)
 		entry.rankIndex = 0
 		entry.notes = ""
 		entry.roll = 0
+		entry.myilvl = 0
 		entry:SetSize(vote_table.content:GetWidth(), 22)
 
 		entry.name = entry:CreateFontString(nil, "OVERLAY")
@@ -561,6 +562,9 @@ local function create_tab(self)
 		entry.voteUser:Hide()
 		entry.votes.text:SetText("0")
 		entry:Hide()
+
+		entry.voteUser:SetText(l["frameVote"])
+		bdlc:skinButton(entry.voteUser, true, "blue")
 	end
 
 	if (not tab.entries) then
