@@ -16,8 +16,8 @@ core\init.lua
 core\localization.lua
 
 # core
-core\load.lua
 core\functions.lua
+core\load.lua
 core\frames.lua
 core\council.lua
 core\session.lua
