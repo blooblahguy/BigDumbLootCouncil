@@ -38,7 +38,7 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 end
 
 -- sort pairs
-function spairs(t, order)
+function bdlc:spairs(t, order)
     -- collect the keys
     local keys = {}
     for k in pairs(t) do keys[#keys+1] = k end
@@ -112,22 +112,6 @@ local function RGBPercToHex(r, g, b)
 	return string.format("%02x%02x%02x", r*255, g*255, b*255)
 end
 
--- To colorize lootedBy player
-function bdlc:prettyName(playerName, returnString)
-	local name, server = strsplit("-", playerName)
-
-	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
-	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
-
-	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
-
-	if (returnString) then
-		return "|cff"..bdlc:RGBToHex(color)..playerName.."|r"
-	else
-		return color
-	end
-end
-
 function bdlc:setBackdrop(frame, r, g, b, a)
 	local border = bdlc.media.border
 	local backdrop = r and {r, g, b, a} or bdlc.media.backdrop
@@ -140,27 +124,27 @@ function bdlc:setBackdrop(frame, r, g, b, a)
 end
 
 function bdlc:skinButton(f, small, color)
-	local colors = bdlc.media.backdrop --{.1,.1,.1,1}
-	local hovercolors = bdlc.media.hover --{0,0.55,.85,1}
+	local colors = bdlc.media.backdrop
+	local hovercolors = bdlc.media.hover
 	if (color == "red") then
-		colors = {.6,.1,.1,0.6}
-		hovercolors = {.6,.1,.1,1}
+		colors = {.6, .1, .1, 0.6}
+		hovercolors = {.6, .1, .1, 1}
 	elseif (color == "blue") then
-		colors = {0,0.55,.85,0.6}
-		hovercolors = {0,0.55,.85,1}
+		colors = {0, 0.55, .85, 0.6}
+		hovercolors = {0, 0.55, .85, 1}
 	elseif (color == "dark") then
-		colors = {.1,.1,.1,1}
-		hovercolors = {.1,.1,.1,1}
+		colors = {.1, .1, .1, 1}
+		hovercolors = {.1, .1, .1, 1}
 	end
 
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
 	f:SetBackdropColor(unpack(colors)) 
-    f:SetBackdropBorderColor(0,0,0,1)
-    f:SetNormalFontObject(bdlc:get_font(13))
-	f:SetHighlightFontObject(bdlc:get_font(13))
+    f:SetBackdropBorderColor(0, 0, 0, 1)
+    f:SetNormalFontObject(bdlc:get_font(14))
+	f:SetHighlightFontObject(bdlc:get_font(14))
 	f:SetPushedTextOffset(0,-1)
 	
-	f:SetSize(f:GetTextWidth()+16,24)
+	f:SetSize(f:GetTextWidth()+16, 24)
 	
 	--if (f:GetWidth() < 24) then
 	if (small and f:GetWidth() <= 24 ) then
@@ -689,39 +673,57 @@ function bdlc:IsInRaid()
 	return false;
 end
 
--- returns name-server for any valid unitID
-function FetchUnitName(name, strict)
-	local fullName, realm = UnitFullName(name)
-	if (not fullName) then return name end
-	if (not realm) then
-		realm = GetRealmName()
-	end
+-- name to unit
+function name2Unit(name)
+	local name, server = strsplit("-", str)
 
-	-- if (name == "player") then
-	-- 	fullName = UnitName("player").."-"..GetRealmName()
+
+
+	return name
+end
+
+-- returns a nice readable format
+function bdlc:unitName(str)
+	-- remove server
+	local name, server = strsplit("-", str)
+	-- local unit = UnitName(str) or UnitName(name)
+	-- for i = 1, 40 do
+	-- 	if (unit) then break end
 	-- end
 
-	local name = fullName.."-"..realm
+	-- capitalize
+	name = string.gsub(" "..name, "%W%l", string.upper):sub(2)
 
-	return Ambiguate(name, "mail")
-	-- local name, server = strsplit("-", name)
-	-- local name_server = false	
+	return name
+end
 
-	-- if (UnitExists(name) and UnitIsConnected(name)) then
-	-- 	name_server = GetUnitName(name, true)
-	-- end
+-- To colorize lootedBy player
+function bdlc:prettyName(playerName)
+	local name = bdlc:unitName(playerName)
 
-	-- if (name_server) then
-	-- 	name = name_server
-	-- 	name, server = strsplit("-", name)
-	-- end
+	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
+	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
 
-	-- if (not server) then
-	-- 	server = GetRealmName()
-	-- end
-	
-	-- if (not name) then return end
-	-- if (strict and not UnitExists(name.."-"..server)) then return end
+	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
 
-	-- return name.."-"..server
+	return "|cff"..bdlc:RGBToHex(color)..name.."|r", color
+end
+
+-- returns name-server for any valid name or unit
+function FetchUnitName(name)
+	-- remove server
+	local splitName, splitRealm = strsplit("-", name)
+
+	-- check if we have a unit without the realm, then with the realm
+	local fullName, realm = UnitFullName(splitName) or UnitFullName(name)
+	realm = realm or GetRealmName()
+
+	-- if no unit is found, just return their name
+	if (not fullName) then return (splitName.."-"..realm):lower() end
+
+	-- we always insure realm
+	fullName = (fullName.."-"..realm):lower()
+
+	-- for consistency
+	return Ambiguate(fullName, "mail")
 end

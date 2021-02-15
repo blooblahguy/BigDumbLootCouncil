@@ -62,16 +62,17 @@ end
 
 function bdlc:createVoteWindow(itemUID, lootedBy)
 	local itemLink = bdlc.itemMap[itemUID]
-	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
+	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	
 	bdlc.window:Show()
+	local name, color = bdlc:prettyName(lootedBy)
 	
 	-- Set Up tab and item info
 	local tab = bdlc:getTab(itemUID)
 	tab:Show()
 	tab.icon:SetTexture(texture)
 	tab.table.item.itemtext:SetText(itemLink)
-	tab.table.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
+	tab.table.item.num_items:SetText("Looted by "..name)
 	tab.table.item.num_items:SetTextColor(1, 1, 1)
 	tab.table.item.icon.tex:SetTexture(texture)
 
@@ -99,7 +100,9 @@ end
 function bdlc:createRollWindow(itemUID, lootedBy)
 	local roll = bdlc.rolls:Acquire()
 	local itemLink = bdlc.itemMap[itemUID]
-	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
+	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
+
+	local name, color = bdlc:prettyName(lootedBy)
 
 	roll:Show()
 	roll.itemUID = itemUID
@@ -108,7 +111,7 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 
 	-- for tooltips
 	roll.item.icon.itemLink = itemLink
-	roll.item.num_items:SetText("Looted by "..bdlc:prettyName(lootedBy, true))
+	roll.item.num_items:SetText("Looted by "..name)
 	
 	-- custom quick notes
 	for i = 1, 10 do
@@ -185,22 +188,18 @@ function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 	local entry = bdlc:getEntry(itemUID, playerName)
 	if (not entry) then return end
 	
-	local guildName, guildRankName, guildRankIndex = GetGuildInfo(FetchUnitName(playerName, "guild"));
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo(FetchUnitName(playerName));
 	entry.rankIndex = guildRankName and guildRankIndex or 10
 
 	entry.wantLevel = 15
 	entry.notes = ""
 
 	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
-	local name, server = strsplit("-", playerName)
-
-	local color = bdlc:prettyName(playerName)
-	name = GetUnitName(name, true) or name
+	local name, color = bdlc:prettyName(playerName)
 	
 	entry:Show()
 	entry.name:SetText(name)
-	entry.server = server
-	entry.name:SetTextColor(color.r,color.g,color.b);
+	entry.name:SetTextColor(color.r, color.g, color.b);
 	entry.interest.text:SetText(l["frameConsidering"]);
 	entry.interest.text:SetTextColor(.5,.5,.5);
 	entry.myilvl = tonumber(ilvl)
@@ -219,7 +218,8 @@ function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 end
 
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, ilvl, guildRank, notes)
-	local playerName = FetchUnitName(playerName)
+	playerName = FetchUnitName(playerName)
+
 	if (not notes or strlen(notes) == 0) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
 
@@ -305,6 +305,8 @@ end
 ----------------------------------------
 function bdlc:removeUserConsidering(itemUID, playerName)
 	if (not bdlc:inLC()) then return end
+
+	playerName = FetchUnitName(playerName)
 
 	-- reset frame
 	local tab = bdlc:getTab(itemUID)
@@ -423,7 +425,9 @@ end
 -- supports multiple votes per officer
 ----------------------------------------
 function bdlc:updateVotesRemaining(itemUID, councilName)
-	if (bdlc.localPlayer:lower() ~= councilName:lower()) then return end
+	councilName = councilName:lower()
+
+	if (bdlc.localPlayer ~= councilName) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = tonumber(bdlc.council_votes) --1--bdlc.item_drops[itemLink]
@@ -463,9 +467,12 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (not bdlc.loot_council_votes[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
+
+	councilName = FetchUnitName(councilName)
+	playerName = FetchUnitName(playerName)
 	
 	-- allow local voting
-	if (not lcl and bdlc.localPlayer:lower() == councilName:lower()) then return end
+	if (not lcl and bdlc.localPlayer == councilName) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]
 	local numvotes = tonumber(bdlc.council_votes) --1 --#bdlc.item_drops[itemLink]
@@ -484,10 +491,10 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	for v = 1, numvotes do
 		if (votes[councilName][v] == playerName) then hasVotedForPlayer = v break end
 	end
-		
+
 	if (hasVotedForPlayer) then
 		votes[councilName][hasVotedForPlayer] = false
-		if (bdlc.localPlayer:lower() == councilName:lower()) then
+		if (bdlc.localPlayer == councilName) then
 			local entry = bdlc:getEntry(itemUID, playerName)
 			entry.voteUser:SetText(l["frameVote"])
 		end
@@ -512,14 +519,15 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 			votes[councilName] = new -- reset the tables keys
 
 			-- remove the least recent vote
-			if (bdlc.localPlayer:lower() == councilName:lower()) then
-				local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
+			if (bdlc.localPlayer == councilName) then
+				-- local entry = bdlc:getEntry(itemUID, votes[councilName][numvotes+1])
+				local entry = bdlc:getEntry(itemUID, playerName)
 				entry.voteUser:SetText(l["frameVote"])
 			end
 			votes[councilName][numvotes+1] = nil 
 
 			votes[councilName][1] = playerName -- prepend the vote
-			if (bdlc.localPlayer:lower() == councilName:lower()) then
+			if (bdlc.localPlayer == councilName) then
 				local entry = bdlc:getEntry(itemUID, playerName)
 				entry.voteUser:SetText(l["frameVoted"])
 			end

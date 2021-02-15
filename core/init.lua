@@ -8,7 +8,7 @@ bdlc.addonName = addonName
 bdlc.messagePrefix = "BDLC";
 bdlc.deliminator = "><";
 bdlc.colorString = "|cffA02C2FBig|r Dumb Loot Council "
-bdlc.localPlayer = UnitName("player").."-"..GetRealmName()
+bdlc.localPlayer = (UnitName("player").."-"..GetRealmName()):lower()
 bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
 bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
@@ -34,9 +34,9 @@ bdlc.configDefaults = {
 	custom_council = {},
 	council_votes = 1,
 	quick_notes = {
-		"BiS", 
-		"20%", 
-		"10%",
+		["BiS"] = true, 
+		["20%"] = true,
+		["10%"] = true,
 	},
 	-- text, color, enable, require note
 	buttons = {

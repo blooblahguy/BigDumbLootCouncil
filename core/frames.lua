@@ -35,7 +35,7 @@ function bdlc:repositionFrames()
 	for tab, v in bdlc.tabs:EnumerateActive() do
 		-- order entries and loop through them
 		local lastentry = false
-		for entry, v in spairs(tab.entries.activeObjects, function(a, b)
+		for entry, v in bdlc:spairs(tab.entries.activeObjects, function(a, b)
 			a.wantLevel = a.wantLevel or 0
 			b.wantLevel = b.wantLevel or 0
 			if a.wantLevel ~= b.wantLevel then
@@ -216,8 +216,8 @@ local function create_tab(self)
 	tab.icon:SetDrawLayer('ARTWORK')
 	tab.icon:SetTexture(nil)
 	tab.icon:SetDesaturated(true)
-	tab.icon:SetPoint("TOPLEFT", tab, "TOPLEFT", 2, -2)
-	tab.icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -2, 2)
+	tab.icon:SetPoint("TOPLEFT", tab, "TOPLEFT", bdlc.border, -bdlc.border)
+	tab.icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 	
 	tab.wfsock = tab:CreateFontString(nil, "ARTWORK")
 	tab.wfsock:SetFontObject(bdlc:get_font(15, "OUTLINE"))
@@ -231,7 +231,7 @@ local function create_tab(self)
 	vote_table:SetPoint("TOPLEFT", bdlc.window, "TOPLEFT", 10, -100)
 	vote_table:SetPoint("BOTTOMRIGHT", bdlc.window, "BOTTOMRIGHT", -30, 30)
 	vote_table:Hide()
-	bdlc:setBackdrop(vote_table, .1,.1, .1,.8);
+	bdlc:setBackdrop(vote_table, .1, .1, .1, .8);
 	tab.table = vote_table
 
 	local content = bdlc:createScrollFrame(vote_table)
@@ -239,8 +239,7 @@ local function create_tab(self)
 	content.scrollframe:SetPoint("BOTTOMRIGHT", vote_table, "BOTTOMRIGHT", 0, 4);
 	content.scrollchild:SetSize(content.scrollframe:GetWidth(), (content.scrollframe:GetHeight() * 1.5 ));
 	vote_table.content = content.content
-	bdlc:setBackdrop(content, .1,.2,.1,.8);
-
+	bdlc:setBackdrop(content, .1, .2, .1, .8);
 	
 	-- Headers
 	vote_table.name_text = vote_table:CreateFontString(nil, "OVERLAY")
@@ -411,7 +410,8 @@ local function create_tab(self)
 					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
 					local r, g, b = self.name:GetTextColor()
 					local hex = RGBPercToHex(r, g, b)
-					vote_table.award.text:SetText(l["frameAward"].."|cff"..hex..self.name:GetText().."|r?")
+					local name = string.gsub(" "..self.playerName, "%W%l", string.upper):sub(2)
+					vote_table.award.text:SetText(l["frameAward"].."|cff"..hex..name.."|r?")
 					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth() + 12)
 					vote_table.award.playerName = self.playerName
 					vote_table.award.itemUID = self.itemUID
@@ -478,6 +478,7 @@ local function create_tab(self)
 		bdlc:skinButton(entry.voteUser, true, "blue")
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
+			vote_table.award:Hide()
 			bdlc:voteForUser(bdlc.localPlayer, entry.itemUID, entry.playerName, true)
 			bdlc:sendAction("voteForUser", bdlc.localPlayer, entry.itemUID, entry.playerName);
 		end)
@@ -489,6 +490,7 @@ local function create_tab(self)
 		entry.removeUser:Hide()
 		bdlc:skinButton(entry.removeUser,true,"red")
 		entry.removeUser:SetScript("OnClick", function()
+			vote_table.award:Hide()
 			bdlc:sendAction("removeUserConsidering", entry.itemUID, entry.playerName);
 			bdlc:removeUserConsidering(entry.itemUID, entry.playerName)
 		end)
@@ -900,12 +902,12 @@ bdlc.window.loot_council:SetScript("OnEnter", function()
 	GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
 	
 	for councilName, v in pairs(bdlc.loot_council) do
-		local name, server = strsplit("-", councilName)
-		if (server == player_realm) then
-			councilName = name
-		end
-		local color = bdlc:prettyName(councilName)
-		GameTooltip:AddLine(councilName, color.r, color.g, color.b)
+		-- local name, server = strsplit("-", councilName)
+		-- if (server == player_realm) then
+		-- 	councilName = name
+		-- end
+		local name, color = bdlc:prettyName(councilName)
+		GameTooltip:AddLine(name, color.r, color.g, color.b)
 	end
 
 	GameTooltip:Show()

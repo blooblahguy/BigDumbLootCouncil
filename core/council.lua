@@ -1,7 +1,8 @@
 local bdlc, c, l = unpack(select(2, ...))
 
 function bdlc:inLC()
-	return bdlc.loot_council[FetchUnitName('player'):lower()] or IsRaidLeader() or not IsInGroup()
+	-- if i'm in lc, raid leader, or not in a group
+	return bdlc.loot_council[FetchUnitName('player')] or IsRaidLeader() or not IsInGroup()
 end
 
 -- function bdlc:buttons(buttons)
@@ -36,9 +37,9 @@ function bdlc:addToLC(...)
 	bdlc:debug("Current Council: ", unpack(council))
 
 	for k, v in pairs(council) do
-		local playerName = FetchUnitName(v, "mail"):lower()
+		local name = FetchUnitName(v)
 
-		bdlc.loot_council[playerName] = true
+		bdlc.loot_council[name] = true
 	end
 end
 
@@ -49,12 +50,8 @@ end
 -----------------------------------------------
 function bdlc:addremoveLC(msg, name)
 	if (not name) then bdlc:print("Please provide a name to add to the loot council") return false end
-
-	-- if (not FetchUnitName(name, true)) then 
-	-- 	bdlc:print("Warning: couldn't find any player named "..name..". (they must be in the same group as you) ")
-	-- end
 	
-	name = FetchUnitName(name):lower()
+	name = FetchUnitName(name)
 	
 	if (msg == "addtolc") then -- add
 		bdlc.config.custom_council[name] = true
@@ -91,10 +88,9 @@ end
 
 function bdlc:GetRaidMembers()
 	local inraid = {}
-	inraid[UnitName('player')] = true
-	local numRaid = 40
-	if (numRaid == 0) then numRaid = 1 end
+	inraid[FetchUnitName('player')] = true
 
+	local numRaid = 40
 	for i = 1, numRaid do
 		local name = FetchUnitName("raid"..i) or FetchUnitName("party"..i)
 		if (name) then
@@ -119,43 +115,38 @@ function bdlc:sendLC()
 	if (not IsRaidLeader()) then return end
 	bdlc:debug("Building LC")
 
-	-- clear all the settings since we're rebuilding here
-	local council = {FetchUnitName('player'):lower()}
-	local quicknotes = {}
-	local buttons_string = ""
-
-	-------------------------------------------------------
-	-- MINIMUM LC RANK
-	-- gets the saved or default min_rank
-	-------------------------------------------------------
+	-- get the saved or default min_rank
 	local min_rank = bdlc:GetLCMinRank()
 
 	-------------------------------------------------------
-	-- GUILD-RANK COUNCIL
-	-- add players automatically via guild rank
+	-- COUNCIL
 	-------------------------------------------------------
-	-- local numGuildMembers = select(1, GetNumGuildMembers())
-	-- for i = 1, numGuildMembers do
-	-- 	local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
-	-- 	-- local name = FetchUnitName(fullName)
+	local council = {}
+	local raid = bdlc:GetRaidMembers()
+	council[FetchUnitName('player')] = true
 
-	-- 	if (rankIndex <= min_rank and UnitExists(name) and tIndexOf(council, FetchUnitName(name)) == nil) then
-	-- 		table.insert(council, FetchUnitName(name))
-	-- 	end
-	-- end
+	-- add players automatically via guild rank
+	local numGuildMembers = select(1, GetNumGuildMembers())
+	for i = 1, numGuildMembers do
+		local name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
+		name = FetchUnitName(name)
 
+		if (rankIndex <= min_rank and raid[name]) then
+			council[name] = true
+		end
+	end
+
+	-- add from the raid
 	local myGuild = select(1, GetGuildInfo("player"))
 	local numRaid = GetNumGroupMembers() or 1
 	for i = 1, numRaid do
 		local unit = select(1, GetRaidRosterInfo(i))
 		if (unit) then
 			local guildName, guildRankName, guildRankIndex = GetGuildInfo(unit);
-			local name = FetchUnitName(unit):lower()
+			local name = FetchUnitName(unit)
 
-			if (guildName == myGuild and guildRankIndex <= min_rank) then
-				if (tIndexOf(council, name) == nil) then
-					table.insert(council, name)
-				end
+			if (guildName == myGuild and guildRankIndex <= min_rank and raid[name]) then
+				council[name] = true
 			end
 		end
 	end
@@ -165,22 +156,24 @@ function bdlc:sendLC()
 	-- People who are in your custom loot council and in raid
 	-------------------------------------------------------
 	for k, v in pairs (bdlc.config.custom_council) do
-		local name = FetchUnitName(k):lower()
-		if (UnitExists(k) and tIndexOf(council, name) == nil) then
-			table.insert(council, name)
+		local name = FetchUnitName(k)
+		if (UnitExists(k)) then
+			council[name] = true
 		end
 	end
 	
 	-------------------------------------------------------
 	-- QUICK NOTES
 	-------------------------------------------------------
+	local quicknotes = {}
 	for k, v in pairs(bdlc.config.quick_notes) do
-		table.insert(quicknotes, v)
+		quicknotes[k] = true
 	end
 
 	-------------------------------------------------------
 	-- CUSTOM BUTTONS
 	-------------------------------------------------------
+	-- local buttons_string = ""
 	-- for i = 1, #bdlc.config.buttons do
 	-- 	v = bdlc.config.buttons[i]
 
@@ -197,16 +190,21 @@ function bdlc:sendLC()
 	-- print(buttons_string)
 
 	-- loot council
-	if (council and #council > 0) then
-		bdlc:sendAction("addToLC", unpack(council) )
+	local friendlyCouncil = {}
+	for name, v in pairs(council) do
+		table.insert(friendlyCouncil, name)
 	end
+
+	bdlc:sendAction("addToLC", unpack(friendlyCouncil) )
 
 	-- custom quicknotes
-	if (quicknotes and #quicknotes > 0) then
-		bdlc:sendAction("customQN", unpack(quicknotes) );
+	local friendlyQN = {}
+	for note, v in pairs(quicknotes) do
+		table.insert(friendlyQN, note)
 	end
+	bdlc:sendAction("customQN", unpack(friendlyQN) );
 
-	-- council votes
+	-- number of council votes
 	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
 
 	-- buttons
@@ -218,9 +216,13 @@ local council_events = CreateFrame("frame")
 council_events:RegisterEvent("PLAYER_ENTERING_WORLD")
 council_events:RegisterEvent("BOSS_KILL")
 council_events:RegisterEvent("GUILD_ROSTER_UPDATE")
+council_events:RegisterEvent("PLAYER_GUILD_UPDATE")
 council_events:RegisterEvent("CHAT_MSG_SYSTEM")
 bdlc.am_leader = IsRaidLeader()
 council_events:SetScript("OnEvent", function(self, event, arg1)
+	C_GuildInfo.GuildRoster() -- keep this up to date
+
+	-- if i've left a loading screen, gimme the new LC
 	if (event == "PLAYER_ENTERING_WORLD") then
 		C_Timer.After(1, function()
 			bdlc:sendAction("requestLC");
@@ -232,6 +234,7 @@ council_events:SetScript("OnEvent", function(self, event, arg1)
 	-- when group lead changes
 	if (event == "CHAT_MSG_SYSTEM") then
 		C_Timer.After(1, function()
+			-- raid leader toggle check
 			if (not bdlc.am_leader and IsRaidLeader()) then
 				bdlc:sendLC()
 			end
