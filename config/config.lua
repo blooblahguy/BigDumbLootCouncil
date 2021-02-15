@@ -17,8 +17,8 @@ bdlc:setBackdrop(config)
 
 -- Config Title
 config.title = config:CreateFontString('nil', "OVERLAY")
-config.title:SetFontObject(bdlc:get_font(15, "OUTLINE"))
-config.title:SetText("Big Dumb Loot Council Config")
+config.title:SetFontObject(bdlc:get_font(16, "OUTLINE"))
+config.title:SetText("|cffA02C2FBig|r Dumb Loot Council Config")
 config.title:SetTextColor(1,1,1)
 config.title:SetPoint("TOP", config, "TOP", 0,-6)
 
@@ -111,7 +111,7 @@ config:SetScript("OnShow", function(self)
 		['width'] = 400,
 		['lower'] = true,
 		['callback'] = function(container, value)
-			value = FetchUnitName(value, "mail"):lower()
+			value = FetchUnitName(value)
 
 			if(bdlc.config.custom_council[value]) then
 				container.insert.alert:SetText(value.." removed")
