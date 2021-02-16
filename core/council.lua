@@ -236,17 +236,17 @@ end
 
 
 local council_events = CreateFrame("frame")
-council_events:RegisterEvent("PLAYER_ENTERING_WORLD")
+council_events:RegisterEvent("PLAYER_LOGIN")
 council_events:RegisterEvent("BOSS_KILL")
 council_events:RegisterEvent("GUILD_ROSTER_UPDATE")
-council_events:RegisterEvent("PLAYER_GUILD_UPDATE")
+council_events:RegisterEvent("RAID_ROSTER_UPDATE")
 council_events:RegisterEvent("CHAT_MSG_SYSTEM")
 bdlc.am_leader = IsRaidLeader()
 council_events:SetScript("OnEvent", function(self, event, arg1)
 	C_GuildInfo.GuildRoster() -- keep this up to date
 
 	-- if i've left a loading screen, gimme the new LC
-	if (event == "PLAYER_ENTERING_WORLD") then
+	if (event == "PLAYER_LOGIN") then
 		C_Timer.After(1, function()
 			bdlc:sendAction("requestLC");
 		end)
