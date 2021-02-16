@@ -52,7 +52,7 @@ function bdlc:startMockSession()
 
 		-- add our demo players in 
 		for name, data in pairs(demo_players) do
-			bdlc:sendAction("addUserConsidering", itemUID, name, unpack(data));
+			bdlc:sendAction("addUserConsidering", itemUID, name);
 		end
 
 		-- send a random "want" after 2-5s, something like a real person

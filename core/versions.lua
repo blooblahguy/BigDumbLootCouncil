@@ -36,7 +36,7 @@ function bdlc:checkRaidVersions()
 				for name, v in pairs (players) do
 					-- remove from no addon list
 					noAddon[name] = nil
-					printString = printString..name..", "
+					printString = printString..bdlc:prettyName(name)..", "
 				end
 
 				-- remove trailing comma
@@ -45,15 +45,15 @@ function bdlc:checkRaidVersions()
 		end
 		
 		-- these are leftover from the returns
-		if (#noAddon > 0) then
+		-- if (#noAddon > 0) then
 			local printString = "BDLC not installed: "
 			for name, v in pairs(noAddon) do
-				printString = printString..name..", "
+				printString = printString..bdlc:prettyName(name)..", "
 			end
 
 			-- no trailing comma
 			print(string.sub(printString, 0, -2))
-		end
+		-- end
 	end)
 end
 

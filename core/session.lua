@@ -178,7 +178,7 @@ end
 ----------------------------------------
 -- AddUserConsidering
 ----------------------------------------
-function bdlc:addUserConsidering(itemUID, playerName, playerClass)
+function bdlc:addUserConsidering(itemUID, playerName)
 	local playerName = FetchUnitName(playerName)
 	local itemLink = bdlc.itemMap[itemUID]
 	
@@ -333,7 +333,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 
 	-- tell that user to kill their roll window
 	bdlc.overrideChannel = "WHISPER"
-	bdlc.overrideSemder = playerName
+	bdlc.overrideRecipient = playerName
 	bdlc:sendAction("removeUserRoll", itemUID, playerName);
 	bdlc.loot_want[itemUID][playerName] = nil
 	
@@ -346,8 +346,9 @@ end
 -- removeUserRoll
 ----------------------------------------
 function bdlc:removeUserRoll(itemUID, playerName)
-	local playerName = FetchUnitName("player")
-	if (FetchUnitName("player") == playerName) then
+	playerName = FetchUnitName(playerName)
+
+	if (bdlc.localPlayer == playerName) then
 		local roll = bdlc:getRoll(itemUID)
 		bdlc.rolls:Release(roll)
 		bdlc:repositionFrames()
