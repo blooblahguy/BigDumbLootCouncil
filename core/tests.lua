@@ -7,7 +7,7 @@ bdlc.demo_samples = {
 }
 
 local function rando_name()
-	return bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)]
+	return FetchUnitName(bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)])
 end
 local function rando_ilvl()
 	local ilvl = GetAverageItemLevel()

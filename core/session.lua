@@ -208,7 +208,7 @@ function bdlc:addUserConsidering(itemUID, playerName, playerClass)
 	entry.ilvl:SetText("")
 	entry.rank:SetText("")
 	
-	if (IsMasterLooter() or not IsInRaid()) then
+	if (IsRaidLeader()) then
 		entry.removeUser:Show()
 	else
 		entry.removeUser:Hide()
