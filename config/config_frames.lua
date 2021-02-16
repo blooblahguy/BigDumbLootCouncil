@@ -12,7 +12,7 @@ function bdlc:createDropdown(opts)
 	local items = opts['items'] or {}
 	local title = opts['title'] or ''
 	local width = opts['width'] or 0
-	local default = opts['default'] or ''
+	local default = opts['default']
 	local callback = opts['callback'] or function() end
 
 	local dropdown = CreateFrame("Frame", dropdown_name, opts['parent'], 'UIDropDownMenuTemplate')
@@ -32,33 +32,53 @@ function bdlc:createDropdown(opts)
 	end
 
 	UIDropDownMenu_SetWidth(dropdown, width)
-	UIDropDownMenu_SetText(dropdown, default_val)
 	dd_title:SetText(title)
+	if (tonumber(default)) then
+		UIDropDownMenu_SetText(dropdown, items[default])
+	else
+		UIDropDownMenu_SetText(dropdown, default)
+	end
 
 	UIDropDownMenu_Initialize(dropdown, function(self, level, _)
+		dropdown.selected = dropdown.selected or false
+		
 		local info = UIDropDownMenu_CreateInfo()
-		local selected = 0
 		for key, val in pairs(items) do
 			info.text = val;
 			info.checked = false
-			info.menuList= key
+			info.menuList = key
 			info.hasArrow = false
 			info.func = function(b)
 				UIDropDownMenu_SetSelectedValue(dropdown, b.value, b.value)
 				UIDropDownMenu_SetText(dropdown, b.value)
+				selected = b.menuList
 				b.checked = true
-				callback(dropdown, b.value)
+				dropdown.selected = b.value
+				callback(dropdown, b.value, b.menuList)
 			end
 
-			if (val == default) then
-				selected = key
+			-- not selected, lets select
+			if (not dropdown.selected) then
+				if (tonumber(default)) then
+					-- select by id
+					if (menuList == default) then
+						dropdown.selected = key
+					end
+				else
+					-- select by name
+					if (val == default) then
+						dropdown.selected = key
+					end
+				end
 			end
 
 			UIDropDownMenu_AddButton(info)
 		end
 
-		if (selected and selected ~= 0) then
-			UIDropDownMenu_SetSelectedID(dropdown, selected)
+		if (tonumber(dropdown.selected)) then
+			UIDropDownMenu_SetSelectedID(dropdown, dropdown.selected)
+		else
+			UIDropDownMenu_SetSelectedValue(dropdown, dropdown.selected)
 		end
 	end)
 
@@ -171,8 +191,8 @@ function bdlc:createEdit(opts)
 	input:SetHistoryLines(1000)
 	input:SetAutoFocus(false) 
 	input:SetScript("OnEditFocusLost", function(self, key) callback(self:GetText(), key) end)
-	input:SetScript("OnEnterPressed", function(self, key) callback(self:GetText(), key); self:ClearFocus(); end)
-	input:SetScript("OnEscapePressed", function(self, key) callback(self:GetText(), key); self:ClearFocus(); end)
+	input:SetScript("OnEnterPressed", function(self, key) self:ClearFocus(); end)
+	input:SetScript("OnEscapePressed", function(self, key) self:ClearFocus(); end)
 	bdlc:setBackdrop(input)
 	input:SetBackdropColor(.18,.22,.25,1)
 

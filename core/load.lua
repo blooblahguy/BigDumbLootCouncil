@@ -18,15 +18,16 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	bdlc.config = BDLC_CONFIG
 	
 	-- do a one time reset
-	if (not bdlc.config.shadowlands) then
+	if (not bdlc.config["shadowlands2"]) then
 		BDLC_CONFIG = bdlc.configDefaults
 		bdlc.config = BDLC_CONFIG
-		bdlc.config.shadowlands = true
+		bdlc.config["shadowlands2"] = true
 	end
 
 	bdlc:print("loaded, enjoy!")
 
-	-- bdlc.config_window:Show()
+	-- default local stores
 	bdlc.council_votes = bdlc.config.council_votes
 	bdlc.buttons = bdlc.config.buttons
+	bdlc.master_looter_qn = bdlc.config.quick_notes
 end)

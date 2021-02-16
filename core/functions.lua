@@ -133,8 +133,8 @@ function bdlc:skinButton(f, small, color)
 		colors = {0, 0.55, .85, 0.6}
 		hovercolors = {0, 0.55, .85, 1}
 	elseif (color == "dark") then
-		colors = {.1, .1, .1, 1}
-		hovercolors = {.1, .1, .1, 1}
+		colors = {.28, .29, .31, 0.8}
+		hovercolors = {0, 0.55, .85, 0.6}
 	end
 
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})

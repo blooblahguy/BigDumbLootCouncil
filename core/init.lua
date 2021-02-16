@@ -41,7 +41,7 @@ bdlc.configDefaults = {
 	-- text, color, enable, require note
 	buttons = {
 		[1] = {"Mainspec", {.2, 1, .2}, true, true},
-		[2] = {"Minor Up", {.6, 1, .6}, true, true},
+		[2] = {"Minor Up", {.6, 1, .6}, true, false},
 		[3] = {"Offspec", {.8, .6, .6}, true, false},
 		[4] = {"Reroll", {.1, .6, .6}, true, false},
 		[5] = {"Transmog", {.8, .4, 1}, true, false}

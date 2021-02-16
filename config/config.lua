@@ -71,8 +71,8 @@ config:SetScript("OnShow", function(self)
 		['items'] = guild_ranks,
 		['width'] = 200,
 		['default'] = guild_ranks[default],
-		['callback'] = function(dropdown_frame, dropdown_val)
-			-- print(dropdown_val)
+		['callback'] = function(dropdown, value, id)
+			bdlc.config.council_min_rank = id
 			bdlc:sendLC()
 		end
 	}
@@ -170,7 +170,8 @@ config:SetScript("OnShow", function(self)
 	--======================
 	-- custom buttons
 	--======================
-	if (false == true) then
+	if (true == false) then
+		config:SetHeight(config:GetHeight() + 170)
 		local last = false
 		for i = 1, 5 do
 			-- enable

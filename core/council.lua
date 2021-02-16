@@ -5,10 +5,35 @@ function bdlc:inLC()
 	return bdlc.loot_council[FetchUnitName('player')] or IsRaidLeader() or not IsInGroup()
 end
 
--- function bdlc:buttons(buttons)
--- 	bdlc:debug("Current Council Votes: ", votes)
--- 	bdlc.council_votes = tonumber(votes)
--- end
+function bdlc:customButtons(buttons)
+	bdlc.buttons = {}
+
+	local btns = {strsplit("//", buttons)}
+	for k, v in pairs(btns) do
+		local index, name, r, g, b, enabled, require_note = strsplit(",", v)
+		index, r, g, b = tonumber(index), tonumber(r), tonumber(g), tonumber(b)
+		enabled = tonumber(enabled) == 1 and true or false
+		require_note = tonumber(require_note) == 1 and true or false
+
+		if (index) then
+			bdlc.buttons[index] = {name, {r, g, b}, enabled, require_note}
+		end
+	end
+
+	-- display to debug
+	local buttons = ""
+	for k, v in pairs(bdlc.buttons) do
+		local hex = RGBPercToHex(unpack(v[2]))
+		local name, enabled, require_note = v[1], v[3], v[4]
+		if (enabled) then
+			enabled = enabled and "Enabled" or "Disabled"
+			require_note = require_note and "Requires Note" or "No Required Note"
+			buttons = buttons.."|cff"..hex..v[1].."|r : "..enabled.." : "..require_note.."\n"
+		end
+	end
+
+	bdlc:debug("Current Buttons:\n", buttons)
+end
 
 function bdlc:councilVotes(votes)
 	bdlc:debug("Current Council Votes: ", votes)
@@ -19,11 +44,11 @@ function bdlc:customQN(...)
 	bdlc.master_looter_qn = {}
 
 	local notes = {...}
-	bdlc:debug("Current Quicknotes: ", unpack(notes))
-
 	for k, v in pairs(notes) do
 		bdlc.master_looter_qn[v] = true
 	end
+
+	bdlc:debug("Current Quicknotes: ", unpack(bdlc.master_looter_qn))
 end
 
 ----------------------------------------
@@ -113,6 +138,7 @@ end
 
 function bdlc:sendLC()
 	if (not IsRaidLeader()) then return end
+	bdlc:debug("---")
 	bdlc:debug("Building LC")
 
 	-- get the saved or default min_rank
@@ -173,21 +199,18 @@ function bdlc:sendLC()
 	-------------------------------------------------------
 	-- CUSTOM BUTTONS
 	-------------------------------------------------------
-	-- local buttons_string = ""
-	-- for i = 1, #bdlc.config.buttons do
-	-- 	v = bdlc.config.buttons[i]
+	local buttons_string = ""
+	for i = 1, #bdlc.config.buttons do
+		v = bdlc.config.buttons[i]
 
-	-- 	table.insert(quicknotes, v)
-	-- 	local name, color, enable, req = unpack(v)
-	-- 	local r, g, b = unpack(color)
-	-- 	local k = tostring(i)
-	-- 	enable = enable and "1" or "0"
-	-- 	req = req and "1" or "0"
-	-- 	local info = {k, name, r, g, b, enable, req}
-	-- 	buttons_string = buttons_string..table.concat(info, ",").."//"
-	-- end
-
-	-- print(buttons_string)
+		local name, color, enable, req = unpack(v)
+		local r, g, b = unpack(color)
+		local k = tostring(i)
+		enable = enable and "1" or "0"
+		req = req and "1" or "0"
+		local info = {k, name, tostring(r), tostring(g), tostring(b), enable, req}
+		buttons_string = buttons_string..table.concat(info, ",").."//"
+	end
 
 	-- loot council
 	local friendlyCouncil = {}
@@ -208,7 +231,7 @@ function bdlc:sendLC()
 	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
 
 	-- buttons
-	-- bdlc:sendAction("buttons", buttons_string);
+	-- bdlc:sendAction("customButtons", buttons_string);
 end
 
 

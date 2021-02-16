@@ -678,7 +678,8 @@ local function create_roll(self)
 		bdlc:repositionFrames()
 	end
 
-	local last = nil
+	local lastBtn = false
+	local firstBtn = false
 	for i = 1, 5 do
 		local name, colors, enable, req = unpack(bdlc.config.buttons[i])
 
@@ -688,19 +689,20 @@ local function create_roll(self)
 		button:SetScript("OnClick", function() roll.buttons.submit(i) end)
 		bdlc:skinButton(button)
 
-		if (not last) then
+		if (not lastBtn) then
 			button:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
 		else
-			button:SetPoint("LEFT", last, "RIGHT", 4, 0)
+			button:SetPoint("LEFT", lastBtn, "RIGHT", 4, 0)
 		end
 
 		roll.buttons[name] = button
-		last = button
+		lastBtn = button
+		firstBtn = firstBtn or button
 	end
 	
 	roll.buttons.note = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.note:SetSize(40, 25)
-	roll.buttons.note:SetPoint("LEFT", last, "RIGHT", 4, 0)
+	roll.buttons.note:SetPoint("LEFT", lastBtn, "RIGHT", 4, 0)
 	roll.buttons.note:SetText(l["frameNote"])
 	bdlc:skinButton(roll.buttons.note,false,"blue")
 	roll.buttons.note:SetScript("OnClick", function()
@@ -760,22 +762,22 @@ local function create_roll(self)
 	end)
 	
 	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-	roll.buttons.notes:SetSize(310, 24)
-	roll.buttons.notes:SetPoint("BOTTOMLEFT", roll.buttons, "BOTTOMLEFT", 8, 7)
+	roll.buttons.notes:SetPoint("BOTTOMLEFT", firstBtn, "BOTTOMLEFT")
+	roll.buttons.notes:SetPoint("TOPRIGHT", roll.buttons.pass, "TOPRIGHT")
 	roll.buttons.notes:SetMaxLetters(100)
 	roll.buttons.notes:IsMultiLine(1)
 	roll.buttons.notes:SetTextInsets(6, 2, 2, 2)
 	roll.buttons.notes:SetFontObject(bdlc:get_font(14, "NONE"))
 	roll.buttons.notes:SetFrameLevel(27)
 	roll.buttons.notes:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
-	roll.buttons.notes:SetBackdropColor(.1,.1,.1,1)
-	roll.buttons.notes:SetBackdropBorderColor(0,0,0,1)
+	roll.buttons.notes:SetBackdropColor(.1, .1, .1, 1)
+	roll.buttons.notes:SetBackdropBorderColor(0, 0, 0, 1)
 	roll.buttons.notes:Hide()
 	roll.buttons.notes.okay = CreateFrame("Button", nil, roll.buttons.notes, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.notes.okay:SetSize(37, 25)
-	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT", -1, 0)
+	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT")
 	roll.buttons.notes.okay:SetText(l["frameOkay"])
-	bdlc:skinButton(roll.buttons.notes.okay)
+	bdlc:skinButton(roll.buttons.notes.okay, false, "dark")
 	roll.buttons.notes.okay:SetScript("OnClick", function(self)
 		self:GetParent():Hide()
 		roll.notes = self:GetParent():GetText()
