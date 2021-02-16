@@ -16,7 +16,7 @@ function bdlc:checkRaidVersions()
 	-- store a list of users who may not have bdlc
 	local noAddon = {}
 	for i = 1, GetNumGroupMembers() do
-		local name = select(1, GetRaidRosterInfo(i))
+		local name = FetchUnitName(select(1, GetRaidRosterInfo(i)))
 		noAddon[name] = true
 	end
 
@@ -34,7 +34,7 @@ function bdlc:checkRaidVersions()
 			-- these players have returned their versions
 			for name, v in pairs (players) do
 				-- remove from no addon list
-				noAddon[name] = nil
+				noAddon[FetchUnitName(name)] = nil
 				printString = printString..bdlc:prettyName(name)..", "
 			end
 
@@ -65,7 +65,7 @@ function bdlc:returnVersion(version, player)
 	if (not tonumber(version)) then version = "Developer" end
 
 	bdlc.versions[version] = bdlc.versions[version] or {}
-	bdlc.versions[version][player] = true
+	bdlc.versions[version][FetchUnitName(player)] = true
 end
 
 -- @@ exit
