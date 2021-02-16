@@ -62,7 +62,7 @@ function bdlc:repositionFrames()
 		end
 
 		-- position tabs
-		if (tab.itemUID) then
+		if (tab.itemUID and tab:IsShown()) then
 			if (lasttab) then
 				tab:SetPoint("TOPRIGHT", lasttab, "BOTTOMRIGHT", 0, bdlc.border)
 			else
@@ -539,7 +539,7 @@ local function create_tab(self)
 					for v = 1, #bdlc.loot_council_votes[entry.itemUID][council] do
 						if (bdlc.loot_council_votes[entry.itemUID][council][v] == entry.playerName) then
 							local name, server = strsplit("-", council)
-							GameTooltip:AddLine(name, 1, 1, 1)
+							GameTooltip:AddLine(bdlc:prettyName(name), 1, 1, 1)
 						end
 					end
 				end	

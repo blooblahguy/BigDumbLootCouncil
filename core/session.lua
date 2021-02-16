@@ -428,6 +428,7 @@ end
 function bdlc:updateVotesRemaining(itemUID, councilName)
 	councilName = councilName:lower()
 
+	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (bdlc.localPlayer ~= councilName) then return end
 
 	local itemLink = bdlc.itemMap[itemUID]

@@ -7,7 +7,7 @@ local bdlc, c, l = unpack(select(2, ...))
 function bdlc:checkRaidVersions()
 	bdlc.versions = {}
 
-	bdlc:print("Your Version:", bdlc.version)
+	bdlc:print("Your Version:", tonumber(bdlc.version) and bdlc.version or "Developer")
 	if (not IsInRaid() ) then
 		bdlc:print("You can only do a version check while in raid.")
 		return
@@ -28,20 +28,18 @@ function bdlc:checkRaidVersions()
 	C_Timer.After(5, function()
 
 		for version, players in pairs(bdlc.versions) do
-			local version = tonumber(version)
-			if (version) then
-				local printString = version..": " 
+			local version = tonumber(version) or "Developer"
+			local printString = version..": " 
 
-				-- these players have returned their versions
-				for name, v in pairs (players) do
-					-- remove from no addon list
-					noAddon[name] = nil
-					printString = printString..bdlc:prettyName(name)..", "
-				end
-
-				-- remove trailing comma
-				print(string.sub(printString, 0, -2))
+			-- these players have returned their versions
+			for name, v in pairs (players) do
+				-- remove from no addon list
+				noAddon[name] = nil
+				printString = printString..bdlc:prettyName(name)..", "
 			end
+
+			-- remove trailing comma
+			print(string.sub(printString, 0, -2))
 		end
 		
 		-- these are leftover from the returns
@@ -64,7 +62,7 @@ function bdlc:requestVersions(sendBackTo)
 end
 
 function bdlc:returnVersion(version, player)
-	if (not tonumber(version)) then return end
+	if (not tonumber(version)) then version = "Developer" end
 
 	bdlc.versions[version] = bdlc.versions[version] or {}
 	bdlc.versions[version][player] = true
