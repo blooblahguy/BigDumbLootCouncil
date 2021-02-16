@@ -41,6 +41,7 @@ function bdlc:endSession(itemUID)
 	if not itemLink then return end
 
 	local tab = bdlc:getTab(itemUID)
+	tab.itemUID = nil
 	tab.entries:ReleaseAll()
 	bdlc.tabs:Release(tab)
 
@@ -70,6 +71,7 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	-- Set Up tab and item info
 	local tab = bdlc:getTab(itemUID)
 	tab:Show()
+	tab.itemUID = itemUID
 	tab.icon:SetTexture(texture)
 	tab.table.item.itemtext:SetText(itemLink)
 	tab.table.item.num_items:SetText("Looted by "..name)
@@ -202,11 +204,12 @@ function bdlc:addUserConsidering(itemUID, playerName)
 	entry.name:SetTextColor(color.r, color.g, color.b);
 	entry.interest.text:SetText(l["frameConsidering"]);
 	entry.interest.text:SetTextColor(.5,.5,.5);
-	entry.myilvl = tonumber(ilvl)
 	entry.gear1:Hide()
 	entry.gear2:Hide()
 	entry.ilvl:SetText("")
 	entry.rank:SetText("")
+	entry.itemUID = itemUID
+	entry.playerName = playerName
 	
 	if (IsRaidLeader()) then
 		entry.removeUser:Show()
@@ -236,11 +239,15 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	
 	-- bdlc:debug(playerName.." needs "..itemLink.." "..wantText)
 	-- bdlc:debug(playerName.." rolling on "..itemLink..": "..entry.roll)
+
+	bdlc:debug("User want:", playerName, itemLink, wantText)
 	
+	entry:Show()
 	entry.interest.text:SetText(wantText)
 	entry.interest.text:SetTextColor(unpack(wantColor))
 	entry.voteUser:Show()
 	entry.roll = roll
+	entry.myilvl = tonumber(ilvl)
 	entry.wantLevel = want
 	entry.itemUID = itemUID
 	entry.playerName = playerName
@@ -339,7 +346,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 	
 	bdlc:repositionFrames()
 	
-	bdlc:debug("Removed", playerName, "considering", itemLink)
+	-- bdlc:debug("Removed", playerName, "considering", itemLink)
 end
 
 ----------------------------------------

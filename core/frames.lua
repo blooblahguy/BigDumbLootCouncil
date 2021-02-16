@@ -138,8 +138,6 @@ function bdlc:getTab(itemUID)
 		current_tab = bdlc.tabs:Acquire()
 	end
 
-	current_tab.itemUID = itemUID
-
 	return current_tab
 end
 
