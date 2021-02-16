@@ -199,18 +199,18 @@ function bdlc:sendLC()
 	-------------------------------------------------------
 	-- CUSTOM BUTTONS
 	-------------------------------------------------------
-	local buttons_string = ""
-	for i = 1, #bdlc.config.buttons do
-		v = bdlc.config.buttons[i]
+	-- local buttons_string = ""
+	-- for i = 1, #bdlc.config.buttons do
+	-- 	v = bdlc.config.buttons[i]
 
-		local name, color, enable, req = unpack(v)
-		local r, g, b = unpack(color)
-		local k = tostring(i)
-		enable = enable and "1" or "0"
-		req = req and "1" or "0"
-		local info = {k, name, tostring(r), tostring(g), tostring(b), enable, req}
-		buttons_string = buttons_string..table.concat(info, ",").."//"
-	end
+	-- 	local name, color, enable, req = unpack(v)
+	-- 	local r, g, b = unpack(color)
+	-- 	local k = tostring(i)
+	-- 	enable = enable and "1" or "0"
+	-- 	req = req and "1" or "0"
+	-- 	local info = {k, name, tostring(r), tostring(g), tostring(b), enable, req}
+	-- 	buttons_string = buttons_string..table.concat(info, ",").."//"
+	-- end
 
 	-- loot council
 	local friendlyCouncil = {}
