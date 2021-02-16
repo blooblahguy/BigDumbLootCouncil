@@ -24,7 +24,8 @@ loader:SetScript("OnEvent", function(self, event, addon)
 		bdlc.config["shadowlands2"] = true
 	end
 
-	bdlc:print("loaded, enjoy!")
+	local version = tonumber(bdlc.version) and bdlc.version or "Developer"
+	bdlc:print("Loaded, enjoy! Version: "..version)
 
 	-- default local stores
 	bdlc.council_votes = bdlc.config.council_votes

@@ -48,7 +48,7 @@ function bdlc:customQN(...)
 		bdlc.master_looter_qn[v] = true
 	end
 
-	bdlc:debug("Current Quicknotes: ", unpack(bdlc.master_looter_qn))
+	bdlc:debug("Current Quicknotes: ", unpack(notes))
 end
 
 ----------------------------------------
