@@ -577,8 +577,6 @@ end
 bdlc.async = CreateFrame("frame", nil, UIParent)
 bdlc.async:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
-	print(event, itemID, success)
-
 	-- couldn't tell if this item could be traded yet
 	if (bdlc.items_waiting_for_verify[itemID]) then
 		bdlc.items_waiting_for_verify[itemID] = nil
