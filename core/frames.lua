@@ -71,9 +71,7 @@ function bdlc:repositionFrames()
 			lasttab = tab
 		end
 	end	
-	if (lasttab) then
-		bdlc.window:Show()
-	else
+	if (not lasttab) then
 		bdlc.window:Hide()
 	end
 
@@ -757,11 +755,12 @@ local function create_roll(self)
 	roll.buttons.pass:SetScript("OnClick", function()
 		bdlc:sendAction("removeUserConsidering", roll.itemUID, bdlc.localPlayer);
 		bdlc.rolls:Release(roll)
+		bdlc:repositionFrames()
 	end)
 	
 	roll.buttons.notes = CreateFrame("EditBox", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.notes:SetPoint("BOTTOMLEFT", firstBtn, "BOTTOMLEFT")
-	roll.buttons.notes:SetPoint("TOPRIGHT", roll.buttons.pass, "TOPRIGHT")
+	roll.buttons.notes:SetPoint("TOPRIGHT", roll.buttons.note, "TOPLEFT", 0, 0)
 	roll.buttons.notes:SetMaxLetters(100)
 	roll.buttons.notes:IsMultiLine(1)
 	roll.buttons.notes:SetTextInsets(6, 2, 2, 2)

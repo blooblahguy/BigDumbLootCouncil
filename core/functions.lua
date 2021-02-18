@@ -133,8 +133,8 @@ function bdlc:skinButton(f, small, color)
 		colors = {0, 0.55, .85, 0.6}
 		hovercolors = {0, 0.55, .85, 1}
 	elseif (color == "dark") then
-		colors = {.28, .29, .31, 0.8}
-		hovercolors = {0, 0.55, .85, 0.6}
+		colors = {.28, .29, .31, 1}
+		hovercolors = {0, 0.55, .85, 1}
 	end
 
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
@@ -224,7 +224,9 @@ end
 --==============================================
 -- Session Functions
 --==============================================
-
+local function find_compare(a, b)
+	return strfind(a:lower(), b:lower())
+end
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
@@ -232,17 +234,17 @@ function bdlc:fetchUserGear(unit, itemLink)
 	local isTier, tierType = bdlc:IsTier(itemLink)
 	
 	if (isTier) then
-		if (strfind(name:lower(), l["tierHelm"]:lower())) then
+		if (find_compare(name, l["tierHelm"])) then
 			equipSlot = "INVTYPE_HEAD"
-		elseif (strfind(name:lower(), l["tierShoulders"]:lower())) then
+		elseif (find_compare(name, l["tierShoulders"])) then
 			equipSlot = "INVTYPE_SHOULDER"
-		elseif (strfind(name:lower(), l["tierLegs"]:lower())) then
+		elseif (find_compare(name, l["tierLegs"])) then
 			equipSlot = "INVTYPE_LEGS"
-		elseif (strfind(name:lower(), l["tierCloak"]:lower())) then
+		elseif (find_compare(name, l["tierCloak"])) then
 			equipSlot = "INVTYPE_BACK"
-		elseif (strfind(name:lower(), l["tierChest"]:lower())) then
+		elseif (find_compare(name, l["tierChest"])) then
 			equipSlot = "INVTYPE_CHEST"
-		elseif (strfind(name:lower(), l["tierGloves"]:lower())) then
+		elseif (find_compare(name, l["tierGloves"])) then
 			equipSlot = "INVTYPE_HAND"
 		end
 	end
@@ -357,6 +359,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 
 	local isRelic = bdlc:IsRelic(itemLink)
 	local isTier, tierType = bdlc:IsTier(itemLink)
+	local equipSlot = select(9, GetItemInfo(itemLink))
 
 	if (test) then
 		bdlc:print(itemLink, "is: ")
@@ -366,13 +369,12 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 		end
 		bdlc:print("Relic: ", isRelic and "Yes" or "No")
 		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
+		bdlc:print("Tradable: ", bdlc:verifyTradability(itemLink) and "Yes" or "No")
 	end
 	
-	local equipSlot = select(9, GetItemInfo(itemLink))
 	if (equipSlot and string.len(equipSlot) > 0) then
 		return true
 	end
-	
 	if (isTier or isRelic) then
 		return true
 	end
@@ -609,16 +611,16 @@ function bdlc:GetRelics(rt)
 end
 
 -- Tradability
-function bdlc:TradableTooltip(itemLink)
+function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
-	local tradableString = BIND_TRADE_TIME_REMAINING:gsub('%%s', '(.+)');
+	local tradableString = BIND_TRADE_TIME_REMAINING:format(''):sub(0, -2)
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0,4 do
-		for slot = 1,GetContainerNumSlots(bag) do
+		for slot = 1, GetContainerNumSlots(bag) do
 			local bagItemLink = GetContainerItemLink(bag,slot);
 			
-			if (bagItemLink ~= nil and bagItemLink == itemLink) then
+			if (bagItemLink and bagItemLink == itemLink) then
 				bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 				bdlc.tt:SetBagItem(bag, slot)
 
@@ -641,7 +643,7 @@ end
 
 function bdlc:verifyTradability(itemLink)
 	if (GetItemInfo(itemLink)) then
-		if (bdlc:TradableTooltip(itemLink)) then
+		if (bdlc:tradableTooltip(itemLink)) then
 			return true
 		end
 	else
