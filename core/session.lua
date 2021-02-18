@@ -8,7 +8,6 @@ function bdlc:startSession(itemLink, lootedBy, forced)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
-	-- print(itemType, itemID)
 	
 	if (GetItemInfo(itemLink)) then
 		local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
@@ -239,9 +238,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
 	local wantText, wantColor = unpack(bdlc.config.buttons[want])
-	
-	-- bdlc:debug("Add user want", itemLink, playerName, wantText)
-	-- bdlc:debug(playerName.." rolling on "..itemLink..": "..entry.roll)
 
 	bdlc:debug("User want:", playerName, itemLink, wantText)
 	
@@ -256,8 +252,6 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	entry.playerName = playerName
 	entry.rank:SetText(guildRank)
 	entry.ilvl:SetText(ilvl)
-
-	-- print(want, itemLink1, itemLink2, roll, notes, ilvl, guildRank)
 
 	-- player items
 	if (GetItemInfo(itemLink1)) then
@@ -377,10 +371,8 @@ function bdlc:awardLoot(playerName, itemUID)
 
 	playerName = FetchUnitName(playerName)
 	local pretty, color = bdlc:prettyName(playerName)
-	local unitName = UnitName(bdlc:unitName(lootedBy))
-	-- playerName = Ambiguate(playerName, "all")
 
-	SendChatMessage("BDLC: Please trade "..itemLink.." to "..pretty, "WHISPER", nil, unitName)
+	SendChatMessage("BDLC: Please trade "..itemLink.." to "..pretty, "WHISPER", nil, playerName)
 	SendChatMessage("BDLC: "..itemLink.." awarded to "..pretty, "RAID")
 	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
 
@@ -418,8 +410,6 @@ function bdlc:messageCallback(prefix, message, channel, sender)
 		end
 	end
 
-	-- print(action, unpack(params))
-
 	-- -- auto methods have to force a self param
 	if (bdlc[action]) then
 		if (params and unpack(params)) then -- if params arne't blank
@@ -428,7 +418,7 @@ function bdlc:messageCallback(prefix, message, channel, sender)
 			bdlc[action](self)
 		end
 	else
-		-- bdlc:print("Can't find any function for "..action.." - this usually means you are out of date");
+		bdlc:debug(action, "not found from", sender, channel);
 	end
 end
 

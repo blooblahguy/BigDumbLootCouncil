@@ -374,7 +374,6 @@ local function create_tab(self)
 	
 	vote_table.award.no:SetScript("OnClick", function() vote_table.award:Hide() end)
 	vote_table.award.yes:SetScript("OnClick", function(self)
-		-- print("clicked?"..nil)
 		bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
 		vote_table.award:Hide()
 	end)

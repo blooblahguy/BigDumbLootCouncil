@@ -420,7 +420,7 @@ function bdlc:itemEquippable(itemUID)
 		end
 	end
 	
-	-- print("Experimental: You automatically passed on "..itemLink.." (unusable for your class).")
+	bdlc:debug("Experimental: You automatically passed on ", itemLink)
 	return false
 end
 
@@ -480,7 +480,6 @@ function bdlc:IsTier(itemLink)
 		end
 
 		for k, v in pairs(offhand_classes) do
-			-- print(text, ":", v, "\n")
 			if (strfind(text, v) ~= nil) then
 				isTier = true
 				tierType = "offhand"
@@ -705,8 +704,6 @@ function bdlc:prettyName(playerName)
 
 	local classFileName = select(2, UnitClass(name)) or select(2, UnitClass(playerName)) or playerClass or bdlc.demo_samples.classes[math.random(#bdlc.demo_samples.classes)]
 	local color = RAID_CLASS_COLORS[classFileName] or {["r"] = 1, ["g"] = 1, ["b"] = 1}
-
-	--print(color, color.r, color.g, color.b, bdlc:RGBToHex(color))
 
 	return "|cff"..bdlc:RGBToHex(color)..name.."|r", color
 end
