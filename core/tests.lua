@@ -3,11 +3,11 @@ local bdlc, c, l = unpack(select(2, ...))
 bdlc.demo_samples = {
 	classes = {"HUNTER","WARLOCK","PRIEST","PALADIN","MAGE","ROGUE","DRUID","WARRIOR","DEATHKNIGHT","MONK","DEMONHUNTER"},
 	ranks = {"Officer", "Raider", "Trial", "Social", "Alt", "Officer Alt", "Guild Idiot", "King"},
-	names = {"Bloo", "Nodis", "Comfy", "Lozy", "Ugh", "Onebutton", "Thor", "Branderps", "Edgelord", "Yeah", "Arranum", "Witts", "Darkfurion", "Fox", "Cherry"}
+	names = {"Bloô", "Nôdis", "Comfy", "Lozy", "Ugh", "Onêbutton", "Thor", "Brandêrps", "Edgêlord", "Yeåh", "Arrånum", "Witts", "Dårkfurion", "Fôx", "Chêrry"}
 }
 
 local function rando_name()
-	return FetchUnitName(bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)])
+	return bdlc:FetchUnitName(bdlc.demo_samples.names[math.random(#bdlc.demo_samples.names)])
 end
 local function rando_ilvl()
 	local ilvl = GetAverageItemLevel()

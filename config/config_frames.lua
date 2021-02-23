@@ -272,7 +272,7 @@ function bdlc:createList(opts)
 	container.button:SetScript("OnClick", function()
 		local value = container.insert:GetText()
 		if (lower) then
-			value = value:lower()
+			value = value:utf8lower()
 		end
 
 		if (strlen(value) > 0) then
@@ -303,7 +303,7 @@ function bdlc:createList(opts)
 		for k, v in pairs(list) do
 			local add = ""
 			if (lower) then
-				add = type(k) == "string" and k:lower() or v:lower()
+				add = type(k) == "string" and k:utf8lower() or v:utf8lower()
 			else
 				add = type(k) == "string" and k or v
 			end

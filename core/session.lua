@@ -83,7 +83,7 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	tab.table.item.wfsock:SetText(infostr)
 
 	local slotname = string.lower(string.gsub(equipSlot, "INVTYPE_", ""));
-	slotname = slotname:gsub("^%l", string.upper)
+	slotname = slotname:gsub("^%l", string.utf8upper)
 	tab.table.item.itemdetail:SetText("ilvl: "..iLevel.."    "..subclass..", "..slotname);
 	tab.table.item:SetScript("OnEnter", function()
 		ShowUIPanel(GameTooltip)
@@ -181,7 +181,7 @@ end
 -- AddUserConsidering
 ----------------------------------------
 function bdlc:addUserConsidering(itemUID, playerName)
-	local playerName = FetchUnitName(playerName)
+	local playerName = bdlc:FetchUnitName(playerName)
 	local itemLink = bdlc.itemMap[itemUID]
 	
 	if not bdlc:inLC() then return false end
@@ -192,7 +192,7 @@ function bdlc:addUserConsidering(itemUID, playerName)
 	
 	bdlc:debug("User considering:", playerName, itemLink)
 
-	local guildName, guildRankName, guildRankIndex = GetGuildInfo(FetchUnitName(playerName));
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo(bdlc:FetchUnitName(playerName));
 	entry.rankIndex = guildRankName and guildRankIndex or 10
 
 	entry.wantLevel = 15
@@ -213,7 +213,7 @@ function bdlc:addUserConsidering(itemUID, playerName)
 	entry.itemUID = itemUID
 	entry.playerName = playerName
 	
-	if (IsRaidLeader()) then
+	if (bdlc:IsRaidLeader()) then
 		entry.removeUser:Show()
 	else
 		entry.removeUser:Hide()
@@ -223,7 +223,7 @@ function bdlc:addUserConsidering(itemUID, playerName)
 end
 
 function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, ilvl, guildRank, notes)
-	playerName = FetchUnitName(playerName)
+	playerName = bdlc:FetchUnitName(playerName)
 
 	if (not notes or strlen(notes) == 0) then notes = false end
 	local itemLink = bdlc.itemMap[itemUID]
@@ -310,7 +310,7 @@ end
 function bdlc:removeUserConsidering(itemUID, playerName)
 	if (not bdlc:inLC()) then return end
 
-	playerName = FetchUnitName(playerName)
+	playerName = bdlc:FetchUnitName(playerName)
 
 	-- reset frame
 	local tab = bdlc:getTab(itemUID)
@@ -332,7 +332,7 @@ function bdlc:removeUserConsidering(itemUID, playerName)
 			end
 		end
 
-		bdlc:updateVotesRemaining(itemUID, FetchUnitName("player"))
+		bdlc:updateVotesRemaining(itemUID, bdlc:FetchUnitName("player"))
 	end
 
 	-- tell that user to kill their roll window
@@ -350,7 +350,7 @@ end
 -- removeUserRoll
 ----------------------------------------
 function bdlc:removeUserRoll(itemUID, playerName)
-	playerName = FetchUnitName(playerName)
+	playerName = bdlc:FetchUnitName(playerName)
 
 	if (bdlc.localPlayer == playerName) then
 		local roll = bdlc:getRoll(itemUID)
@@ -369,7 +369,7 @@ function bdlc:awardLoot(playerName, itemUID)
 	local itemLink = bdlc.itemMap[itemUID]
 	if (not itemLink) then return end
 
-	playerName = FetchUnitName(playerName)
+	playerName = bdlc:FetchUnitName(playerName)
 	local unit = bdlc:unitName(playerName)
 
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..unit, "WHISPER", nil, lootedBy)
@@ -428,7 +428,7 @@ end
 -- supports multiple votes per officer
 ----------------------------------------
 function bdlc:updateVotesRemaining(itemUID, councilName)
-	councilName = councilName:lower()
+	councilName = councilName:utf8lower()
 
 	if (not bdlc.loot_sessions[itemUID]) then return false end
 	if (bdlc.localPlayer ~= councilName) then return end
@@ -472,8 +472,8 @@ function bdlc:voteForUser(councilName, itemUID, playerName, lcl)
 	if (not bdlc.loot_council_votes[itemUID]) then return false end
 	if not bdlc:inLC() then return false end
 
-	councilName = FetchUnitName(councilName)
-	playerName = FetchUnitName(playerName)
+	councilName = bdlc:FetchUnitName(councilName)
+	playerName = bdlc:FetchUnitName(playerName)
 	
 	-- allow local voting
 	if (not lcl and bdlc.localPlayer == councilName) then return end
@@ -576,7 +576,7 @@ bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 		if not bdlc.tradedItems[itemLink] then
 			-- TODO: This event can't fire after a trade so this test should be removed?
 			if (bdlc:verifyTradability(itemLink)) then
-				bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
+				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
 			end
 		else
 			bdlc:print('Experimental: Item received via trading, will not be announced again.')
@@ -610,7 +610,7 @@ end)
 -- 			if not bdlc.tradedItems[itemLink] then
 -- 			-- TODO: This event can't fire after a trade so this test should be removed?
 -- 				if (bdlc:verifyTradability(itemLink)) then
--- 					bdlc:sendAction("startSession", itemLink, FetchUnitName('player'))
+-- 					bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
 -- 				end
 -- 			else
 -- 				bdlc:print('Experimental: Item received via trading, will not be announced again.')
@@ -652,7 +652,7 @@ end)
 -- 			if not bdlc.tradedItems[v] then
 -- 			-- TODO: This event can't fire after a trade so this test should be removed?
 -- 				if (bdlc:verifyTradability(v)) then
--- 					bdlc:sendAction("startSession", v, FetchUnitName('player'))
+-- 					bdlc:sendAction("startSession", v, bdlc:FetchUnitName('player'))
 -- 				end
 -- 			else
 -- 				print('Experimental: Item received via trading, will not be announced again.')

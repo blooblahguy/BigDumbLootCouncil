@@ -6,6 +6,9 @@
 ## SavedVariables: BDLC_CONFIG, BDLC_HISTORY
 
 # Libs
+libs\utf8data.lua
+libs\utf8.lua
+
 libs\LibStub.lua
 libs\CallbackHandler-1.0.lua
 libs\ChatThrottleLib.lua

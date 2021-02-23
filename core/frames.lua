@@ -396,7 +396,7 @@ local function create_tab(self)
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
 		
 		entry:SetScript("OnClick", function(self)	
-			if (IsRaidLeader()) then
+			if (bdlc:IsRaidLeader()) then
 				if (vote_table.award:IsShown()) then
 					vote_table.award:Hide()
 				else
@@ -405,7 +405,7 @@ local function create_tab(self)
 					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
 					local r, g, b = self.name:GetTextColor()
 					local hex = RGBPercToHex(r, g, b)
-					local name = string.gsub(" "..self.playerName, "%W%l", string.upper):sub(2)
+					local name = bdlc:capitalize(self.playerName)
 					vote_table.award.text:SetText(l["frameAward"].."|cff"..hex..name.."|r?")
 					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth() + 12)
 					vote_table.award.playerName = self.playerName
@@ -653,7 +653,7 @@ local function create_roll(self)
 
 		local notes = roll.notes or ''
 		if (string.len(roll.qn) > 0) then
-			roll.qn = string.sub(roll.qn, 0, -3)
+			roll.qn = string.utf8sub(roll.qn, 0, -3)
 			if (string.len(notes) > 0) then
 				notes = notes..", "..roll.qn
 			else
@@ -888,7 +888,7 @@ bdlc.window.loot_council.add:SetScript("OnClick", function()
 end)
 
 bdlc.window:HookScript("OnShow", function()
-	if (IsRaidLeader() or not IsInRaid()) then
+	if (bdlc:IsRaidLeader() or not IsInRaid()) then
 		bdlc.window.loot_council.add:Show()
 	else
 		bdlc.window.loot_council.add:Hide()

@@ -69,7 +69,7 @@ function bdlc:sendAction(action, ...)
 	local paramString = strjoin(delim, ...)
 
 	-- allow the user to whisper through this function
-	local recipient = bdlc.overrideRecipient or FetchUnitName('player')
+	local recipient = bdlc.overrideRecipient or bdlc:FetchUnitName('player')
 	local priority = bdlc.overridePriority or "NORMAL"
 	local channel = "WHISPER"
 	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then 
@@ -225,13 +225,14 @@ end
 -- Session Functions
 --==============================================
 local function find_compare(a, b)
-	return strfind(a:lower(), b:lower())
+	return strfind(a:utf8lower(), b:utf8lower())
 end
+
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier, tierType = bdlc:IsTier(itemLink)
+	local isTier, tierType, usable = bdlc:isTier(itemLink)
 	
 	if (isTier) then
 		if (find_compare(name, l["tierHelm"])) then
@@ -328,10 +329,10 @@ function bdlc:GetItemValue(itemLink)
 	
 	-- Get Wf/TF
 	for i = 1, 4 do
-		local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() and _G['BDLC:TooltipScanTextLeft'..i]:GetText():lower() or nil;
+		local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() and _G['BDLC:TooltipScanTextLeft'..i]:GetText():utf8lower() or nil;
 		if text then
-			wf_tf = wf_tf or text:find(l["itemWarforged"]:lower()) and true or false
-			wf_tf = wf_tf or text:find(l["itemTitanforged"]:lower()) and true or false			
+			wf_tf = wf_tf or text:find(l["itemWarforged"]:utf8lower()) and true or false
+			wf_tf = wf_tf or text:find(l["itemTitanforged"]:utf8lower()) and true or false			
 		end
 	end
 	bdlc.tt:Hide()
@@ -358,7 +359,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 	end
 
 	local isRelic = bdlc:IsRelic(itemLink)
-	local isTier, tierType = bdlc:IsTier(itemLink)
+	local isTier, tierType, usable = bdlc:isTier(itemLink)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 
 	if (test) then
@@ -366,6 +367,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 		bdlc:print("Tier: ", isTier and "Yes" or "No")
 		if (isTier) then
 			bdlc:print("Tier Type: ", tierType)
+			bdlc:print("Tier Usable: ", usable)
 		end
 		bdlc:print("Relic: ", isRelic and "Yes" or "No")
 		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
@@ -396,7 +398,15 @@ function bdlc:itemEquippable(itemUID)
 		return true
 	end
 
-	if (equipSlot == "") then return true end
+	local isTier, tierType, usable = bdlc:isTier(itemLink)
+
+	if (isTier) then 
+		if (usable) then
+			return true
+		end
+	elseif (equipSlot == "") then
+		return true
+	end
 	
 	local playerClass = select(2, UnitClass("player"))
 	local classes = {}
@@ -424,12 +434,15 @@ function bdlc:itemEquippable(itemUID)
 	return false
 end
 
-function bdlc:IsTier(itemLink)
+function bdlc:isTier(itemLink)
 	local isTier = false
 	local tierType = false
+	local usable = false
 
 	-- store class names
 	local classes = {}
+	local myClass = select(1, UnitClass("player"))
+
 	for i = 1, 12 do
 		local name, global, index = GetClassInfo(i)
 		classes[name] = name
@@ -451,10 +464,10 @@ function bdlc:IsTier(itemLink)
 
 	local weapon_classes = {
 		-- main hands
-		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
-		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
-		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
-		 string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
+		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
 	}
 	local offhand_classes = {
 		-- offhands
@@ -473,6 +486,9 @@ function bdlc:IsTier(itemLink)
 
 		for k, v in pairs(weapon_classes) do
 			if (strfind(text, v) ~= nil) then
+				if (strfind(text, myClass) ~= nil) then
+					usable = true
+				end
 				isTier = true
 				tierType = "weapon"
 				break
@@ -481,6 +497,9 @@ function bdlc:IsTier(itemLink)
 
 		for k, v in pairs(offhand_classes) do
 			if (strfind(text, v) ~= nil) then
+				if (strfind(text, myClass) ~= nil) then
+					usable = true
+				end
 				isTier = true
 				tierType = "offhand"
 				break
@@ -489,6 +508,9 @@ function bdlc:IsTier(itemLink)
 
 		for k, v in pairs(tier_classes) do
 			if (strfind(text, v) ~= nil) then
+				if (strfind(text, myClass) ~= nil) then
+					usable = true
+				end
 				isTier = true
 				tierType = "armor"
 				break
@@ -496,15 +518,15 @@ function bdlc:IsTier(itemLink)
 		end
 	end
 	
-	return isTier, tierType
+	return isTier, tierType, usable
 end
 
 -- determines if given string is a relic string
 function bdlc:RelicString(str)
 	local ss = string.format(RELIC_TOOLTIP_TYPE, "")
 	ss = ss:gsub("%W", " ")
-	ss = ss:lower()
-	str = str:lower()
+	ss = ss:utf8lower()
+	str = str:utf8lower()
 	
 	local search = {strsplit(" ",ss)} or {ss}
 	local nummatch = #search
@@ -552,7 +574,7 @@ end
 -- return relic type (life, iron, blood, etc)
 function bdlc:GetRelicType(relicLink)
 	local relicType
-	local ss = substr(RELIC_TOOLTIP_TYPE, 3):lower()
+	local ss = substr(RELIC_TOOLTIP_TYPE, 3):utf8lower()
 	
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(relicLink)
@@ -564,7 +586,7 @@ function bdlc:GetRelicType(relicLink)
 		--if (not relicType) then -- the regex failed, lets search with localization
 		if (text and bdlc:RelicString(text)) then
 			local search = {strsplit(" ",ss)} or {ss}
-			local str = text:lower()
+			local str = text:utf8lower()
 			for s = 1, #search do
 				str = str:gsub(search[s],"")
 			end
@@ -594,7 +616,7 @@ function bdlc:GetRelics(rt)
 		if (relicLink) then
 			local relicType = bdlc:GetRelicType(relicLink)
 		
-			if (relicType:lower() == rt:lower()) then
+			if (relicType:utf8lower() == rt:utf8lower()) then
 				if (not relic1) then
 					relic1 = relicLink
 				else
@@ -612,7 +634,7 @@ end
 -- Tradability
 function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
-	local tradableString = BIND_TRADE_TIME_REMAINING:format(''):sub(0, -2)
+	local tradableString = BIND_TRADE_TIME_REMAINING:format(''):utf8sub(0, -2)
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
@@ -656,7 +678,7 @@ end
 --==============================================
 -- User functions
 --==============================================
-function IsRaidLeader()
+function bdlc:IsRaidLeader()
 	local inInstance, instanceType = IsInInstance();
 	if (inInstance and instanceType == "raid" and UnitIsGroupLeader("player")) then
 		return true
@@ -674,28 +696,15 @@ function bdlc:IsInRaid()
 	return false;
 end
 
--- name to unit
-function name2Unit(name)
-	local name, server = strsplit("-", str)
-
-
-
-	return name
+function bdlc:capitalize(str)
+	return str:gsub("^%l", string.utf8upper)
 end
 
 -- returns a nice readable format
 function bdlc:unitName(str)
-	-- remove server
 	local name, server = strsplit("-", str)
-	-- local unit = UnitName(str) or UnitName(name)
-	-- for i = 1, 40 do
-	-- 	if (unit) then break end
-	-- end
 
-	-- capitalize
-	name = string.gsub(" "..name, "%W%l", string.upper):sub(2)
-
-	return name
+	return bdlc:capitalize(name)
 end
 
 -- To colorize lootedBy player
@@ -709,19 +718,19 @@ function bdlc:prettyName(playerName)
 end
 
 -- returns name-server for any valid name or unit
-function FetchUnitName(name)
+function bdlc:FetchUnitName(name)
 	-- remove server
 	local splitName, splitRealm = strsplit("-", name)
-
+	
 	-- check if we have a unit without the realm, then with the realm
 	local fullName, realm = UnitFullName(splitName) or UnitFullName(name)
 	realm = realm or GetRealmName()
-
+	
 	-- if no unit is found, just return their name
-	if (not fullName) then return (splitName.."-"..realm):lower() end
-
+	if (not fullName) then return (splitName.."-"..realm):utf8lower() end
+	
 	-- we always insure realm
-	fullName = (fullName.."-"..realm):lower()
+	fullName = (fullName.."-"..realm):utf8lower()
 
 	-- for consistency
 	return Ambiguate(fullName, "mail")
