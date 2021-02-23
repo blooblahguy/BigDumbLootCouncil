@@ -370,10 +370,10 @@ function bdlc:awardLoot(playerName, itemUID)
 	if (not itemLink) then return end
 
 	playerName = FetchUnitName(playerName)
-	local pretty, color = bdlc:prettyName(playerName)
+	local unit = bdlc:unitName(playerName)
 
-	SendChatMessage("BDLC: Please trade "..itemLink.." to "..pretty, "WHISPER", nil, playerName)
-	SendChatMessage("BDLC: "..itemLink.." awarded to "..pretty, "RAID")
+	SendChatMessage("BDLC: Please trade "..itemLink.." to "..unit, "WHISPER", nil, lootedBy)
+	SendChatMessage("BDLC: "..itemLink.." awarded to "..unit, "RAID")
 	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
 
 	bdlc:repositionFrames()

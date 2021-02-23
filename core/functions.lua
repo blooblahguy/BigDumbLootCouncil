@@ -615,7 +615,7 @@ function bdlc:tradableTooltip(itemLink)
 	local tradableString = BIND_TRADE_TIME_REMAINING:format(''):sub(0, -2)
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
-	for bag = 0,4 do
+	for bag = 0, 4 do
 		for slot = 1, GetContainerNumSlots(bag) do
 			local bagItemLink = GetContainerItemLink(bag,slot);
 			
@@ -626,7 +626,7 @@ function bdlc:tradableTooltip(itemLink)
 				for i = 50, 1, -1 do
 					local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() or nil;
 
-					if (text and text:match(tradableString)) then
+					if (text and string.find(text, tradableString) ~= nil) then
 						isTradable = true
 						break
 					end
