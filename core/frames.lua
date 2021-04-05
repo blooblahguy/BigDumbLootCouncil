@@ -48,7 +48,7 @@ function bdlc:repositionFrames()
 				return a.myilvl > b.myilvl
 			end
 			
-			return a.name:GetText() > b.name:GetText()
+			return a.name.text:GetText() > b.name.text:GetText()
 		end) do
 			entry:ClearAllPoints()
 			if (entry.itemUID and entry:IsShown()) then
@@ -195,7 +195,7 @@ local function create_tab(self)
 			for other_tab, v in bdlc.tabs:EnumerateActive() do
 				other_tab:SetAlpha(0.3)
 				other_tab.table:Hide()
-				other_tab.table.award:Hide()
+				other_tab.table.info_pane:Hide()
 				other_tab.icon:SetDesaturated(true)
 				other_tab.selected = false
 			end
@@ -242,49 +242,49 @@ local function create_tab(self)
 	vote_table.name_text:SetFontObject(bdlc:get_font(14))
 	vote_table.name_text:SetText(l["frameName"]);
 	vote_table.name_text:SetTextColor(1, 1, 1);
-	vote_table.name_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 10, 16);
+	vote_table.name_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 10, 16)
 	
 	vote_table.rank_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.rank_text:SetFontObject(bdlc:get_font(14))
 	vote_table.rank_text:SetText(l["frameRank"]);
 	vote_table.rank_text:SetTextColor(1, 1, 1);
-	vote_table.rank_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 80, 16);
+	vote_table.rank_text:SetPoint("LEFT", vote_table.name_text, "RIGHT", 40, 0)
 	
 	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.ilvl_text:SetFontObject(bdlc:get_font(14))
 	vote_table.ilvl_text:SetText(l["frameIlvl"]);
 	vote_table.ilvl_text:SetTextColor(1, 1, 1);
-	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 170, 16);
+	vote_table.ilvl_text:SetPoint("LEFT", vote_table.rank_text, "RIGHT", 60, 0)
 	
-	vote_table.ilvl_text = vote_table:CreateFontString(nil, "OVERLAY")
-	vote_table.ilvl_text:SetFontObject(bdlc:get_font(14))
-	vote_table.ilvl_text:SetText(l["frameInterest"]);
-	vote_table.ilvl_text:SetTextColor(1, 1, 1);
-	vote_table.ilvl_text:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 200, 16);
+	vote_table.interest = vote_table:CreateFontString(nil, "OVERLAY")
+	vote_table.interest:SetFontObject(bdlc:get_font(14))
+	vote_table.interest:SetText(l["frameInterest"]);
+	vote_table.interest:SetTextColor(1, 1, 1);
+	vote_table.interest:SetPoint("LEFT", vote_table.ilvl_text, "RIGHT", 26, 0)
 	
 	vote_table.notes_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.notes_text:SetFontObject(bdlc:get_font(14))
 	vote_table.notes_text:SetText(l["frameNotes"]);
 	vote_table.notes_text:SetTextColor(1, 1, 1);
-	vote_table.notes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -250, 16);
+	vote_table.notes_text:SetPoint("LEFT", vote_table.interest, "RIGHT", 30, 0)
 	
 	vote_table.current_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.current_text:SetFontObject(bdlc:get_font(14))
 	vote_table.current_text:SetText(l["frameCurrentGear"]);
 	vote_table.current_text:SetTextColor(1, 1, 1);
-	vote_table.current_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -160, 16);
+	vote_table.current_text:SetPoint("LEFT", vote_table.notes_text, "RIGHT", 26, 0)
 	
 	vote_table.votes_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.votes_text:SetFontObject(bdlc:get_font(14))
 	vote_table.votes_text:SetText(l["frameVotes"]);
 	vote_table.votes_text:SetTextColor(1, 1, 1);
-	vote_table.votes_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", -100, 16);
+	vote_table.votes_text:SetPoint("LEFT", vote_table.current_text, "RIGHT", 30, 0)
 	
 	vote_table.actions_text = vote_table:CreateFontString(nil, "OVERLAY")
 	vote_table.actions_text:SetFontObject(bdlc:get_font(14))
 	vote_table.actions_text:SetText("Vote   Remove");
 	vote_table.actions_text:SetTextColor(1, 1, 1);
-	vote_table.actions_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 16);
+	vote_table.actions_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 16)
 	
 	-- Item icon and such
 	vote_table.item = CreateFrame("frame", nil, vote_table)
@@ -351,31 +351,31 @@ local function create_tab(self)
 	end)
 
 
-	vote_table.award = CreateFrame("Frame", nil, tab, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.award:SetSize(100, 42)
-	-- vote_table.award:SetFrameStrata()
-	vote_table.award:Hide()
-	bdlc:setBackdrop(vote_table.award, .1, .1, .1, 1)
+	-- display player info for awarding and viewing history
+	vote_table.info_pane = CreateFrame("Frame", nil, tab, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.info_pane:SetSize(100, 42)
+	vote_table.info_pane:Hide()
+	bdlc:setBackdrop(vote_table.info_pane, .1, .1, .1, 1)
 	
-	vote_table.award.text = vote_table.award:CreateFontString(nil, "OVERLAY")
-	vote_table.award.text:SetFontObject(bdlc:get_font(14, "NONE"))
-	vote_table.award.text:SetText("Award loot to ?");
-	vote_table.award.text:SetPoint("TOP", vote_table.award, "TOP", 0, -2)
+	vote_table.info_pane.text = vote_table.info_pane:CreateFontString(nil, "OVERLAY")
+	vote_table.info_pane.text:SetFontObject(bdlc:get_font(14, "NONE"))
+	vote_table.info_pane.text:SetText("Award loot to ?");
+	vote_table.info_pane.text:SetPoint("TOP", vote_table.info_pane, "TOP", 0, -2)
 	
-	vote_table.award.yes = CreateFrame("Button", nil, vote_table.award, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.award.yes:SetText(l["frameYes"])
-	vote_table.award.yes:SetPoint("BOTTOMLEFT", vote_table.award, "BOTTOMLEFT", 2, 2)
-	bdlc:skinButton(vote_table.award.yes, false, "blue")
+	vote_table.info_pane.yes = CreateFrame("Button", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.info_pane.yes:SetText(l["frameYes"])
+	vote_table.info_pane.yes:SetPoint("BOTTOMLEFT", vote_table.info_pane, "BOTTOMLEFT", 2, 2)
+	bdlc:skinButton(vote_table.info_pane.yes, false, "blue")
 	
-	vote_table.award.no = CreateFrame("Button", nil, vote_table.award, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.award.no:SetText(l["frameNo"])
-	vote_table.award.no:SetPoint("BOTTOMRIGHT", vote_table.award, "BOTTOMRIGHT", -2, 2)
-	bdlc:skinButton(vote_table.award.no,false,"red")
+	vote_table.info_pane.no = CreateFrame("Button", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.info_pane.no:SetText(l["frameNo"])
+	vote_table.info_pane.no:SetPoint("BOTTOMRIGHT", vote_table.info_pane, "BOTTOMRIGHT", -2, 2)
+	bdlc:skinButton(vote_table.info_pane.no,false,"red")
 	
-	vote_table.award.no:SetScript("OnClick", function() vote_table.award:Hide() end)
-	vote_table.award.yes:SetScript("OnClick", function(self)
-		bdlc:awardLoot(vote_table.award.playerName, vote_table.award.itemUID)
-		vote_table.award:Hide()
+	vote_table.info_pane.no:SetScript("OnClick", function() vote_table.info_pane:Hide() end)
+	vote_table.info_pane.yes:SetScript("OnClick", function(self)
+		bdlc:awardLoot(vote_table.info_pane.playerName, vote_table.info_pane.itemUID)
+		vote_table.info_pane:Hide()
 	end)
 
 	-- entries
@@ -389,30 +389,48 @@ local function create_tab(self)
 		entry.myilvl = 0
 		entry:SetSize(vote_table.content:GetWidth(), 22)
 
-		entry.name = entry:CreateFontString(nil, "OVERLAY")
-		entry.name:SetFontObject(bdlc:get_font(14, "NONE"))
-		entry.name:SetText("test");
-		entry.name:SetTextColor(1, 1, 1);
+		entry.name = CreateFrame("button", nil, entry)
+		entry.name:SetSize(68, 25)
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
-		
+
+		-- entry.name:SetScript("OnEnter", function()
+		-- 	ShowUIPanel(GameTooltip)
+		-- 	GameTooltip:SetOwner(entry, "ANCHOR_LEFT", 0, -33)
+		-- 	GameTooltip:AddLine("Click to view loot info >>", .5, .5, .5)
+
+		-- 	GameTooltip:Show()
+		-- end)
+		-- entry.name:SetScript("OnLeave", function()
+		-- 	GameTooltip:Hide()
+		-- end)
+
+		entry.name.text = entry.name:CreateFontString(nil, "OVERLAY")
+		entry.name.text:SetFontObject(bdlc:get_font(14, "NONE"))
+		entry.name.text:SetText("test")
+		entry.name.text:SetTextColor(1, 1, 1);
+		entry.name.text:SetAllPoints()
+		entry.name.text:SetJustifyH("LEFT")
+		entry.name:SetScript("OnClick", function()
+			entry:Click()
+		end)
 		entry:SetScript("OnClick", function(self)	
 			if (bdlc:IsRaidLeader()) then
-				if (vote_table.award:IsShown()) then
-					vote_table.award:Hide()
+				if (vote_table.info_pane:IsShown()) then
+					vote_table.info_pane:Hide()
 				else
-					vote_table.award:Show()
-					vote_table.award:SetFrameLevel(self:GetFrameLevel() + 1)
-					vote_table.award:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
-					local r, g, b = self.name:GetTextColor()
+					vote_table.info_pane:Show()
+					vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
+					vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
+					local r, g, b = self.name.text:GetTextColor()
 					local hex = RGBPercToHex(r, g, b)
 					local name = bdlc:capitalize(self.playerName)
-					vote_table.award.text:SetText(l["frameAward"].."|cff"..hex..name.."|r?")
-					vote_table.award:SetWidth(vote_table.award.text:GetStringWidth() + 12)
-					vote_table.award.playerName = self.playerName
-					vote_table.award.itemUID = self.itemUID
+					vote_table.info_pane.text:SetText(l["frameAward"].."|cff"..hex..name.."|r?")
+					vote_table.info_pane:SetWidth(vote_table.info_pane.text:GetStringWidth() + 12)
+					vote_table.info_pane.playerName = self.playerName
+					vote_table.info_pane.itemUID = self.itemUID
 				end
 			else
-				vote_table.award:Hide()
+				vote_table.info_pane:Hide()
 			end
 		end)
 		
@@ -473,7 +491,7 @@ local function create_tab(self)
 		bdlc:skinButton(entry.voteUser, true, "blue")
 		entry.voteUser:Hide()
 		entry.voteUser:SetScript("OnClick", function()
-			vote_table.award:Hide()
+			vote_table.info_pane:Hide()
 			bdlc:voteForUser(bdlc.localPlayer, entry.itemUID, entry.playerName, true)
 			bdlc:sendAction("voteForUser", bdlc.localPlayer, entry.itemUID, entry.playerName);
 		end)
@@ -482,10 +500,11 @@ local function create_tab(self)
 		entry.removeUser:SetSize(25, 20)
 		entry.removeUser:SetPoint("RIGHT", entry, "RIGHT", -7, 0)
 		entry.removeUser:SetText("x")
+		entry.removeUser:GetRegions():SetPoint("TOPLEFT", entry.removeUser, 7, -1)
 		entry.removeUser:Hide()
 		bdlc:skinButton(entry.removeUser,true,"red")
 		entry.removeUser:SetScript("OnClick", function()
-			vote_table.award:Hide()
+			vote_table.info_pane:Hide()
 			bdlc:sendAction("removeUserConsidering", entry.itemUID, entry.playerName);
 			bdlc:removeUserConsidering(entry.itemUID, entry.playerName)
 		end)

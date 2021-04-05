@@ -5,3 +5,4 @@
 [x] Frame pools
 [x] Custom button code
 [x] Prevent certain code from running while in a boss encounter
+[x] Shift to compare
