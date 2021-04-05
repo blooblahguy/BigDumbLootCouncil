@@ -325,8 +325,8 @@ local function create_tab(self)
 	vote_table.item.icon.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	vote_table.item.icon.tex:SetDrawLayer('ARTWORK')
 	vote_table.item.icon.tex:SetTexture(nil)
-	vote_table.item.icon.tex:SetPoint("TOPLEFT", vote_table.item.icon, "TOPLEFT", 2, -2)
-	vote_table.item.icon.tex:SetPoint("BOTTOMRIGHT", vote_table.item.icon, "BOTTOMRIGHT", -2, 2)
+	vote_table.item.icon.tex:SetPoint("TOPLEFT", vote_table.item.icon, "TOPLEFT", bdlc.border, -bdlc.border)
+	vote_table.item.icon.tex:SetPoint("BOTTOMRIGHT", vote_table.item.icon, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 	
 	-- num votes left
 	vote_table.numvotes = vote_table:CreateFontString(nil, "OVERLAY")
@@ -351,32 +351,180 @@ local function create_tab(self)
 	end)
 
 
+	--==============
 	-- display player info for awarding and viewing history
+	--==============
 	vote_table.info_pane = CreateFrame("Frame", nil, tab, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.info_pane:SetSize(100, 42)
+	vote_table.info_pane:SetSize(220, 24)
 	vote_table.info_pane:Hide()
 	bdlc:setBackdrop(vote_table.info_pane, .1, .1, .1, 1)
+
+	-- don't let them roll if they don't want
+	C_Timer.NewTicker(.5, function()
+		if (not vote_table.info_pane:IsShown()) then return end
+
+		vote_table.info_pane.award:SetEnabled(true)
+		vote_table.info_pane.award:SetAlpha(1)
+		if (vote_table.info_pane.entry.wantLevel == 15) then
+			vote_table.info_pane.award:SetEnabled(false)
+			vote_table.info_pane.award:SetAlpha(0.5)
+		end
+	end)
 	
-	vote_table.info_pane.text = vote_table.info_pane:CreateFontString(nil, "OVERLAY")
-	vote_table.info_pane.text:SetFontObject(bdlc:get_font(14, "NONE"))
-	vote_table.info_pane.text:SetText("Award loot to ?");
-	vote_table.info_pane.text:SetPoint("TOP", vote_table.info_pane, "TOP", 0, -2)
-	
-	vote_table.info_pane.yes = CreateFrame("Button", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.info_pane.yes:SetText(l["frameYes"])
-	vote_table.info_pane.yes:SetPoint("BOTTOMLEFT", vote_table.info_pane, "BOTTOMLEFT", 2, 2)
-	bdlc:skinButton(vote_table.info_pane.yes, false, "blue")
-	
-	vote_table.info_pane.no = CreateFrame("Button", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
-	vote_table.info_pane.no:SetText(l["frameNo"])
-	vote_table.info_pane.no:SetPoint("BOTTOMRIGHT", vote_table.info_pane, "BOTTOMRIGHT", -2, 2)
-	bdlc:skinButton(vote_table.info_pane.no,false,"red")
-	
-	vote_table.info_pane.no:SetScript("OnClick", function() vote_table.info_pane:Hide() end)
-	vote_table.info_pane.yes:SetScript("OnClick", function(self)
+
+	-- name
+	vote_table.info_pane.name = vote_table.info_pane:CreateFontString(nil, "OVERLAY")
+	vote_table.info_pane.name:SetFontObject(bdlc:get_font(14, "NONE"))
+	vote_table.info_pane.name:SetText("Player Name");
+	vote_table.info_pane.name:SetPoint("TOPLEFT", vote_table.info_pane, "TOPLEFT", 8, -5)
+
+	-- reward loot button
+	vote_table.info_pane.award = CreateFrame("Button", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
+	vote_table.info_pane.award:SetText(l["frameAward"])
+	vote_table.info_pane.award:SetPoint("TOPRIGHT", vote_table.info_pane, "TOPRIGHT", 0, 0)
+	bdlc:skinButton(vote_table.info_pane.award, false, "blue")
+	vote_table.info_pane.award:SetScript("OnClick", function(self)
 		bdlc:awardLoot(vote_table.info_pane.playerName, vote_table.info_pane.itemUID)
 		vote_table.info_pane:Hide()
 	end)
+
+	-- loot history
+	vote_table.info_pane.history = CreateFrame("frame", nil, vote_table.info_pane, BackdropTemplateMixin and "BackdropTemplate")
+	local history = vote_table.info_pane.history
+	history:SetPoint("TOPLEFT", vote_table.info_pane, "BOTTOMLEFT", 0, bdlc.border)
+	history:SetPoint("TOPRIGHT", vote_table.info_pane, "BOTTOMRIGHT", 0, bdlc.border)
+	bdlc:setBackdrop(history)
+	history:SetHeight(100)
+
+	history.text = history:CreateFontString(nil, "OVERLAY")
+	history.text:SetFontObject(bdlc:get_font(14, "NONE"))
+	history.text:SetText("No loot history...");
+	history.text:SetPoint("TOPLEFT", history, "TOPLEFT", 8, -6)
+
+	local function create_history()
+		local line = CreateFrame("frame", nil, vote_table.info_pane.history)
+		line:SetSize(vote_table.info_pane.history:GetWidth(), 20)
+
+		-- item
+		line.item = CreateFrame("frame", nil, line, BackdropTemplateMixin and "BackdropTemplate")
+		line.item:SetSize(20, 20)
+		line.item:SetPoint("LEFT", line, "LEFT", 6, 0);
+		bdlc:setBackdrop(line.item)
+		line.item:SetBackdropBorderColor(.0, .3, .1, 1)
+		line.item:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(line.data.item)
+			GameTooltip:Show()
+		end)
+		line.item:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		line.item.tex = line.item:CreateTexture(nil, "OVERLAY")
+		line.item.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+		line.item.tex:SetDrawLayer('ARTWORK')
+		line.item.tex:SetTexture(nil)
+		line.item.tex:SetPoint("TOPLEFT", line.item, "TOPLEFT", bdlc.border, -bdlc.border)
+		line.item.tex:SetPoint("BOTTOMRIGHT", line.item, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
+
+		-- want
+		line.want = line:CreateFontString(nil, "OVERLAY")
+		line.want:SetPoint("LEFT", line.item, "RIGHT", 6, 0)
+		line.want:SetWidth(50)
+		line.want:SetFontObject(bdlc:get_font(13, "NONE"))
+		line.want:SetJustifyH("LEFT")
+
+		-- gear 1
+		line.gear1 = CreateFrame("frame", nil, line, BackdropTemplateMixin and "BackdropTemplate")
+		line.gear1:SetSize(20, 20)
+		line.gear1:SetPoint("LEFT", line.want, "RIGHT", 18, 0);
+		bdlc:setBackdrop(line.gear1)
+		line.gear1:SetScript("OnEnter", function()
+			if (line.data.gear2 == 1) then 
+				return
+			end
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(line.data.gear1)
+			GameTooltip:Show()
+		end)
+		line.gear1:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		
+		line.gear1.tex = line.gear1:CreateTexture(nil, "OVERLAY")
+		line.gear1.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+		line.gear1.tex:SetDrawLayer('ARTWORK')
+		line.gear1.tex:SetTexture(nil)
+		line.gear1.tex:SetPoint("TOPLEFT", line.gear1, "TOPLEFT", bdlc.border, -bdlc.border)
+		line.gear1.tex:SetPoint("BOTTOMRIGHT", line.gear1, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
+		
+		-- gear 2
+		line.gear2 = CreateFrame("frame", nil, line, BackdropTemplateMixin and "BackdropTemplate")
+		line.gear2:SetSize(20, 20)
+		line.gear2:SetPoint("LEFT", line.gear1, "RIGHT", 4, 0);
+		bdlc:setBackdrop(line.gear2)
+		line.gear2:SetScript("OnEnter", function()
+			if (line.data.gear2 == 0) then 
+				return
+			end
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:SetHyperlink(line.data.gear2)
+			GameTooltip:Show()
+		end)
+		line.gear2:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		
+		line.gear2.tex = line.gear2:CreateTexture(nil, "OVERLAY")
+		line.gear2.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+		line.gear2.tex:SetDrawLayer('ARTWORK')
+		line.gear2.tex:SetTexture(nil)
+		line.gear2.tex:SetPoint("TOPLEFT", line.gear2, "TOPLEFT", bdlc.border, -bdlc.border)
+		line.gear2.tex:SetPoint("BOTTOMRIGHT", line.gear2, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
+
+		-- notes
+		line.notes = CreateFrame("frame", nil, line)
+		line.notes:SetPoint("LEFT", line.gear2, "RIGHT", 6, 0)
+		line.notes:SetSize(16,16)
+		line.notes:SetScript("OnEnter", function()
+			ShowUIPanel(GameTooltip)
+			GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+			GameTooltip:AddLine(line.data.notes, 1, 1, 1)
+			GameTooltip:Show()
+		end)
+		line.notes:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		line.notes.tex = line.notes:CreateTexture(nil, "OVERLAY")
+		line.notes.tex:SetAllPoints(line.notes)
+		line.notes.tex:SetTexture("Interface\\FriendsFrame\\BroadcastIcon")
+
+		-- date
+		line.date = line:CreateFontString(nil, "OVERLAY")
+		line.date:SetPoint("RIGHT", line, "RIGHT", -6, 0)
+		line.date:SetFontObject(bdlc:get_font(13, "NONE"))
+		line.date:SetTextColor(.5, .5, .5);
+		line.date:SetJustifyH("RIGHT")
+
+		return line
+	end
+	local function reset_history(self, line)
+		line.data = {}
+		line:ClearAllPoints()
+		line:Hide()
+		line.gear1:Show()
+		line.gear2:Show()
+		line.notes:Show()
+	end
+
+	if (not history.lines) then
+		history.lines = CreateObjectPool(create_history, reset_history)
+	end
+
+	vote_table.info_pane:SetScript("OnShow", function(self) self.history.lines:ReleaseAll() end)
+	vote_table.info_pane:SetScript("OnHide", function(self) self.history.lines:ReleaseAll() end)
 
 	-- entries
 	local function create_entry(self)
@@ -421,13 +569,83 @@ local function create_tab(self)
 					vote_table.info_pane:Show()
 					vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
 					vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
-					local r, g, b = self.name.text:GetTextColor()
-					local hex = RGBPercToHex(r, g, b)
-					local name = bdlc:capitalize(self.playerName)
-					vote_table.info_pane.text:SetText(l["frameAward"].."|cff"..hex..name.."|r?")
-					vote_table.info_pane:SetWidth(vote_table.info_pane.text:GetStringWidth() + 12)
+
+					vote_table.info_pane.entry = entry
+					vote_table.info_pane.award:SetEnabled(true)
+					vote_table.info_pane.award:SetAlpha(1)
+					if (entry.wantLevel == 15) then
+						vote_table.info_pane.award:SetEnabled(false)
+						vote_table.info_pane.award:SetAlpha(0.5)
+					end	
+
+					-- set name
+					vote_table.info_pane.name:SetText(bdlc:capitalize(self.playerName))
+					vote_table.info_pane.name:SetTextColor(self.name.text:GetTextColor())
+
+					-- data
 					vote_table.info_pane.playerName = self.playerName
 					vote_table.info_pane.itemUID = self.itemUID
+
+					vote_table.info_pane.history.text:SetText("No loot history last 45 days...");
+
+					-- populate history
+					local history = bdlc:getLootHistory(self.playerName)
+					if (#history > 0) then vote_table.info_pane.history.text:SetText("") end -- reset text
+
+					local lastline = nil
+					local height = 0
+					for k, entry in pairs(history) do
+						local line = vote_table.info_pane.history.lines:Acquire()
+						line:Show()
+
+						local info = entry['entry']
+
+						-- set data for tooltips
+						line.data = {}
+						line.data.item = entry['itemLink']
+						line.data.gear1 = info['itemLink1']
+						line.data.gear2 = info['itemLink2']
+						line.data.notes = info['notes']
+
+						-- textures
+						line.item.tex:SetTexture(entry['itemTexture'])
+						line.gear1.tex:SetTexture(info['itemTexture1'])
+						line.gear2.tex:SetTexture(info['itemTexture2'])
+
+						-- hide things that aren't populated
+						if (line.data.gear1 == 0) then
+							line.gear1:Hide()
+						end
+						if (line.data.gear2 == 0) then
+							line.gear2:Hide()
+						end
+						if (not line.data.notes) then
+							line.notes:Hide()
+						end
+
+						-- date, remove leading zeroes
+						local month, day, year = strsplit("-", entry['date'])
+						line.date:SetText(tonumber(month).."-"..tonumber(day).."-"..string.sub(year, -2))
+
+						-- want string
+						line.want:SetText(info['wantString'])
+
+						-- position
+						if (not lastline) then
+							line:SetPoint("TOPLEFT", vote_table.info_pane.history, 0, -4)
+						else
+							line:SetPoint("TOPLEFT", lastline, "BOTTOMLEFT", 0, -3)
+						end
+
+						lastline = line
+
+						height = height + line:GetHeight() + 3
+					end
+
+					if (height == 0) then
+						height = vote_table.info_pane.history.text:GetStringHeight() + 10
+					end
+					vote_table.info_pane.history:SetHeight(height + 4)
 				end
 			else
 				vote_table.info_pane:Hide()
@@ -519,8 +737,8 @@ local function create_tab(self)
 		entry.gear1.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 		entry.gear1.tex:SetDrawLayer('ARTWORK')
 		entry.gear1.tex:SetTexture(nil)
-		entry.gear1.tex:SetPoint("TOPLEFT", entry.gear1, "TOPLEFT", 2, -2)
-		entry.gear1.tex:SetPoint("BOTTOMRIGHT", entry.gear1, "BOTTOMRIGHT", -2, 2)
+		entry.gear1.tex:SetPoint("TOPLEFT", entry.gear1, "TOPLEFT", bdlc.border, -bdlc.border)
+		entry.gear1.tex:SetPoint("BOTTOMRIGHT", entry.gear1, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 	
 		entry.gear2 = CreateFrame("frame", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.gear2:Hide();
@@ -532,8 +750,8 @@ local function create_tab(self)
 		entry.gear2.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 		entry.gear2.tex:SetDrawLayer('ARTWORK')
 		entry.gear2.tex:SetTexture(nil)
-		entry.gear2.tex:SetPoint("TOPLEFT", entry.gear2, "TOPLEFT", 2, -2)
-		entry.gear2.tex:SetPoint("BOTTOMRIGHT", entry.gear2, "BOTTOMRIGHT", -2, 2)
+		entry.gear2.tex:SetPoint("TOPLEFT", entry.gear2, "TOPLEFT", bdlc.border, -bdlc.border)
+		entry.gear2.tex:SetPoint("BOTTOMRIGHT", entry.gear2, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 		
 		entry.votes = CreateFrame('frame', nil, entry)
 		entry.votes:SetPoint("RIGHT", entry, "RIGHT", -106, 0);
@@ -644,8 +862,8 @@ local function create_roll(self)
 	roll.item.icon.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	roll.item.icon.tex:SetDrawLayer('ARTWORK')
 	roll.item.icon.tex:SetTexture(nil)
-	roll.item.icon.tex:SetPoint("TOPLEFT", roll.item.icon, "TOPLEFT", 2, -2)
-	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -2, 2)
+	roll.item.icon.tex:SetPoint("TOPLEFT", roll.item.icon, "TOPLEFT", bdlc.border, -bdlc.border)
+	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 
 	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK")
 	roll.item.item_text:SetFontObject(bdlc:get_font(15))

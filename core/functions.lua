@@ -113,14 +113,15 @@ local function RGBPercToHex(r, g, b)
 end
 
 function bdlc:setBackdrop(frame, r, g, b, a)
-	local border = bdlc.media.border
 	local backdrop = r and {r, g, b, a} or bdlc.media.backdrop
 	local r, g, b, a = unpack(backdrop)
 	a = a or 1
 
-	frame:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
-    frame:SetBackdropColor(r, g, b, a)
-    frame:SetBackdropBorderColor(unpack(bdlc.media.border))
+	local border = bdlc:get_border(frame)
+
+	frame:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = border})
+	frame:SetBackdropColor(r, g, b, a)
+	frame:SetBackdropBorderColor(unpack(bdlc.media.border))
 end
 
 function bdlc:skinButton(f, small, color)

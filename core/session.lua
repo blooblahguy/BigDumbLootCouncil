@@ -447,26 +447,34 @@ function bdlc:addLootHistory(itemUID, playerName)
 	-- data table
 	local itemID, gem1, bonusID1, bonusID2, upgradeValue, lootedBy = strsplit(":", itemUID)
 	
-	local itemName = GetItemInfo(itemLink)
-
 	-- information about why they were in on the item
 	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
 	local want, wantColor = unpack(bdlc.config.buttons[want])
 	wantColor = RGBPercToHex(unpack(wantColor))
 
+	-- info on items
+	local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, itemTexture, vendorPrice = GetItemInfo(itemLink)
+	local itemName1, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, itemTexture1, vendorPrice = GetItemInfo(itemLink1)
+	local itemName2, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, itemTexture2, vendorPrice = GetItemInfo(itemLink2)
+
+	-- now store it
 	local entry = {}
 	entry['itemName'] = itemName
-	entry['date'] = date("%m-%d-%Y")
+	entry['itemTexture'] = itemTexture
+	entry['date'] = date("%m-%d-%y")
 	entry['itemLink'] = itemLink
 	entry['lootedBy'] = lootedBy
 	entry['entry'] = {
-		['want'] = "|cff"..wantColor..want.."|r",
+		['want'] = want,
+		['wantString'] = "|cff"..wantColor..want.."|r",
 		['itemLink1'] = itemLink1,
+		['itemTexture1'] = itemTexture1,
 		['itemLink2'] = itemLink2,
+		['itemTexture2'] = itemTexture2,
 		['notes'] = notes,
 	}
 
-	local num = #BDLC_HISTORY[playerName][today]
+	local num = getn(BDLC_HISTORY[playerName][today])
 
 	BDLC_HISTORY[playerName][today][num + 1] = entry
 end
@@ -477,31 +485,31 @@ function bdlc:getLootHistory(playerName)
 	local month, day, year = strsplit("-", today)
 	local today = strtotime(month, day, year)
 
-	local last_month = days_ago(today, 30)
+	local last_month = days_ago(today, 45)
 
 	local history = {}
+	local remove = {}
 
 	if (not BDLC_HISTORY[playerName]) then return {} end
 
-	-- store everything in here, and remove the valid entries so that we can cull the old ones
-	local remove = BDLC_HISTORY[playerName]
-
-	-- loop through player loot
-	for loot_date, entries in pairs(BDLC_HISTORY[playerName]) do
+	for loot_date, entries in bdlc:spairs(BDLC_HISTORY[playerName], function(a, b)
+		return tonumber(a) > tonumber(b)
+	end) do
 		loot_date = tonumber(loot_date)
 		-- was in the last 30 days
 		if (loot_date > last_month) then
-			-- remove from remove table
-			remove[loot_date] = nil
-
 			-- return any multiple entries from one day
-			for k, entry in pairs(entries) do
-				table.insert(history, entry)
+			for i = 1, #entries do
+				table.insert(history, entries[i])
 			end
+		else
+			-- remove this
+			table.insert(remove, loot_date)
 		end
 	end
 
 	-- now loop through remove and remove these items
+	-- print(#remove)
 	-- for loot_date, entries in pairs(remove) do
 	-- 	BDLC_HISTORY[playerName][loot_date] = nil
 	-- end
