@@ -369,6 +369,14 @@ local function create_tab(self)
 			vote_table.info_pane.award:SetEnabled(false)
 			vote_table.info_pane.award:SetAlpha(0.5)
 		end
+
+		vote_table.info_pane:ClearAllPoints()
+		local str, vert, horz = GetQuadrant(vote_table)
+		if (hoz == "RIGHT") then
+			vote_table.info_pane:SetPoint("TOPRIGHT", vote_table.info_pane.entry, "TOPLEFT", -8, 0)
+		else
+			vote_table.info_pane:SetPoint("TOPLEFT", vote_table.info_pane.entry, "TOPRIGHT", 8, 0)
+		end
 	end)
 	
 
@@ -568,7 +576,13 @@ local function create_tab(self)
 				else
 					vote_table.info_pane:Show()
 					vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
-					vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
+					vote_table.info_pane:ClearAllPoints()
+					local str, vert, horz = GetQuadrant(vote_table)
+					if (hoz == "RIGHT") then
+						vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
+					else
+						vote_table.info_pane:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0)
+					end
 
 					vote_table.info_pane.entry = entry
 					vote_table.info_pane.award:SetEnabled(true)
