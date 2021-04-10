@@ -228,7 +228,7 @@ function bdlc:sendLC()
 	bdlc:sendAction("customQN", unpack(friendlyQN) );
 
 	-- number of council votes
-	bdlc.overridePriority = "ALERT"
+	-- bdlc.overridePriority = "ALERT" -- not gonna mess with this right now
 	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
 
 	-- buttons
