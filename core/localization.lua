@@ -4,15 +4,12 @@ local bdlc, c, l = unpack(select(2, ...))
 -- EN Localization Defaults (dont touch, use as reference)
 --------------------------------------
 -- important functionality localization
-l["tierProtector"] = "Protector"
-l["tierConqueror"] = "Conqueror"
-l["tierVanquisher"] = "Vanquisher"
-
 l["tierHelm"] = "Helm"
 l["tierShoulders"] = "Shoulders"
 l["tierLegs"] = "Leggings"
 l["tierCloak"] = "Cloak"
 l["tierChest"] = "Chest"
+l["tierBelt"] = "Belt"
 l["tierGloves"] = "Gauntlets"
 l["itemWarforged"] = "Warforged"
 l["itemTitanforged"] = "Titanforged"

@@ -450,7 +450,7 @@ function bdlc:addLootHistory(itemUID, playerName)
 	-- information about why they were in on the item
 	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
 	local want, wantColor = unpack(bdlc.config.buttons[want])
-	wantColor = RGBPercToHex(unpack(wantColor))
+	wantColor = bdlc:RGBPercToHex(unpack(wantColor))
 
 	-- info on items
 	local itemName, link1, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, itemTexture, vendorPrice = GetItemInfo(itemLink)
@@ -717,7 +717,7 @@ bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
 			end
 		else
-			bdlc:print('Experimental: Item received via trading, will not be announced again.')
+			bdlc:debug('Experimental: Item received via trading, will not be announced again.')
 		end
 	end
 

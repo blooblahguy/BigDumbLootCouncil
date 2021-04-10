@@ -53,9 +53,9 @@ function bdlc:repositionFrames()
 			entry:ClearAllPoints()
 			if (entry.itemUID and entry:IsShown()) then
 				if (lastentry) then
-					entry:SetPoint("TOPLEFT", lastentry, "BOTTOMLEFT", 0, 1)
+					entry:SetPoint("TOPLEFT", lastentry, "BOTTOMLEFT", 0, 0)
 				else
-					entry:SetPoint("TOPLEFT", tab.table.content, "TOPLEFT", 0, 1)
+					entry:SetPoint("TOPLEFT", tab.table.content, "TOPLEFT", bdlc.border, 0)
 				end
 				lastentry = entry
 			end
@@ -372,7 +372,8 @@ local function create_tab(self)
 
 		vote_table.info_pane:ClearAllPoints()
 		local str, vert, horz = GetQuadrant(vote_table)
-		if (hoz == "RIGHT") then
+		-- print(vert, horz)
+		if (horz == "RIGHT") then
 			vote_table.info_pane:SetPoint("TOPRIGHT", vote_table.info_pane.entry, "TOPLEFT", -8, 0)
 		else
 			vote_table.info_pane:SetPoint("TOPLEFT", vote_table.info_pane.entry, "TOPRIGHT", 8, 0)
@@ -531,8 +532,13 @@ local function create_tab(self)
 		history.lines = CreateObjectPool(create_history, reset_history)
 	end
 
-	vote_table.info_pane:SetScript("OnShow", function(self) self.history.lines:ReleaseAll() end)
-	vote_table.info_pane:SetScript("OnHide", function(self) self.history.lines:ReleaseAll() end)
+	vote_table.info_pane:SetScript("OnShow", function(self)
+		self.history.lines:ReleaseAll() 
+	end)
+	vote_table.info_pane:SetScript("OnHide", function(self)
+		self.entry:SetBackdropColor(0, 0, 0, 0)
+		self.history.lines:ReleaseAll() 
+	end)
 
 	-- entries
 	local function create_entry(self)
@@ -543,22 +549,13 @@ local function create_tab(self)
 		entry.notes = ""
 		entry.roll = 0
 		entry.myilvl = 0
-		entry:SetSize(vote_table.content:GetWidth(), 22)
+		entry:SetSize(vote_table.content:GetWidth() -4, 22)
+		entry:SetBackdrop({bgFile = bdlc.media.flat})
+		entry:SetBackdropColor(0, 0, 0, 0)
 
-		entry.name = CreateFrame("button", nil, entry)
+		entry.name = CreateFrame("frame", nil, entry)
 		entry.name:SetSize(68, 25)
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
-
-		-- entry.name:SetScript("OnEnter", function()
-		-- 	ShowUIPanel(GameTooltip)
-		-- 	GameTooltip:SetOwner(entry, "ANCHOR_LEFT", 0, -33)
-		-- 	GameTooltip:AddLine("Click to view loot info >>", .5, .5, .5)
-
-		-- 	GameTooltip:Show()
-		-- end)
-		-- entry.name:SetScript("OnLeave", function()
-		-- 	GameTooltip:Hide()
-		-- end)
 
 		entry.name.text = entry.name:CreateFontString(nil, "OVERLAY")
 		entry.name.text:SetFontObject(bdlc:get_font(14, "NONE"))
@@ -566,9 +563,7 @@ local function create_tab(self)
 		entry.name.text:SetTextColor(1, 1, 1);
 		entry.name.text:SetAllPoints()
 		entry.name.text:SetJustifyH("LEFT")
-		entry.name:SetScript("OnClick", function()
-			entry:Click()
-		end)
+
 		entry:SetScript("OnClick", function(self)	
 			if (bdlc:IsRaidLeader()) then
 				if (vote_table.info_pane:IsShown()) then
@@ -578,13 +573,15 @@ local function create_tab(self)
 					vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
 					vote_table.info_pane:ClearAllPoints()
 					local str, vert, horz = GetQuadrant(vote_table)
-					if (hoz == "RIGHT") then
+					-- print(vert, horz)
+					if (horz == "RIGHT") then
 						vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
 					else
 						vote_table.info_pane:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0)
 					end
 
 					vote_table.info_pane.entry = entry
+					vote_table.info_pane.entry:SetBackdropColor(1, 1, 1, .07)
 					vote_table.info_pane.award:SetEnabled(true)
 					vote_table.info_pane.award:SetAlpha(1)
 					if (entry.wantLevel == 15) then
@@ -715,7 +712,6 @@ local function create_tab(self)
 		entry.user_notes.tex:SetAllPoints(entry.user_notes)
 		entry.user_notes.tex:SetTexture("Interface\\FriendsFrame\\BroadcastIcon")
 		
-		
 		entry.voteUser = CreateFrame("Button", nil, entry, BackdropTemplateMixin and "BackdropTemplate")
 		entry.voteUser:SetSize(45, 20)
 		entry.voteUser:SetPoint("RIGHT", entry, "RIGHT", -38, 0)
@@ -776,7 +772,6 @@ local function create_tab(self)
 		entry.votes.text:SetTextColor(1, 1, 1);
 		entry.votes.text:SetPoint("CENTER", entry.votes, "CENTER", 0, 0)
 		entry.votes:SetScript("OnEnter", function()
-			
 			if (tonumber(entry.votes.text:GetText()) > 0) then
 				ShowUIPanel(GameTooltip)
 				GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")

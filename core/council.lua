@@ -23,7 +23,7 @@ function bdlc:customButtons(buttons)
 	-- display to debug
 	local buttons = ""
 	for k, v in pairs(bdlc.buttons) do
-		local hex = RGBPercToHex(unpack(v[2]))
+		local hex = bdlc:RGBPercToHex(unpack(v[2]))
 		local name, enabled, require_note = v[1], v[3], v[4]
 		if (enabled) then
 			enabled = enabled and "Enabled" or "Disabled"
@@ -228,6 +228,7 @@ function bdlc:sendLC()
 	bdlc:sendAction("customQN", unpack(friendlyQN) );
 
 	-- number of council votes
+	bdlc.overridePriority = "ALERT"
 	bdlc:sendAction("councilVotes", bdlc.config.council_votes);
 
 	-- buttons

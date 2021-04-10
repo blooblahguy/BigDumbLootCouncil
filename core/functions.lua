@@ -85,6 +85,7 @@ function bdlc:sendAction(action, ...)
 	-- unset these, probably shouldn't have them in the first place but it works
 	bdlc.overrideChannel = nil
 	bdlc.overrideRecipient = nil
+	bdlc.overridePriority = nil
 end
 
 --======================================
@@ -105,7 +106,7 @@ function bdlc:RGBToHex(r, g, b)
 	return string.format("%02x%02x%02x", r*255, g*255, b*255)
 end
 
-function RGBPercToHex(r, g, b)
+function bdlc:RGBPercToHex(r, g, b)
 	if (type(r) == "table") then
 		g = r.g
 		b = r.b
@@ -253,6 +254,8 @@ function bdlc:fetchUserGear(unit, itemLink)
 			equipSlot = "INVTYPE_CHEST"
 		elseif (find_compare(name, l["tierGloves"])) then
 			equipSlot = "INVTYPE_HAND"
+		elseif (find_compare(name, l["tierBelt"])) then
+			equipSlot = "INVTYPE_WAIST"
 		end
 	end
 
@@ -436,7 +439,7 @@ function bdlc:itemEquippable(itemUID)
 		end
 	end
 	
-	bdlc:debug("Experimental: You automatically passed on ", itemLink)
+	bdlc:print("Experimental: You automatically passed on ", itemLink)
 	return false
 end
 
@@ -454,75 +457,108 @@ function bdlc:isTier(itemLink)
 		classes[name] = name
 	end
 
-	local tier_classes = {
-		-- older
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Rogue"], classes["Shaman"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Priest"], classes["Druid"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Warlock"]}, ", ")),
-		-- old
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
-		-- newer
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
-	}
+	-- local tier_classes = {
+	-- 	-- older
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Rogue"], classes["Shaman"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Priest"], classes["Druid"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Warlock"]}, ", ")),
+	-- 	-- old
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+	-- 	-- newer
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
+	-- }
 
-	local weapon_classes = {
-		-- main hands
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
-	}
-	local offhand_classes = {
-		-- offhands
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
-		string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
-	}
+	-- local weapon_classes = {
+	-- 	-- main hands
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
+	-- }
+	-- local offhand_classes = {
+	-- 	-- offhands
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
+	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
+	-- }
+
+	local tier_string = strsub(ITEM_CLASSES_ALLOWED, 0, -3)
+
+	-- todo change this to not use classes
 
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
 
-	-- scan for class requirements
+
 	for i = 1, bdlc.tt:NumLines() do
 		local line = _G['BDLC:TooltipScanTextLeft'..i]
-		local text = line:GetText();
+		local text = line:GetText()
 
-		for k, v in pairs(weapon_classes) do
-			if (strfind(text, v) ~= nil) then
-				if (strfind(text, myClass) ~= nil) then
-					usable = true
-				end
-				isTier = true
-				tierType = "weapon"
-				break
+		-- check if it's "Classes: "
+		if (strfind(text, tier_string) ~= nil) then
+			if (strfind(text, myClass) ~= nil) then
+				usable = true
 			end
+
+			isTier = true
 		end
 
-		for k, v in pairs(offhand_classes) do
-			if (strfind(text, v) ~= nil) then
-				if (strfind(text, myClass) ~= nil) then
-					usable = true
-				end
-				isTier = true
-				tierType = "offhand"
-				break
-			end
+		-- is a weapon
+		if (strfind(text, WEAPON:lower()) ~= nil) then
+			tierType = "weapon"
 		end
-
-		for k, v in pairs(tier_classes) do
-			if (strfind(text, v) ~= nil) then
-				if (strfind(text, myClass) ~= nil) then
-					usable = true
-				end
-				isTier = true
-				tierType = "armor"
-				break
-			end
+		-- is an offhand/shield
+		local offhand_str = gsub(INVTYPE_WEAPONOFFHAND:lower(), " ", "")
+		if (strfind(text, SHIELDSLOT:lower()) ~= nil or strfind(text, offhand_str) ~= nil) then
+			tierType = "offhand"
 		end
 	end
+
+	if (isTier and tierType == false) then
+		tierType = "armor"
+	end
+
+	-- scan for class requirements
+	-- for i = 1, bdlc.tt:NumLines() do
+	-- 	local line = _G['BDLC:TooltipScanTextLeft'..i]
+	-- 	local text = line:GetText();
+
+	-- 	for k, v in pairs(weapon_classes) do
+	-- 		if (strfind(text, v) ~= nil) then
+	-- 			if (strfind(text, myClass) ~= nil) then
+	-- 				usable = true
+	-- 			end
+	-- 			isTier = true
+	-- 			tierType = "weapon"
+	-- 			break
+	-- 		end
+	-- 	end
+
+	-- 	for k, v in pairs(offhand_classes) do
+	-- 		if (strfind(text, v) ~= nil) then
+	-- 			if (strfind(text, myClass) ~= nil) then
+	-- 				usable = true
+	-- 			end
+	-- 			isTier = true
+	-- 			tierType = "offhand"
+	-- 			break
+	-- 		end
+	-- 	end
+
+	-- 	for k, v in pairs(tier_classes) do
+	-- 		if (strfind(text, v) ~= nil) then
+	-- 			if (strfind(text, myClass) ~= nil) then
+	-- 				usable = true
+	-- 			end
+	-- 			isTier = true
+	-- 			tierType = "armor"
+	-- 			break
+	-- 		end
+	-- 	end
+	-- end
 	
 	return isTier, tierType, usable
 end
@@ -640,19 +676,24 @@ end
 -- Tradability
 function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
-	local tradableString = BIND_TRADE_TIME_REMAINING:format(''):utf8sub(0, -2)
+	local tradableString = BIND_TRADE_TIME_REMAINING:utf8sub(0, -4)
+	--local sellableString = REFUND_TIME_REMAINING:utf8sub(0, 24) -- for testing
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
 		for slot = 1, GetContainerNumSlots(bag) do
-			local bagItemLink = GetContainerItemLink(bag,slot);
+			local bagItemLink = GetContainerItemLink(bag, slot)
+
+			local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, "") or false
+			local itemUID = bdlc:GetItemUID(itemLink, "")
 			
-			if (bagItemLink and bagItemLink == itemLink) then
+			if (bagUID and bagUID == itemUID) then
 				bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 				bdlc.tt:SetBagItem(bag, slot)
 
-				for i = 50, 1, -1 do
-					local text = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() or nil;
+				for i = 1, 15 do
+					local line = _G['BDLC:TooltipScanTextLeft'..i]
+					local text = line and line:GetText()
 
 					if (text and string.find(text, tradableString) ~= nil) then
 						isTradable = true
