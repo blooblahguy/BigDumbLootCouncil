@@ -34,7 +34,7 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 
 	if (not itemString) then 
-		bdlc:print(itemLink.." isn't actually an item. Please report this to the developer")
+		bdlc:debug(itemLink.." isn't actually an item. Please report this to the developer")
 		return false -- this never ever happen
 	end
 
