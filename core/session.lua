@@ -202,8 +202,8 @@ function bdlc:addUserConsidering(itemUID, playerName)
 	local name, color = bdlc:prettyName(playerName)
 	
 	entry:Show()
-	entry.name:SetText(name)
-	entry.name:SetTextColor(color.r, color.g, color.b);
+	entry.name.text:SetText(name)
+	entry.name.text:SetTextColor(color.r, color.g, color.b);
 	entry.interest.text:SetText(l["frameConsidering"]);
 	entry.interest.text:SetTextColor(.5,.5,.5);
 	entry.gear1:Hide()
@@ -364,6 +364,8 @@ end
 -- This function alerts awarding and then sends a raid message
 ----------------------------------------
 function bdlc:awardLoot(playerName, itemUID)
+	if (not bdlc:IsRaidLeader()) then return end
+	
 	if (not itemUID) then return end
 	local lootedBy = bdlc.loot_sessions[itemUID]
 	local itemLink = bdlc.itemMap[itemUID]
@@ -373,8 +375,9 @@ function bdlc:awardLoot(playerName, itemUID)
 	local unit = bdlc:unitName(playerName)
 
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..unit, "WHISPER", nil, lootedBy)
-	SendChatMessage("BDLC: "..itemLink.." awarded to "..unit, "RAID")
-	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
+	SendChatMessage("BDLC: "..lootedBy.."'s "..itemLink.." awarded to "..unit, "RAID")
+
+	bdlc:sendAction("addLootHistory", itemUID, playerName)
 
 	bdlc:repositionFrames()
 end
@@ -383,13 +386,115 @@ end
 -- addLootHistory
 -- store log of when / what user was awarded in the past
 ----------------------------------------
--- function bdlc:addLootHistory(itemUID, playerName)
+-- idk a shity one, return seconds since 1-1-2020
+local function days_ago(strtime, days)
+	return strtime - (86400 * days)
+end
+local function strtotime(month, day, year)
+	month, day, year = tonumber(month), tonumber(day), tonumber(year)
+	-- print(month, day, year)
+	local daysinmonth = {
+		[1] = 31,
+		[2] = 28,
+		[3] = 31,
+		[4] = 30,
+		[5] = 31,
+		[6] = 30,
+		[7] = 31,
+		[8] = 31,
+		[9] = 30,
+		[10] = 31,
+		[11] = 30,
+		[12] = 31,
+	}
 
--- end
+	
+	local seconds_day = 86400 * day
+	local seconds_month = 0
+	for i = 1, month do
+		seconds_month = seconds_month + (daysinmonth[i] * 86400)
+	end
+	local seconds_year = (year - 2020) * (86400 * 365)
+
+	return seconds_day + seconds_month + seconds_year
+end
+
+function bdlc:addLootHistory(itemUID, playerName)
+	local today = date("%m-%d-%Y")
+	local month, day, year = strsplit("-", today)
+	local today = strtotime(month, day, year)
+
+	-- loot info
+	local lootedBy = bdlc.loot_sessions[itemUID]
+	local itemLink = bdlc.itemMap[itemUID]
+
+	-- store player entries by day
+	BDLC_HISTORY[playerName] = BDLC_HISTORY[playerName] or {}
+	BDLC_HISTORY[playerName][today] = BDLC_HISTORY[playerName][today] or {}
+
+	-- data table
+	local itemID, gem1, bonusID1, bonusID2, upgradeValue, lootedBy = strsplit(":", itemUID)
+	local itemName = GetItemInfo(itemLink)
+	local entry = {}
+	entry['itemName'] = itemName
+	entry['date'] = date("%m-%d-%Y")
+	entry['itemLink'] = itemLink
+	entry['itemID'] = itemID
+	entry['lootedBy'] = lootedBy
+	entry['socket'] = gem1
+	entry['bonuses'] = {bonusID1, bonusID2, upgradeValue}
+
+	table.insert(BDLC_HISTORY[playerName][today], entry)
+end
+
+-- return loot history by player
+function bdlc:getLootHistory(playerName)
+	local today = date("%m-%d-%Y")
+	local month, day, year = strsplit("-", today)
+	local today = strtotime(month, day, year)
+
+	local last_month = days_ago(today, 30)
+
+	local history = {}
+
+	if (not BDLC_HISTORY[playerName]) then return {} end
+
+	-- store everything in here, and remove the valid entries so that we can cull the old ones
+	local remove = BDLC_HISTORY[playerName]
+
+	-- loop through player loot
+	for loot_date, entries in pairs(BDLC_HISTORY[playerName]) do
+		-- was in the last 30 days
+		if (loot_date > last_month) then
+			-- remove from remove table
+			remove[loot_date] = nil
+
+			-- return any multiple entries from one day
+			for k, entry in pairs(entries) do
+				table.insert(history, entry)
+			end
+		end
+	end
+
+	-- now loop through remove and remove these items
+	-- for loot_date, entries in pairs(remove) do
+	-- 	BDLC_HISTORY[playerName][loot_date] = nil
+	-- end
+
+	-- done
+	return history
+end
 
 --==========================================
 -- Receive messages
 --==========================================
+local lc_only = {
+
+}
+local ml_only = {
+
+}
+
 function bdlc:messageCallback(prefix, message, channel, sender)
 	local method, partyMaster, raidMaster = GetLootMethod()
 	local pre_params = {strsplit(bdlc.deliminator, message)}
