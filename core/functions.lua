@@ -32,6 +32,12 @@ end
 function bdlc:GetItemUID(itemLink, lootedBy)
 	lootedBy = lootedBy or ""
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
+
+	if (not itemString) then 
+		bdlc:print(itemLink.." isn't actually an item. Please report this to the developer")
+		return false -- this never ever happen
+	end
+
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 
 	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue..":"..lootedBy
@@ -380,6 +386,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 		end
 		bdlc:print("Relic: ", isRelic and "Yes" or "No")
 		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
+		bdlc:print("Equip Slot: ", (equipSlot and string.len(equipSlot) > 0) and equipSlot)
 		bdlc:print("Tradable: ", bdlc:verifyTradability(itemLink) and "Yes" or "No")
 	end
 	
@@ -677,7 +684,7 @@ end
 function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
 	local tradableString = BIND_TRADE_TIME_REMAINING:utf8sub(0, -4)
-	--local sellableString = REFUND_TIME_REMAINING:utf8sub(0, 24) -- for testing
+	local sellableString = REFUND_TIME_REMAINING:utf8sub(0, 24) -- for testing
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
@@ -691,7 +698,7 @@ function bdlc:tradableTooltip(itemLink)
 				bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 				bdlc.tt:SetBagItem(bag, slot)
 
-				for i = 1, 15 do
+				for i = 1, 150 do
 					local line = _G['BDLC:TooltipScanTextLeft'..i]
 					local text = line and line:GetText()
 
@@ -701,7 +708,6 @@ function bdlc:tradableTooltip(itemLink)
 					end
 				end
 
-				break
 			end
 		end
 	end
