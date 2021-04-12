@@ -10,10 +10,11 @@ bdlc.deliminator = "><";
 bdlc.colorString = "|cffA02C2FBig|r Dumb Loot Council "
 bdlc.localPlayer = (UnitName("player").."-"..GetRealmName()):utf8lower()
 bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
-bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
-bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 bdlc.config = {}
 bdlc.enabledebug = false
+
+bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
+bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",

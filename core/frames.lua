@@ -848,14 +848,32 @@ local function create_roll(self)
 	roll.item.icon = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
 	roll.item.icon:SetSize(50, 50)
 	roll.item.icon:SetPoint("TOPLEFT", roll, "TOPLEFT", 5, -5)
+	
+	roll.item.icon:EnableKeyboard(true)
 	roll.item.icon:SetScript("OnEnter", function(self)
 		ShowUIPanel(GameTooltip)
 		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
 		GameTooltip:SetHyperlink(self.itemLink)
 		GameTooltip:Show()
+
+		self.total = 0
+		self:SetScript("OnUpdate", function(self, elapsed)
+			self.total = self.total + elapsed
+			if (self.total > 0.2) then
+				self.total = 0
+				if IsModifiedClick("COMPAREITEMS") or (GetCVarBool("alwaysCompareItems") and not IsEquippedItem(bdlc:GetItemID(self.itemLink))) then
+					GameTooltip_ShowCompareItem()
+				end
+
+				if (not IsModifiedClick("COMPAREITEMS") and not GetCVarBool("alwaysCompareItems")) then
+					GameTooltip_HideShoppingTooltips(GameTooltip)
+				end
+			end
+		end)		
 	end)
-	roll.item.icon:SetScript("OnLeave", function()
+	roll.item.icon:SetScript("OnLeave", function(self)
 		GameTooltip:Hide()
+		self:SetScript("OnUpdate", nil)
 	end)
 	bdlc:setBackdrop(roll.item.icon, 0,0,0,.8);
 	

@@ -29,6 +29,13 @@ function bdlc:get_border(frame)
 end
 
 -- UID hash string
+function bdlc:GetItemID(itemLink)
+	local itemString = string.match(itemLink, "item[%-?%d:]+")
+	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
+
+	return itemID
+end
+
 function bdlc:GetItemUID(itemLink, lootedBy)
 	lootedBy = lootedBy or ""
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
