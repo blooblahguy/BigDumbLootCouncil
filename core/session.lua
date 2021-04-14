@@ -433,6 +433,12 @@ function bdlc:addLootHistory(itemUID, playerName)
 	local today = date("%m-%d-%Y")
 	local month, day, year = strsplit("-", today)
 	local today = tostring(strtotime(month, day, year))
+
+	if (not bdlc.loot_sessions[itemUID]) then return end
+	if (not bdlc:inLC()) then return false end
+	if (not bdlc.loot_want[itemUID] or bdlc.loot_want[itemUID][playerName]) then
+		return
+	end
 	
 	-- loot info
 	local lootedBy = bdlc.loot_sessions[itemUID]

@@ -564,101 +564,103 @@ local function create_tab(self)
 		entry.name.text:SetAllPoints()
 		entry.name.text:SetJustifyH("LEFT")
 		entry:SetScript("OnClick", function(self)	
-			if (bdlc:IsRaidLeader()) then
-				if (vote_table.info_pane:IsShown()) then
-					vote_table.info_pane:Hide()
+			
+			if (vote_table.info_pane:IsShown()) then
+				vote_table.info_pane:Hide()
+			else
+				vote_table.info_pane:Show()
+				vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
+				vote_table.info_pane:ClearAllPoints()
+				local str, vert, horz = GetQuadrant(vote_table)
+				-- print(vert, horz)
+				if (horz == "RIGHT") then
+					vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
 				else
-					vote_table.info_pane:Show()
-					vote_table.info_pane:SetFrameLevel(self:GetFrameLevel() + 1)
-					vote_table.info_pane:ClearAllPoints()
-					local str, vert, horz = GetQuadrant(vote_table)
-					-- print(vert, horz)
-					if (horz == "RIGHT") then
-						vote_table.info_pane:SetPoint("TOPRIGHT", self, "TOPLEFT", -8, 0)
-					else
-						vote_table.info_pane:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0)
-					end
+					vote_table.info_pane:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0)
+				end
 
-					vote_table.info_pane.entry = entry
-					vote_table.info_pane.entry:SetBackdropColor(1, 1, 1, .07)
+				vote_table.info_pane.entry = entry
+				vote_table.info_pane.entry:SetBackdropColor(1, 1, 1, .07)
+				if (bdlc:IsRaidLeader()) then
+					vote_table.info_pane.award:Show()
 					vote_table.info_pane.award:SetEnabled(true)
 					vote_table.info_pane.award:SetAlpha(1)
 					if (entry.wantLevel == 15) then
 						vote_table.info_pane.award:SetEnabled(false)
 						vote_table.info_pane.award:SetAlpha(0.5)
-					end	
-
-					-- set name
-					vote_table.info_pane.name:SetText(bdlc:capitalize(self.playerName))
-					vote_table.info_pane.name:SetTextColor(self.name.text:GetTextColor())
-
-					-- data
-					vote_table.info_pane.playerName = self.playerName
-					vote_table.info_pane.itemUID = self.itemUID
-
-					vote_table.info_pane.history.text:SetText("No loot history last 45 days...");
-
-					-- populate history
-					local history = bdlc:getLootHistory(self.playerName)
-					if (#history > 0) then vote_table.info_pane.history.text:SetText("") end -- reset text
-
-					local lastline = nil
-					local height = 0
-					for k, entry in pairs(history) do
-						local line = vote_table.info_pane.history.lines:Acquire()
-						line:Show()
-
-						local info = entry['entry']
-
-						-- set data for tooltips
-						line.data = {}
-						line.data.item = entry['itemLink']
-						line.data.gear1 = info['itemLink1']
-						line.data.gear2 = info['itemLink2']
-						line.data.notes = info['notes']
-
-						-- textures
-						line.item.tex:SetTexture(entry['itemTexture'])
-						line.gear1.tex:SetTexture(info['itemTexture1'])
-						line.gear2.tex:SetTexture(info['itemTexture2'])
-
-						-- hide things that aren't populated
-						if (line.data.gear1 == 0) then
-							line.gear1:Hide()
-						end
-						if (line.data.gear2 == 0) then
-							line.gear2:Hide()
-						end
-						if (not line.data.notes) then
-							line.notes:Hide()
-						end
-
-						-- date, remove leading zeroes
-						local month, day, year = strsplit("-", entry['date'])
-						line.date:SetText(tonumber(month).."-"..tonumber(day).."-"..string.sub(year, -2))
-
-						-- want string
-						line.want:SetText(info['wantString'])
-
-						-- position
-						if (not lastline) then
-							line:SetPoint("TOPLEFT", vote_table.info_pane.history, 0, -4)
-						else
-							line:SetPoint("TOPLEFT", lastline, "BOTTOMLEFT", 0, -3)
-						end
-
-						lastline = line
-
-						height = height + line:GetHeight() + 3
 					end
-
-					if (height == 0) then
-						height = vote_table.info_pane.history.text:GetStringHeight() + 10
-					end
-					vote_table.info_pane.history:SetHeight(height + 4)
+				else
+					vote_table.info_pane.award:Hide()
 				end
-			else
-				vote_table.info_pane:Hide()
+
+				-- set name
+				vote_table.info_pane.name:SetText(bdlc:capitalize(self.playerName))
+				vote_table.info_pane.name:SetTextColor(self.name.text:GetTextColor())
+
+				-- data
+				vote_table.info_pane.playerName = self.playerName
+				vote_table.info_pane.itemUID = self.itemUID
+
+				vote_table.info_pane.history.text:SetText("No loot history last 45 days...");
+
+				-- populate history
+				local history = bdlc:getLootHistory(self.playerName)
+				if (#history > 0) then vote_table.info_pane.history.text:SetText("") end -- reset text
+
+				local lastline = nil
+				local height = 0
+				for k, entry in pairs(history) do
+					local line = vote_table.info_pane.history.lines:Acquire()
+					line:Show()
+
+					local info = entry['entry']
+
+					-- set data for tooltips
+					line.data = {}
+					line.data.item = entry['itemLink']
+					line.data.gear1 = info['itemLink1']
+					line.data.gear2 = info['itemLink2']
+					line.data.notes = info['notes']
+
+					-- textures
+					line.item.tex:SetTexture(entry['itemTexture'])
+					line.gear1.tex:SetTexture(info['itemTexture1'])
+					line.gear2.tex:SetTexture(info['itemTexture2'])
+
+					-- hide things that aren't populated
+					if (line.data.gear1 == 0) then
+						line.gear1:Hide()
+					end
+					if (line.data.gear2 == 0) then
+						line.gear2:Hide()
+					end
+					if (not line.data.notes) then
+						line.notes:Hide()
+					end
+
+					-- date, remove leading zeroes
+					local month, day, year = strsplit("-", entry['date'])
+					line.date:SetText(tonumber(month).."-"..tonumber(day).."-"..string.sub(year, -2))
+
+					-- want string
+					line.want:SetText(info['wantString'])
+
+					-- position
+					if (not lastline) then
+						line:SetPoint("TOPLEFT", vote_table.info_pane.history, 0, -4)
+					else
+						line:SetPoint("TOPLEFT", lastline, "BOTTOMLEFT", 0, -3)
+					end
+
+					lastline = line
+
+					height = height + line:GetHeight() + 3
+				end
+
+				if (height == 0) then
+					height = vote_table.info_pane.history.text:GetStringHeight() + 10
+				end
+				vote_table.info_pane.history:SetHeight(height + 4)
 			end
 		end)
 		
