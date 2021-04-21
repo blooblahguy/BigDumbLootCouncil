@@ -251,7 +251,7 @@ end
 -- return item ID(s) for gear comparison
 function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
-	local isRelic = bdlc:IsRelic(itemLink)
+	-- local isRelic = bdlc:IsRelic(itemLink)
 	local isTier, tierType, usable = bdlc:isTier(itemLink)
 	
 	if (isTier) then
@@ -313,17 +313,17 @@ function bdlc:fetchUserGear(unit, itemLink)
 		itemLink2 = GetInventoryItemLink(unit, 17)
 		slotID = 16
 	end
-	if (isRelic) then
-		local relicType = bdlc:GetRelicType(itemLink)
-		local relic1, relic2 = bdlc:GetRelics(relicType)
+	-- if (isRelic) then
+	-- 	local relicType = bdlc:GetRelicType(itemLink)
+	-- 	local relic1, relic2 = bdlc:GetRelics(relicType)
 		
-		if (relic1) then
-			itemLink1 = relic1
-		end
-		if (relic2) then
-			itemLink2 = relic2
-		end
-	end
+	-- 	if (relic1) then
+	-- 		itemLink1 = relic1
+	-- 	end
+	-- 	if (relic2) then
+	-- 		itemLink2 = relic2
+	-- 	end
+	-- end
 	if (not itemLink1) then
 		itemLink1 = 0
 	end
@@ -331,7 +331,8 @@ function bdlc:fetchUserGear(unit, itemLink)
 		itemLink2 = 0
 	end
 	
-	if (slotID == 0 and not isRelic) then
+	-- if (slotID == 0 and not isRelic) then
+	if (slotID == 0) then
 		bdlc.print("Can't find compare for slot: "..equipSlot..". Let the developer know");
 	end
 	
@@ -377,10 +378,11 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 
 	-- this session already exists, don't create again
 	if (bdlc.loot_sessions[itemUID] == lootedBy and not test) then
+		bdlc:debug("Session already exists for this item")
 		return false
 	end
 
-	local isRelic = bdlc:IsRelic(itemLink)
+	-- local isRelic = bdlc:IsRelic(itemLink)
 	local isTier, tierType, usable = bdlc:isTier(itemLink)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 
@@ -391,16 +393,16 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 			bdlc:print("Tier Type: ", tierType)
 			bdlc:print("Tier Usable: ", usable)
 		end
-		bdlc:print("Relic: ", isRelic and "Yes" or "No")
-		bdlc:print("Equipable: ", (equipSlot and string.len(equipSlot) > 0) and "Yes" or "No")
-		bdlc:print("Equip Slot: ", (equipSlot and string.len(equipSlot) > 0) and equipSlot)
+		-- bdlc:print("Relic: ", isRelic and "Yes" or "No")
+		bdlc:print("Equipable: ", ((equipSlot or usable) and string.len(equipSlot or usable) > 0) and "Yes" or "No")
+		bdlc:print("Equip Slot: ", ((equipSlot or usable) and string.len(equipSlot or usable) > 0) and equipSlot or tierType)
 		bdlc:print("Tradable: ", bdlc:verifyTradability(itemLink) and "Yes" or "No")
 	end
 	
 	if (equipSlot and string.len(equipSlot) > 0) then
 		return true
 	end
-	if (isTier or isRelic) then
+	if (isTier) then
 		return true
 	end
 	if (bdlc.forceSession) then
@@ -464,11 +466,11 @@ function bdlc:isTier(itemLink)
 
 	-- store class names
 	local classes = {}
-	local myClass = select(1, UnitClass("player"))
+	local myClass = select(1, UnitClass("player")):lower()
 
 	for i = 1, 12 do
 		local name, global, index = GetClassInfo(i)
-		classes[name] = name
+		classes[name:lower()] = name:lower()
 	end
 
 	-- local tier_classes = {
@@ -498,18 +500,23 @@ function bdlc:isTier(itemLink)
 	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
 	-- }
 
-	local tier_string = strsub(ITEM_CLASSES_ALLOWED, 0, -3)
+	-- ensure globals for us at least
+	ITEM_CLASSES_ALLOWED = ITEM_CLASSES_ALLOWED or "Classes: %s"
+	WEAPON = WEAPON or "Weapon"
+	SHIELDSLOT = SHIELDSLOT or "Shield"
+	INVTYPE_WEAPONOFFHAND = INVTYPE_WEAPONOFFHAND or "Off hand"
 
-	-- todo change this to not use classes
-
+	
+	local tier_string = string.utf8sub(ITEM_CLASSES_ALLOWED, 0, -3):lower()
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
 
-
-	for i = 1, bdlc.tt:NumLines() do
+	for i = 1, 150 do
 		local line = _G['BDLC:TooltipScanTextLeft'..i]
-		local text = line:GetText()
+		local text = line and line:GetText() and line:GetText():lower()
+
+		if (not text) then break end
 
 		-- check if it's "Classes: "
 		if (strfind(text, tier_string) ~= nil) then
@@ -690,8 +697,8 @@ end
 -- Tradability
 function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
-	local tradableString = BIND_TRADE_TIME_REMAINING:utf8sub(0, -4)
-	local sellableString = REFUND_TIME_REMAINING:utf8sub(0, 24) -- for testing
+	local tradableString = BIND_TRADE_TIME_REMAINING:utf8sub(0, 24):lower()
+	local sellableString = REFUND_TIME_REMAINING:utf8sub(0, 24):lower() -- for testing
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
@@ -707,9 +714,11 @@ function bdlc:tradableTooltip(itemLink)
 
 				for i = 1, 150 do
 					local line = _G['BDLC:TooltipScanTextLeft'..i]
-					local text = line and line:GetText()
+					local text = line and line:GetText() and line:GetText():lower()
 
-					if (text and string.find(text, tradableString) ~= nil) then
+					if (not text) then break end
+
+					if (string.find(text, tradableString) ~= nil) then
 						isTradable = true
 						break
 					end

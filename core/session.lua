@@ -555,7 +555,7 @@ function bdlc:messageCallback(prefix, message, channel, sender)
 	end
 
 	-- -- auto methods have to force a self param
-	if (bdlc[action]) then
+	if (bdlc[action] or not params) then
 		if (params and unpack(params)) then -- if params arne't blank
 			bdlc[action](self, unpack(params))
 		else
