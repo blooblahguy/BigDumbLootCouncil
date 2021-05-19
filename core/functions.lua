@@ -272,10 +272,10 @@ function bdlc:fetchUserGear(unit, itemLink)
 		end
 	end
 
-	if (tierType == "weapon") then
+	if (isTier and tierType == "weapon") then
 		equipSlot = "INVTYPE_WEAPONMAINHAND"
 	end
-	if (tierType == "offhand") then
+	if (isTier and tierType == "offhand") then
 		equipSlot = "INVTYPE_WEAPONMAINHAND"
 	end
 	
@@ -303,6 +303,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 		itemLink2 = GetInventoryItemLink(unit, 12)
 		slotID = 11
 	end
+
 	if (equipSlot == "INVTYPE_TRINKET") then
 		itemLink1 = GetInventoryItemLink(unit, 13)
 		itemLink2 = GetInventoryItemLink(unit, 14)
@@ -541,6 +542,8 @@ function bdlc:isTier(itemLink)
 	if (isTier and tierType == false) then
 		tierType = "armor"
 	end
+
+	tierType = isTier and tierType or false
 
 	-- scan for class requirements
 	-- for i = 1, bdlc.tt:NumLines() do
