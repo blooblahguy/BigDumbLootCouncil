@@ -246,7 +246,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	entry.interest.text:SetTextColor(unpack(wantColor))
 	entry.voteUser:Show()
 	entry.roll = roll
-	entry.myilvl = tonumber(ilvl)
+	entry.myilvl = tonumber(ilvl) or 0
 	entry.wantLevel = want
 	entry.itemUID = itemUID
 	entry.playerName = playerName
