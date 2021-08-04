@@ -24,6 +24,10 @@ loader:SetScript("OnEvent", function(self, event, addon)
 		bdlc.config["shadowlands2"] = true
 	end
 
+	-- C_Timer.After(0.2, function()
+	-- 	bdlc:startMockSession()
+	-- end)
+
 	local version = tonumber(bdlc.version) and bdlc.version or "Developer"
 	bdlc:print("Loaded, enjoy! Version: "..version)
 

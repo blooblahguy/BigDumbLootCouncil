@@ -180,7 +180,10 @@ end
 --======================================
 
 -- tabs
+local tab_i = 0
 local function create_tab(self)
+	tab_i = tab_i + 1
+
 	local tab = CreateFrame('button', nil, bdlc.window.tabs, BackdropTemplateMixin and "BackdropTemplate")
 
 	tab.selected = false
@@ -206,7 +209,7 @@ local function create_tab(self)
 			self.icon:SetDesaturated(false)
 		end
 	end)
-	
+
 	tab.icon = tab:CreateTexture(nil, "OVERLAY")
 	tab.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	tab.icon:SetDrawLayer('ARTWORK')
@@ -287,7 +290,8 @@ local function create_tab(self)
 	vote_table.actions_text:SetPoint("TOPRIGHT", vote_table, "TOPRIGHT", 0, 16)
 	
 	-- Item icon and such
-	vote_table.item = CreateFrame("frame", nil, vote_table)
+	-- vote_table.item = CreateFrame("frame", nil, vote_table)
+	vote_table.item = bdItemButtonLib:CreateButton("bdVoteTableItem"..tab_i, vote_table)
 	vote_table.item:SetPoint("TOPLEFT", vote_table, "TOPLEFT", 10, 64)
 	vote_table.item:SetAlpha(1)
 	vote_table.item:SetSize(340, 40)
@@ -829,7 +833,9 @@ end
 bdlc.tabs = CreateObjectPool(create_tab, reset_tab)
 
 -- rolls
+local i = 0
 local function create_roll(self)
+	i = i + 1
 	local roll = CreateFrame("frame", nil, bdlc.rollFrame, BackdropTemplateMixin and "BackdropTemplate");
 
 	roll:SetPoint("TOPLEFT", bdlc.rollFrame, "TOPLEFT", 0, 0)
@@ -847,36 +853,13 @@ local function create_roll(self)
 	roll.item = CreateFrame("frame", nil, roll);
 	roll.item:SetAllPoints(roll)
 
-	roll.item.icon = CreateFrame("frame", nil, roll.item, BackdropTemplateMixin and "BackdropTemplate")
+	local template = ""
+	template = template..(BackdropTemplateMixin and ", BackdropTemplate" or "")
+
+	-- bdItemButtonLib
+	roll.item.icon = bdItemButtonLib:CreateButton("bdRollItem"..i, roll.item)
 	roll.item.icon:SetSize(50, 50)
 	roll.item.icon:SetPoint("TOPLEFT", roll, "TOPLEFT", 5, -5)
-	
-	roll.item.icon:EnableKeyboard(true)
-	roll.item.icon:SetScript("OnEnter", function(self)
-		ShowUIPanel(GameTooltip)
-		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(self.itemLink)
-		GameTooltip:Show()
-
-		self.total = 0
-		self:SetScript("OnUpdate", function(self, elapsed)
-			self.total = self.total + elapsed
-			if (self.total > 0.2) then
-				self.total = 0
-				if IsModifiedClick("COMPAREITEMS") or (GetCVarBool("alwaysCompareItems") and not IsEquippedItem(bdlc:GetItemID(self.itemLink))) then
-					GameTooltip_ShowCompareItem()
-				end
-
-				if (not IsModifiedClick("COMPAREITEMS") and not GetCVarBool("alwaysCompareItems")) then
-					GameTooltip_HideShoppingTooltips(GameTooltip)
-				end
-			end
-		end)		
-	end)
-	roll.item.icon:SetScript("OnLeave", function(self)
-		GameTooltip:Hide()
-		self:SetScript("OnUpdate", nil)
-	end)
 	bdlc:setBackdrop(roll.item.icon, 0,0,0,.8);
 	
 	roll.item.icon.wfsock = roll.item.icon:CreateFontString(nil, "ARTWORK")

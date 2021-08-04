@@ -166,7 +166,7 @@ function bdlc:createColor(opts)
 		ShowUIPanel(ColorPickerFrame)
 	end)
 	
-	picker.text = picker:CreateFontString(nil, "OVERLAY", "bdConfig_font")
+	picker.text = picker:CreateFontString(nil, "OVERLAY", "bdlc_font")
 	picker.text:SetText(title)
 	picker.text:SetPoint("LEFT", picker, "RIGHT", 8, 0)
 	picker.text:SetAlpha(0.8)
@@ -196,7 +196,7 @@ function bdlc:createEdit(opts)
 	bdlc:setBackdrop(input)
 	input:SetBackdropColor(.18,.22,.25,1)
 
-	local label = input:CreateFontString(nil, "OVERLAY", "bdConfig_font")
+	local label = input:CreateFontString(nil, "OVERLAY", "bdlc_font")
 	label:SetText(title)
 	label:SetPoint("BOTTOMLEFT", input, "TOPLEFT", 0, 0)
 

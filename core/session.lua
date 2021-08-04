@@ -72,6 +72,7 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	local tab = bdlc:getTab(itemUID)
 	tab:Show()
 	tab.itemUID = itemUID
+	tab.itemLink = itemLink
 	tab.icon:SetTexture(texture)
 	tab.table.item.itemtext:SetText(itemLink)
 	tab.table.item.num_items:SetText("Looted by "..name)
@@ -85,16 +86,17 @@ function bdlc:createVoteWindow(itemUID, lootedBy)
 	local slotname = string.lower(string.gsub(equipSlot, "INVTYPE_", ""));
 	slotname = slotname:gsub("^%l", string.utf8upper)
 	tab.table.item.itemdetail:SetText("ilvl: "..iLevel.."    "..subclass..", "..slotname);
-	tab.table.item:SetScript("OnEnter", function()
-		ShowUIPanel(GameTooltip)
-		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-		GameTooltip:SetHyperlink(itemLink)
-		GameTooltip:Show()
-	end)
-	tab.table.item:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-	
+
+	tab.table.item.itemLink = itemLink
+	-- tab.table.item:SetScript("OnEnter", function()
+	-- 	ShowUIPanel(GameTooltip)
+	-- 	GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+	-- 	GameTooltip:SetHyperlink(itemLink)
+	-- 	GameTooltip:Show()
+	-- end)
+	-- tab.table.item:SetScript("OnLeave", function()
+	-- 	GameTooltip:Hide()
+	-- end)
 	
 	bdlc:repositionFrames()
 end

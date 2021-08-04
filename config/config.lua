@@ -15,6 +15,12 @@ config:SetScript("OnDragStop", function(self)  config:StopMovingOrSizing() end)
 config:Hide()
 bdlc:setBackdrop(config)
 
+-- main font object
+bdlc.font = CreateFont("bdlc_font")
+bdlc.font:SetFont(bdlc.media.font, 14)
+bdlc.font:SetShadowColor(0, 0, 0)
+bdlc.font:SetShadowOffset(1, -1)
+
 -- Config Title
 config.title = config:CreateFontString('nil', "OVERLAY")
 config.title:SetFontObject(bdlc:get_font(16, "OUTLINE"))

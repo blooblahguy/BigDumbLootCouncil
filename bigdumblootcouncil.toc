@@ -13,6 +13,7 @@ libs\LibStub.lua
 libs\CallbackHandler-1.0.lua
 libs\ChatThrottleLib.lua
 libs\AceComm-3.0.lua
+libs\ItemButton.lua
 
 # init
 core\init.lua
