@@ -50,13 +50,13 @@ function s:CreateButton(name, parent)
 
 	-- shift click link
 	button:SetScript("OnClick", function(self, button)
-		if (IsShiftKeyDown()) then
-			local eb = LAST_ACTIVE_CHAT_EDIT_BOX or ChatFrame1EditBox
-			if eb then
-				eb:Show()
-				eb:SetFocus(true)
-			end
-		end
+		-- if (IsShiftKeyDown()) then
+		-- 	local eb = LAST_ACTIVE_CHAT_EDIT_BOX or ChatFrame1EditBox
+		-- 	if eb then
+		-- 		eb:Show()
+		-- 		eb:SetFocus(true)
+		-- 	end
+		-- end
 
 		SetItemRef(self.itemLink, self.itemLink, button)
 
