@@ -116,14 +116,6 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	-- for tooltips
 	roll.item.icon.itemLink = itemLink
 	roll.item.num_items:SetText("Looted by "..name)
-	
-	-- custom quick notes
-	for i = 1, 10 do
-		roll.buttons.note.quicknotes[i]:SetText("")
-		roll.buttons.note.quicknotes[i]:Hide()
-		roll.buttons.note.quicknotes[i]:SetAlpha(0.6)
-		roll.buttons.note.quicknotes[i].selected = false
-	end
 
 	local ml_qn = {}
 	if (bdlc.master_looter_qn) then
@@ -142,7 +134,7 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 			end
 			qn:Show()
 			qn:SetText(v)
-			bdlc:skinButton(qn,false)
+			bdlc:skinButton(qn, true)
 		end
 	end
 
@@ -159,6 +151,28 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 	end
 
 	bdlc:repositionFrames()
+end
+
+----------------------------------------
+-- UpdateUserNote
+----------------------------------------
+function bdlc:updateUserNote(itemUID, playerName, notes)
+	local playerName = bdlc:FetchUnitName(playerName)
+	local itemLink = bdlc.itemMap[itemUID]
+	
+	if not bdlc:inLC() then return false end
+	if (not bdlc.loot_sessions[itemUID]) then return false end
+
+	local entry = bdlc:getEntry(itemUID, playerName)
+	if (not entry) then return end
+	
+	-- add notes
+	if (notes and tostring(notes) and strlen(notes) > 1) then
+		entry.notes = notes
+		entry.user_notes:Show()
+	end
+
+	entry:updated()
 end
 
 ----------------------------------------
@@ -224,7 +238,7 @@ function bdlc:addUserConsidering(itemUID, playerName)
 	bdlc:repositionFrames()
 end
 
-function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, ilvl, guildRank, notes)
+function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll, ilvl, guildRank, notes, quicknotes)
 	playerName = bdlc:FetchUnitName(playerName)
 
 	if (not notes or strlen(notes) == 0) then notes = false end
@@ -239,7 +253,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 
 	bdlc.loot_want[itemUID][playerName] = {itemUID, playerName, want, itemLink1, itemLink2, notes}
 	
-	local wantText, wantColor = unpack(bdlc.config.buttons[want])
+	local wantText, wantColor = unpack(bdlc.buttons[want])
 
 	bdlc:debug("User want:", playerName, itemLink, wantText)
 	
@@ -254,6 +268,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	entry.playerName = playerName
 	entry.rank:SetText(guildRank)
 	entry.ilvl:SetText(ilvl)
+
+	entry.updated()
 
 	-- player items
 	if (GetItemInfo(itemLink1)) then
@@ -299,10 +315,7 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 	bdlc:repositionFrames()
 
 	-- add notes
-	if (notes and tostring(notes) ~= "0" and string.len(notes) > 1) then
-		entry.notes = notes
-		entry.user_notes:Show()
-	end
+	bdlc:updateUserNote(itemUID, playerName, notes)
 end
 
 
@@ -457,7 +470,7 @@ function bdlc:addLootHistory(itemUID, playerName)
 	
 	-- information about why they were in on the item
 	local itemUID, playerName, want, itemLink1, itemLink2, notes = unpack(bdlc.loot_want[itemUID][playerName])
-	local want, wantColor = unpack(bdlc.config.buttons[want])
+	local want, wantColor = unpack(bdlc.buttons[want])
 	wantColor = bdlc:RGBPercToHex(unpack(wantColor))
 
 	-- info on items

@@ -557,6 +557,17 @@ local function create_tab(self)
 		entry:SetBackdrop({bgFile = bdlc.media.flat})
 		entry:SetBackdropColor(0, 0, 0, 0)
 
+		entry.update = entry:CreateTexture("nil", "ARTWORK")
+		entry.update:SetTexture(bdlc.media.flat)
+		entry.update:SetVertexColor(1, 1, 1, 1)
+		entry.update:SetAllPoints()
+		entry.update:SetAlpha(0)
+
+		function entry:updated()
+			entry.update:SetAlpha(.1)
+			UIFrameFadeOut(entry.update, 1, .1, 0)
+		end
+
 		entry.name = CreateFrame("frame", nil, entry)
 		entry.name:SetSize(68, 25)
 		entry.name:SetPoint("LEFT", entry, "LEFT", 10, 0)
@@ -877,70 +888,128 @@ local function create_roll(self)
 	roll.item.icon.tex:SetPoint("BOTTOMRIGHT", roll.item.icon, "BOTTOMRIGHT", -bdlc.border, bdlc.border)
 
 	roll.item.item_text = roll.item:CreateFontString(nil, "ARTWORK")
-	roll.item.item_text:SetFontObject(bdlc:get_font(15))
+	roll.item.item_text:SetFontObject(bdlc:get_font(15), "OUTLINE")
 	roll.item.item_text:SetText(l["frameItem"])
 	roll.item.item_text:SetPoint("TOPLEFT", roll, "TOPLEFT", 60, -8)
 	roll.item.item_text:SetJustifyH("LEFT")
 	
 	roll.item.num_items = roll:CreateFontString(nil, "OVERLAY")
-	roll.item.num_items:SetFontObject(bdlc:get_font(14))
+	roll.item.num_items:SetFontObject(bdlc:get_font(12))
 	roll.item.num_items:SetText("x1")
 	roll.item.num_items:SetTextColor(1, 1, 1)
-	roll.item.num_items:SetAlpha(.8)
-	roll.item.num_items:SetPoint("LEFT", roll.item.item_text, "RIGHT", 6, 0)
+	roll.item.num_items:SetAlpha(.6)
+	roll.item.num_items:SetPoint("TOPRIGHT", roll, "TOPRIGHT", -10, -9)
 	roll.item.num_items:SetJustifyH("LEFT")
 	
 	-- Loot Buttons
-	roll.buttons = CreateFrame("frame", nil, roll);
-	roll.buttons:SetPoint("BOTTOMLEFT", roll, "BOTTOMLEFT", 50, 0);
-	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40);
+	roll.buttons = CreateFrame("frame", nil, roll)
+	roll.buttons:SetPoint("BOTTOMLEFT", roll, "BOTTOMLEFT", 50, 0)
+	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40)
+
+	local get_notes = function()
+		local notes = roll.stored_notes
+		local quicknotes = roll.stored_quicknotes
+		local qn_table = {}
+		for k, v in pairs(quicknotes) do
+			tinsert(qn_table, v)
+		end
+		quicknotes = table.concat(qn_table, ", ")
+
+		-- check valid strings
+		notes = notes and tostring(notes) and strlen(notes) > 1 and notes or false
+		quicknotes = quicknotes and tostring(quicknotes) and strlen(quicknotes) > 1 and quicknotes or false
+
+		-- build little table for text
+		local text = {}
+		if (notes) then
+			tinsert(text, notes)
+		end
+		if (quicknotes) then
+			tinsert(text, quicknotes)
+		end
+
+		-- auto concatenate
+		text = table.concat(text, ", ")
+
+		return text
+	end
 	
-	roll.buttons.submit = function(wantLevel)
+	local submit_roll = function(button, wantLevel)
 		local itemLink = bdlc.itemMap[roll.itemUID]
 		local itemLink1, itemLink2 = bdlc:fetchUserGear("player", itemLink)
 
-		local notes = roll.notes or ''
-		if (string.len(roll.qn) > 0) then
-			roll.qn = string.utf8sub(roll.qn, 0, -3)
-			if (string.len(notes) > 0) then
-				notes = notes..", "..roll.qn
-			else
-				notes = roll.qn
-			end
+		local notes = get_notes()
+
+		-- check if note was required
+		local name, colors, enable, req = unpack(bdlc.buttons[wantLevel])
+		if (req and strlen(notes) < 2) then
+			roll.buttons.note:Click()
+			roll.buttons.notes.note_required:SetAlpha(1)
+			roll.buttons.notes.note_required:Show()
+			C_Timer.After(1, function()
+				UIFrameFadeOut(roll.buttons.notes.note_required, 1, 1, 0)
+			end)
+
+			return false
 		end
 
-		local lootRoll = math.random(1, 100)
+		if (not roll.active or not roll.lootRoll) then
+			roll.lootRoll = math.random(1, 100)
+		end
 
 		local guildRank = select(2, GetGuildInfo("player")) or ""
 		local player_itemlvl = math.floor(select(2, GetAverageItemLevel()))
 
-		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.localPlayer, wantLevel, itemLink1, itemLink2, lootRoll, player_itemlvl, guildRank, notes);
+		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.localPlayer, wantLevel, itemLink1, itemLink2, roll.lootRoll, player_itemlvl, guildRank, notes)
 
-		bdlc.rolls:Release(roll)
+		roll.active = true
 
 		bdlc:repositionFrames()
+
+		return true
+	end
+
+	local function update_notes(roll)
+		if (roll.active) then
+			local notes = get_notes()
+			if (notes ~= roll.last_note) then
+				roll.last_note = notes
+				bdlc:sendAction("updateUserNote", roll.itemUID, bdlc.localPlayer, notes)
+			end
+		end
 	end
 
 	local lastBtn = false
 	local firstBtn = false
+	roll.btns = {}
 	for i = 1, 5 do
-		local name, colors, enable, req = unpack(bdlc.config.buttons[i])
+		local name, colors, enable, req = unpack(bdlc.buttons[i])
 
-		local button = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
-		button:SetText(name)
-		button:GetRegions():SetTextColor(unpack(colors))
-		button:SetScript("OnClick", function() roll.buttons.submit(i) end)
-		bdlc:skinButton(button)
+		if (enable) then
+			local button = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
+			button:SetText(name)
+			button:GetRegions():SetTextColor(unpack(colors))
+			button:SetScript("OnClick", function() 
+				if (submit_roll(button, i)) then
+					for k, v in pairs(roll.btns) do
+						v:unselect()
+					end
+					button:select()
+				end
+			end)
+			bdlc:skinButton(button)
 
-		if (not lastBtn) then
-			button:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
-		else
-			button:SetPoint("LEFT", lastBtn, "RIGHT", 4, 0)
+			if (not lastBtn) then
+				button:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
+			else
+				button:SetPoint("LEFT", lastBtn, "RIGHT", 4, 0)
+			end
+
+			roll.buttons[name] = button
+			roll.btns[name] = button
+			lastBtn = button
+			firstBtn = firstBtn or button
 		end
-
-		roll.buttons[name] = button
-		lastBtn = button
-		firstBtn = firstBtn or button
 	end
 	
 	roll.buttons.note = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
@@ -949,48 +1018,45 @@ local function create_roll(self)
 	roll.buttons.note:SetText(l["frameNote"])
 	bdlc:skinButton(roll.buttons.note,false,"blue")
 	roll.buttons.note:SetScript("OnClick", function()
+		roll.buttons.notes.note_required:Hide()
 		roll.buttons.notes:Show()
 		roll.buttons.notes:SetFocus()
+		roll.buttons.note.quicknotes:Show()
 	end)
 	
-	roll.qn = "";
+	-- quick note buttons
 	roll.buttons.note.quicknotes = CreateFrame("frame",nil,roll.buttons)
 	roll.buttons.note.quicknotes:SetPoint("TOPRIGHT", roll.buttons, "TOPRIGHT", -2, 16)
 	roll.buttons.note.quicknotes:SetPoint("BOTTOMLEFT", roll.buttons, "TOPLEFT", 0, -8)
-	roll.buttons.note.quicknotes:EnableMouse(true)
-	roll.buttons.note.quicknotes:RegisterForDrag("LeftButton","RightButton")
-	roll.buttons.note.quicknotes:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMoving() end)
-	roll.buttons.note.quicknotes:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
-	roll.buttons.note.quicknotes.append = function(text)
-		if (string.len(text) > 0 and not strfind(roll.qn, text, 1, true)) then
-			roll.qn = roll.qn..text..", "
-		end
-	end
+	roll.buttons.note.quicknotes:Hide()
 
 	local lastqn = nil
 	for i = 1, 10 do
-		roll.buttons.note.quicknotes[i] = CreateFrame("button", nil, roll.buttons.note.quicknotes, BackdropTemplateMixin and "BackdropTemplate")
-		local qn = roll.buttons.note.quicknotes[i]
-		qn:SetAlpha(0.6)
-		qn:SetText("")
+		local qn = CreateFrame("button", nil, roll.buttons.note.quicknotes, BackdropTemplateMixin and "BackdropTemplate")
 		if (not lastqn) then
 			qn:SetPoint("BOTTOMRIGHT", roll.buttons.note.quicknotes, "BOTTOMRIGHT", -4, 4)
 		else
-			qn:SetPoint("RIGHT", lastqn, "LEFT", 1, 0)
+			qn:SetPoint("RIGHT", lastqn, "LEFT", bdlc.border, 0)
 		end
 		lastqn = qn
-		qn:SetScript("OnClick", function() 
-			roll.buttons.note.quicknotes.append(qn:GetText()) 
-			if (not qn.selected) then
-				bdlc:skinButton(qn, false, "blue")
-				qn:SetAlpha(1)
-				qn.selected = true
+		qn.i = i
+
+		-- when click store button value in table
+		qn:SetScript("OnClick", function(self)
+			local text = self:GetText()
+			
+			if (not self.selected) then
+				roll.stored_quicknotes[self.i] = text
+				bdlc:skinButton(self, true, "blue")
+				self.selected = true
 			else
-				bdlc:skinButton(qn, false)
-				qn:SetAlpha(0.6)
-				qn.selected = false
+				roll.stored_quicknotes[self.i] = nil
+				bdlc:skinButton(self, true)
+				self.selected = false
 			end
 		end)
+
+		roll.buttons.note.quicknotes[i] = qn
 	end
 	
 	roll.buttons.pass = CreateFrame("Button", nil, roll.buttons, BackdropTemplateMixin and "BackdropTemplate")
@@ -1013,33 +1079,60 @@ local function create_roll(self)
 	roll.buttons.notes:SetTextInsets(6, 2, 2, 2)
 	roll.buttons.notes:SetFontObject(bdlc:get_font(14, "NONE"))
 	roll.buttons.notes:SetFrameLevel(27)
-	roll.buttons.notes:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
+	roll.buttons.notes:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
 	roll.buttons.notes:SetBackdropColor(.1, .1, .1, 1)
 	roll.buttons.notes:SetBackdropBorderColor(0, 0, 0, 1)
 	roll.buttons.notes:Hide()
+
 	roll.buttons.notes.okay = CreateFrame("Button", nil, roll.buttons.notes, BackdropTemplateMixin and "BackdropTemplate")
 	roll.buttons.notes.okay:SetSize(37, 25)
 	roll.buttons.notes.okay:SetPoint("LEFT", roll.buttons.notes, "RIGHT")
 	roll.buttons.notes.okay:SetText(l["frameOkay"])
 	bdlc:skinButton(roll.buttons.notes.okay, false, "dark")
-	roll.buttons.notes.okay:SetScript("OnClick", function(self)
+
+	-- store notes when submitting field
+	local notes_submit = function(self)
 		self:GetParent():Hide()
-		roll.notes = self:GetParent():GetText()
-	end)
-	roll.buttons.notes:SetScript("OnEnterPressed", function(self, key) roll.buttons.notes.okay:Click() end)
-	roll.buttons.notes:SetScript("OnEscapePressed", function(self, key) roll.buttons.notes.okay:Click() end)
-	
+		roll.stored_notes = self:GetParent():GetText()
+		roll.buttons.note.quicknotes:Hide()
+
+		update_notes(roll)
+	end
+	roll.buttons.notes:SetScript("OnEnterPressed", notes_submit)
+	roll.buttons.notes:SetScript("OnEscapePressed", notes_submit)
+	roll.buttons.notes.okay:SetScript("OnClick", notes_submit)
+
+	-- tell the user that the note is required
+	roll.buttons.notes.note_required = roll.buttons.notes:CreateFontString(nil, "OVERLAY")
+	roll.buttons.notes.note_required:SetFontObject(bdlc.font)
+	roll.buttons.notes.note_required:SetText("Note is required")
+	roll.buttons.notes.note_required:SetJustifyH("LEFT")
+	roll.buttons.notes.note_required:SetTextColor(0.8, 0.5, 0.5)
+	roll.buttons.notes.note_required:SetPoint("LEFT", roll.buttons.notes, 10, 0)
+
 	return roll
 end
 local function reset_roll(self, roll)
 	roll.notes = ""
 	roll.itemUID = nil
 	roll.qn = ""
+	roll.lootRoll = 0
+	roll.active = false
+	roll.stored_notes = ""
+	roll.stored_quicknotes = {}
+	roll.last_note = ""
 	roll:Hide()
+
+	for k, v in pairs(roll.btns) do
+		v:unselect()
+	end
 
 	for i = 1, 10 do
 		local qn = roll.buttons.note.quicknotes[i]
-		qn.select = false
+		-- qn.select = false
+		qn:SetText("")
+		qn:Hide()
+		qn.selected = false
 	end
 
 	roll.buttons.notes:SetText("")
@@ -1166,7 +1259,7 @@ end)
 -- Rolls
 --==========================================
 bdlc.rollFrame = CreateFrame('frame', "BDLC Roll Window", UIParent)
-bdlc.rollFrame:SetSize(520, 1)
+bdlc.rollFrame:SetSize(420, 1)
 bdlc.rollFrame:SetPoint("CENTER", UIParent, "CENTER", 600, 0)
 bdlc.rollFrame:EnableMouse(true)
 bdlc.rollFrame:SetMovable(true);

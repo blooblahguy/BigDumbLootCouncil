@@ -25,7 +25,7 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	end
 
 	-- C_Timer.After(0.2, function()
-	-- 	bdlc:startMockSession()
+		bdlc:startMockSession()
 	-- end)
 
 	local version = tonumber(bdlc.version) and bdlc.version or "Developer"
@@ -33,6 +33,6 @@ loader:SetScript("OnEvent", function(self, event, addon)
 
 	-- default local stores
 	bdlc.council_votes = bdlc.config.council_votes
-	bdlc.buttons = bdlc.config.buttons
+	bdlc.buttons = bdlc.configDefaults.buttons
 	bdlc.master_looter_qn = bdlc.config.quick_notes
 end)

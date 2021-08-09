@@ -160,11 +160,16 @@ function bdlc:skinButton(f, small, color)
 	f:SetBackdrop({bgFile = bdlc.media.flat, edgeFile = bdlc.media.flat, edgeSize = bdlc.border})
 	f:SetBackdropColor(unpack(colors)) 
     f:SetBackdropBorderColor(0, 0, 0, 1)
-    f:SetNormalFontObject(bdlc:get_font(14))
-	f:SetHighlightFontObject(bdlc:get_font(14))
+    f:SetNormalFontObject(bdlc:get_font(14), "OUTLINE")
+	f:SetHighlightFontObject(bdlc:get_font(14), "OUTLINE")
 	f:SetPushedTextOffset(0,-1)
 	
 	f:SetSize(f:GetTextWidth()+16, 24)
+
+	if (small) then
+		f:SetNormalFontObject(bdlc:get_font(11), "OUTLINE")
+		f:SetHighlightFontObject(bdlc:get_font(11), "OUTLINE")
+	end
 	
 	--if (f:GetWidth() < 24) then
 	if (small and f:GetWidth() <= 24 ) then
@@ -175,14 +180,36 @@ function bdlc:skinButton(f, small, color)
 		f:SetHeight(18)
 	end
 	
-	f:HookScript("OnEnter", function(f) 
-		f:SetBackdropColor(unpack(hovercolors)) 
-	end)
-	f:HookScript("OnLeave", function(f) 
-		f:SetBackdropColor(unpack(colors)) 
-	end)
+	function f:select()
+		if (f.selected) then return end
+		f.selected = true
+		f.tcolor = {f:GetRegions():GetTextColor()}
+		
+		f:SetBackdropColor(unpack(f.tcolor))
+		f:GetRegions():SetTextColor(0, 0, 0)
+		f:GetRegions():SetShadowColor(1, 1, 1)
+	end
+	function f:unselect()
+		f.selected = false
+		f.tcolor = f.tcolor or {f:GetRegions():GetTextColor()}
+		
+		f:SetBackdropColor(unpack(colors))
+		f:GetRegions():SetTextColor(unpack(f.tcolor))
+		f:GetRegions():SetShadowColor(0, 0, 0)
+	end
 	
-	return true
+	if (not f.bdlchooked) then
+		f:HookScript("OnEnter", function(f)
+			if (f.selected) then return end
+			f:SetBackdropColor(unpack(hovercolors)) 
+		end)
+		f:HookScript("OnLeave", function(f)
+			if (f.selected) then return end
+			f:SetBackdropColor(unpack(colors)) 
+		end)
+
+		f.bdlchooked = true
+	end
 end
 
 function bdlc:createScrollFrame(parent)
