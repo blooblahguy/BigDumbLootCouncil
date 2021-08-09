@@ -25,7 +25,7 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	end
 
 	-- C_Timer.After(0.2, function()
-		bdlc:startMockSession()
+		-- bdlc:startMockSession()
 	-- end)
 
 	local version = tonumber(bdlc.version) and bdlc.version or "Developer"
