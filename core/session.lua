@@ -167,9 +167,11 @@ function bdlc:updateUserNote(itemUID, playerName, notes)
 	if (not entry) then return end
 	
 	-- add notes
+	entry.notes = notes
 	if (notes and tostring(notes) and strlen(notes) > 1) then
-		entry.notes = notes
 		entry.user_notes:Show()
+	else
+		entry.user_notes:Hide()
 	end
 
 	entry:updated()

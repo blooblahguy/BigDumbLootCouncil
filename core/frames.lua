@@ -907,7 +907,7 @@ local function create_roll(self)
 	roll.buttons:SetPoint("TOPRIGHT", roll, "BOTTOMRIGHT", 0, 40)
 
 	local get_notes = function()
-		local notes = roll.stored_notes
+		local notes = strtrim(roll.stored_notes)
 		local quicknotes = roll.stored_quicknotes
 		local qn_table = {}
 		for k, v in pairs(quicknotes) do
@@ -930,6 +930,7 @@ local function create_roll(self)
 
 		-- auto concatenate
 		text = table.concat(text, ", ")
+		text = strtrim(text)
 
 		return text
 	end
@@ -950,6 +951,8 @@ local function create_roll(self)
 				UIFrameFadeOut(roll.buttons.notes.note_required, 1, 1, 0)
 			end)
 
+			roll.pendingclick = button
+
 			return false
 		end
 
@@ -963,6 +966,7 @@ local function create_roll(self)
 		bdlc:sendAction("addUserWant", roll.itemUID, bdlc.localPlayer, wantLevel, itemLink1, itemLink2, roll.lootRoll, player_itemlvl, guildRank, notes)
 
 		roll.active = true
+		roll.pendingclick = false
 
 		bdlc:repositionFrames()
 
@@ -1096,6 +1100,10 @@ local function create_roll(self)
 		roll.stored_notes = self:GetParent():GetText()
 		roll.buttons.note.quicknotes:Hide()
 
+		if (roll.pendingclick) then
+			roll.pendingclick:Click()
+		end
+
 		update_notes(roll)
 	end
 	roll.buttons.notes:SetScript("OnEnterPressed", notes_submit)
@@ -1121,6 +1129,7 @@ local function reset_roll(self, roll)
 	roll.stored_notes = ""
 	roll.stored_quicknotes = {}
 	roll.last_note = ""
+	roll.pendingclick = false
 	roll:Hide()
 
 	for k, v in pairs(roll.btns) do
