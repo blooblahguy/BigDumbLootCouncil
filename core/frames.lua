@@ -1096,8 +1096,9 @@ local function create_roll(self)
 
 	-- store notes when submitting field
 	local notes_submit = function(self)
-		self:GetParent():Hide()
-		roll.stored_notes = self:GetParent():GetText()
+		-- print(self, test)
+		self:Hide()
+		roll.stored_notes = self:GetText()
 		roll.buttons.note.quicknotes:Hide()
 
 		if (roll.pendingclick) then
@@ -1108,7 +1109,7 @@ local function create_roll(self)
 	end
 	roll.buttons.notes:SetScript("OnEnterPressed", notes_submit)
 	roll.buttons.notes:SetScript("OnEscapePressed", notes_submit)
-	roll.buttons.notes.okay:SetScript("OnClick", notes_submit)
+	roll.buttons.notes.okay:SetScript("OnClick", function(self) notes_submit(self:GetParent()) end)
 
 	-- tell the user that the note is required
 	roll.buttons.notes.note_required = roll.buttons.notes:CreateFontString(nil, "OVERLAY")
