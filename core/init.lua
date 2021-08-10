@@ -115,6 +115,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 	if (msg == "start") then
 		if (not msg2) then
 			bdlc:print("3rd parameter needs to be an itemLink")
+			return
 		end
 		bdlc:sendAction("startSession", msg2, bdlc.localPlayer, "1");
 		
