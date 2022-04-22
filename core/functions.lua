@@ -280,19 +280,19 @@ function bdlc:fetchUserGear(unit, itemLink)
 	local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 	-- local isRelic = bdlc:IsRelic(itemLink)
 	local isTier, tierType, usable = bdlc:isTier(itemLink)
-	
+
 	if (isTier) then
 		if (find_compare(name, l["tierHelm"])) then
 			equipSlot = "INVTYPE_HEAD"
-		elseif (find_compare(name, l["tierShoulders"])) then
+		elseif (find_compare(name, l["tierShoulders"]) or find_compare(name, l["tierShoulders2"])) then
 			equipSlot = "INVTYPE_SHOULDER"
-		elseif (find_compare(name, l["tierLegs"])) then
+		elseif (find_compare(name, l["tierLegs"]) or find_compare(name, l["tierLegs2"])) then
 			equipSlot = "INVTYPE_LEGS"
 		elseif (find_compare(name, l["tierCloak"])) then
 			equipSlot = "INVTYPE_BACK"
 		elseif (find_compare(name, l["tierChest"])) then
 			equipSlot = "INVTYPE_CHEST"
-		elseif (find_compare(name, l["tierGloves"])) then
+		elseif (find_compare(name, l["tierGloves"]) or find_compare(name, l["tierGloves2"])) then
 			equipSlot = "INVTYPE_HAND"
 		elseif (find_compare(name, l["tierBelt"])) then
 			equipSlot = "INVTYPE_WAIST"
