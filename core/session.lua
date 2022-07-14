@@ -41,7 +41,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 
 	local delay = 1
 
-	if (not itemLink and arg1 or arg2) then -- coming from chat
+	if (not itemLink and (arg1 or arg2)) then -- coming from chat
 		local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
 		local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
 		itemLink = arg1:match(myLoot) or arg1:match(myItem)
@@ -49,7 +49,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 		delay = 0 -- this means we have the itemLink and don't need to play safe
 	end
 
-	if (itemLink) then
+	if (itemLink) then -- if this doesn't exist then this should be an item at all?
 		GetItemInfo(itemLink)
 
 		C_Timer.After(delay, function()
@@ -58,6 +58,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 			-- this was traded to me, ignore it
 			if (bdlc.tradedItems[itemUID]) then
 				bdlc:debug('Experimental: Item received via trading, will not be announced again.')
+				return
 			end
 
 			-- can we trade this item? scan the tooltip
