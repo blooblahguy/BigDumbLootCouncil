@@ -414,6 +414,7 @@ function bdlc:itemValidForSession(itemLink, lootedBy, test)
 	local isTier, tierType, usable = bdlc:isTier(itemLink)
 	local equipSlot = select(9, GetItemInfo(itemLink))
 
+	-- send back some debug information
 	if (test) then
 		bdlc:print(itemLink, "is: ")
 		bdlc:print("Tier: ", isTier and "Yes" or "No")

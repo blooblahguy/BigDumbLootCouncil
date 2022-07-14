@@ -81,22 +81,6 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 
 	-- When a user loots an item, snag that item link and attempt a session
 	if (event == "CHAT_MSG_LOOT") then
-		C_Timer.After(1, function()
-			local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
-			local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
-			
-			local itemLink = arg1:match(myLoot) or arg1:match(myItem)
-
-			if (itemLink) then
-				local itemUID = bdlc:GetItemUID(itemLink)
-			
-				if (not bdlc.tradedItems[itemUID] and IsInRaid()) then
-					if (bdlc:verifyTradability(itemLink)) then
-						GetItemInfo(itemLink)
-						bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
-					end
-				end
-			end
-		end)
+		bdlc:StartSessionFromTradable(nil, arg1, arg2)
 	end
 end)

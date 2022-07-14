@@ -28,7 +28,43 @@ function bdlc:startSession(itemLink, lootedBy, forced)
 		end
 	else
 		bdlc.items_waiting_for_session[itemID] = {itemLink, lootedBy, forced}
-		local name = GetItemInfo(itemLink)
+		GetItemInfo(itemLink) -- queue the server
+	end
+end
+
+----------------------------------------
+-- StartSessionFromTradable
+-- Fired when an item is received via chat (trade or loot)
+----------------------------------------
+function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
+	if (not IsInRaid() and not forced) then return end
+
+	local delay = 1
+
+	if (not itemLink and arg1 or arg2) then -- coming from chat
+		local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
+		local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
+		local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+	else -- being manually called
+		delay = 0 -- this means we have the itemLink and don't need to play safe
+	end
+
+	if (itemLink) then
+		GetItemInfo(itemLink)
+
+		C_Timer.After(delay, function()
+			local itemUID = bdlc:GetItemUID(itemLink)
+		
+			-- this was traded to me, ignore it
+			if (bdlc.tradedItems[itemUID]) then
+				bdlc:debug('Experimental: Item received via trading, will not be announced again.')
+			end
+
+			-- can we trade this item? scan the tooltip
+			if (bdlc:verifyTradability(itemLink)) then
+				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
+			end
+		end)
 	end
 end
 
@@ -734,14 +770,7 @@ bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 
 		local itemLink = bdlc.items_waiting_for_verify[itemID]
 
-		if not bdlc.tradedItems[itemLink] then
-			-- TODO: This event can't fire after a trade so this test should be removed?
-			if (bdlc:verifyTradability(itemLink)) then
-				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
-			end
-		else
-			bdlc:debug('Experimental: Item received via trading, will not be announced again.')
-		end
+		bdlc:StartSessionFromTradable(itemLink)
 	end
 
 	-- startable in session, but didn't know what it was yet
@@ -762,84 +791,3 @@ bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 end)
 
 
--- C_Timer.NewTicker(0.1, function()
-
--- 	-- Queue items that need to verify tradability
--- 	for itemID, itemLink in pairs(bdlc.items_waiting_for_verify) do
--- 		if (GetItemInfo(itemLink)) then
-			
--- 			if not bdlc.tradedItems[itemLink] then
--- 			-- TODO: This event can't fire after a trade so this test should be removed?
--- 				if (bdlc:verifyTradability(itemLink)) then
--- 					bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
--- 				end
--- 			else
--- 				bdlc:print('Experimental: Item received via trading, will not be announced again.')
--- 			end
-			
--- 			bdlc.items_waiting_for_verify[itemID] = nil
--- 		end
--- 	end
-
--- 	-- Queue items that are starting sessions
--- 	for itemID, v in pairs(bdlc.items_waiting_for_session) do
--- 		local itemLink, lootedBy, forced = unpack(v)
--- 		if (GetItemInfo(itemLink)) then
--- 			bdlc:startSession(itemLink, lootedBy, forced)
--- 			bdlc.items_waiting_for_session[itemID] = nil
--- 		end
--- 	end
-	
--- 	-- Queue items that are showing user's current gear
--- 	for itemID, v in pairs(bdlc.player_items_waiting) do
--- 		local itemLink, gear = unpack(v)
--- 		if (GetItemInfo(itemLink)) then
--- 			bdlc:updateUserItem(itemLink, gear)
--- 			bdlc.player_items_waiting[itemID] = nil
--- 		end
--- 	end
-
--- end)
--- bdlc.async:SetScript("OnEvent", function(event, incomingItemID, success)
--- 	if (not success) then
--- 		bdlc:print("Server failed to return ItemInfo for itemID:", incomingItemID)
--- 	end
--- 	-- Queue items that need to verify tradability
--- 	for itemID, v in pairs(bdlc.items_waiting_for_verify) do
--- 		local num1 = tonumber(incomingItemID)
--- 		local num2 = tonumber(itemID)
--- 		if (num1 == num2) then
-			
--- 			if not bdlc.tradedItems[v] then
--- 			-- TODO: This event can't fire after a trade so this test should be removed?
--- 				if (bdlc:verifyTradability(v)) then
--- 					bdlc:sendAction("startSession", v, bdlc:FetchUnitName('player'))
--- 				end
--- 			else
--- 				print('Experimental: Item received via trading, will not be announced again.')
--- 			end
-			
--- 			bdlc.items_waiting_for_verify[itemID] = nil
--- 		end
--- 	end
-
--- 	-- Queue items that are starting sessions
--- 	for itemID, v in pairs(bdlc.items_waiting_for_session) do
--- 		local num1 = tonumber(incomingItemID)
--- 		local num2 = tonumber(itemID)
--- 		if (num1 == num2) then
--- 			bdlc:startSession(v[1], v[2], v[3])
--- 			bdlc.items_waiting_for_session[itemID] = nil
--- 		end
--- 	end
-	
--- 	-- Queue items that are showing user's current gear
--- 	for itemID, v in pairs(bdlc.player_items_waiting) do
--- 		local num1 = tonumber(incomingItemID)
--- 		local num2 = tonumber(itemID)
--- 		if (num1 == num2) then
--- 			bdlc:updateUserItem(v[1], v[2])
--- 			bdlc.player_items_waiting[itemID] = nil
--- 		end
--- 	end
--- end)
