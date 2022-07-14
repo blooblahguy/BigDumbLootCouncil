@@ -37,14 +37,14 @@ end
 -- Fired when an item is received via chat (trade or loot)
 ----------------------------------------
 function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
-	if (not IsInRaid() and not forced) then return end
+	if (not IsInRaid() and not bdlc.enableTests) then return end
 
 	local delay = 1
 
 	if (not itemLink and arg1 or arg2) then -- coming from chat
 		local myItem = LOOT_ITEM_PUSHED_SELF:gsub('%%s', '(.+)');
 		local myLoot = LOOT_ITEM_SELF:gsub('%%s', '(.+)');
-		local itemLink = arg1:match(myLoot) or arg1:match(myItem)
+		itemLink = arg1:match(myLoot) or arg1:match(myItem)
 	else -- being manually called
 		delay = 0 -- this means we have the itemLink and don't need to play safe
 	end
@@ -54,7 +54,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 
 		C_Timer.After(delay, function()
 			local itemUID = bdlc:GetItemUID(itemLink)
-		
+
 			-- this was traded to me, ignore it
 			if (bdlc.tradedItems[itemUID]) then
 				bdlc:debug('Experimental: Item received via trading, will not be announced again.')
@@ -62,6 +62,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 
 			-- can we trade this item? scan the tooltip
 			if (bdlc:verifyTradability(itemLink)) then
+				bdlc:debug(itemLink, "is tradable")
 				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
 			end
 		end)

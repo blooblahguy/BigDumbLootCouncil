@@ -749,7 +749,7 @@ function bdlc:tradableTooltip(itemLink)
 
 					if (not text) then break end
 
-					if (string.find(text, tradableString) ~= nil) then
+					if (string.find(text, tradableString) ~= nil or (bdlc.enableTests and string.find(text, sellableString) ~= nil)) then
 						isTradable = true
 						break
 					end
@@ -764,6 +764,7 @@ end
 
 function bdlc:verifyTradability(itemLink)
 	if (GetItemInfo(itemLink)) then
+		bdlc:debug("checking if item is tradable", itemLink)
 		if (bdlc:tradableTooltip(itemLink)) then
 			return true
 		end
