@@ -1,8 +1,75 @@
 local bdlc, c, l = unpack(select(2, ...))
+bdlc.loot_council = {}
+
+-- ===================================
+-- Rewrite
+-- ===================================
+-- have the leader create the loot council from their point of view
+local function create_lc()
+
+end
+
+
+-- just reset it
+local function reset_lc()
+	bdlc.loot_council = {}
+end
+
+
+-- distribute your lc to the raid
+function bdlc:request_lc()
+	if (not bdlc:IsRaidLeader()) then return end
+end
+
+
+-- distribute your lc to the raid
+local function distribute_lc()
+	reset_lc()
+
+	-- send this if you're the raid leader
+	if (not bdlc:IsRaidLeader()) then return end
+
+
+end
+
+
+-- take results and populate your own LC array
+function populate_lc(...)
+
+end
+
+
+-- add one person to lc
+function add_to_lc(name)
+	if (not name) then bdlc:print("Please provide a name to add to the loot council") return false end
+	name = bdlc:FetchUnitName(name)
+
+	bdlc.config.custom_council[name] = true
+	bdlc:print("Adding "..name.." to your loot council.")
+end
+
+
+-- remove one person from lc
+function remove_from_lc(name)
+	if (not name) then bdlc:print("Please provide a name to add to the loot council") return false end
+	name = bdlc:FetchUnitName(name)
+
+	bdlc.config.custom_council[name] = nil
+	bdlc:print("Removing "..name.." from your loot council.")
+end
+
+
+-- check if you are personally a part of the lc
+function bdlc:in_loot_council()
+	
+end
+
+
+
 
 function bdlc:inLC()
 	-- if i'm in lc, raid leader, or not in a group
-	return bdlc.loot_council[bdlc:FetchUnitName('player')] or bdlc:IsRaidLeader() or not IsInGroup()
+	return bdlc.loot_council[bdlc:FetchUnitName('player')] or bdlc:IsRaidLeader()
 end
 
 function bdlc:customButtons(buttons)
@@ -56,16 +123,17 @@ end
 -- Takes a table of players and adds all at once
 ----------------------------------------
 function bdlc:addToLC(...)
-	bdlc.loot_council = {}
+	reset_lc()
 	
 	local council = {...}
-	bdlc:debug("Current Council: ", unpack(council))
 
 	for k, v in pairs(council) do
 		local name = bdlc:FetchUnitName(v)
 
 		bdlc.loot_council[name] = true
 	end
+
+	bdlc:debug("Current Council: ", unpack(bdlc.loot_council))
 end
 
 -----------------------------------------------
@@ -138,7 +206,7 @@ end
 
 function bdlc:sendLC()
 	if (not bdlc:IsRaidLeader()) then return end
-	bdlc:debug("---")
+
 	bdlc:debug("Building LC")
 
 	-- get the saved or default min_rank
@@ -246,7 +314,7 @@ bdlc.am_leader = bdlc:IsRaidLeader()
 council_events:SetScript("OnEvent", function(self, event, arg1)
 	C_GuildInfo.GuildRoster() -- keep this up to date
 
-	-- if i've left a loading screen, gimme the new LC
+	-- if i've left a loading screen, they want the LC
 	if (event == "PLAYER_LOGIN") then
 		C_Timer.After(1, function()
 			bdlc:sendAction("requestLC");
@@ -257,7 +325,7 @@ council_events:SetScript("OnEvent", function(self, event, arg1)
 
 	-- when group lead changes
 	if (event == "CHAT_MSG_SYSTEM") then
-		C_Timer.After(1, function()
+		C_Timer.After(.1, function()
 			-- raid leader toggle check
 			if (not bdlc.am_leader and bdlc:IsRaidLeader()) then
 				bdlc:sendLC()

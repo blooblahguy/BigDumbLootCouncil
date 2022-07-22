@@ -22,10 +22,9 @@ local function rando_class()
 end
 
 function bdlc:startMockSession()
-	if (IsInRaid() or IsInGroup() or UnitInRaid("player")) then
-		if (not bdlc:inLC()) then
-			bdlc:print("You cannot run a test while inside of a raid group unless you are on the Loot Council.")
-		end
+	if (IsInGroup() and not bdlc:inLC()) then
+		bdlc:print("You cannot run a test while inside of a raid group unless you are on the Loot Council.")
+		return
 	end
 
 	bdlc:print("Starting mock session")

@@ -780,20 +780,16 @@ end
 -- User functions
 --==============================================
 function bdlc:IsRaidLeader()
-	local inInstance, instanceType = IsInInstance();
-	if (inInstance and instanceType == "raid" and UnitIsGroupLeader("player")) then
-		return true
-	else
-		return UnitIsGroupLeader("player") or not IsInGroup()
-	end
+	return (IsInRaid() and UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)) or not IsInGroup()
 end
 
-function bdlc:IsInRaid()
+function bdlc:IsInRaidInstance()
 	local inInstance, instanceType = IsInInstance();
 	
 	if (inInstance and instanceType == "raid") then
 		return true;
 	end
+
 	return false;
 end
 
@@ -830,7 +826,7 @@ function bdlc:FetchUnitName(name)
 	-- if no unit is found, just return their name
 	if (not fullName) then return (splitName.."-"..realm):utf8lower() end
 	
-	-- we always insure realm
+	-- we always ensure realm
 	fullName = (fullName.."-"..realm):utf8lower()
 
 	-- for consistency
