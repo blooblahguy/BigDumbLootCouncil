@@ -17,7 +17,7 @@ bdlc:setBackdrop(config)
 
 -- main font object
 bdlc.font = CreateFont("bdlc_font")
-bdlc.font:SetFont(bdlc.media.font, 14)
+bdlc.font:SetFont(bdlc.media.font, 14, "THINOUTLINE")
 bdlc.font:SetShadowColor(0, 0, 0)
 bdlc.font:SetShadowOffset(1, -1)
 
