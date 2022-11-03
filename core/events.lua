@@ -1,5 +1,8 @@
 local bdlc, c, l = unpack(select(2, ...))
 
+local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
+local GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetContainerNumFreeSlots
+
 -- Cache player inventory immediately, just makes things easier
 if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
 	LoadAddOn("Blizzard_ArtifactUI")
@@ -32,30 +35,30 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 		-- loop through loot items and put them into bags to start sessions
 		-- if for some reason you have more than 1 item in the loot window this supports that
 		-- this also deletes greys if you have full bags
-		for slot = 1, GetNumLootItems() do
-			local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
+		-- for slot = 1, GetNumLootItems() do
+		-- 	local texture, item, quantity, something, quality, locked = GetLootSlotInfo(slot)
 
-			if (quality and quality > 3) then
-				local itemLink = GetLootSlotLink(slot)
-				remaining_loot = remaining_loot + 1
+		-- 	if (quality and quality > 3) then
+		-- 		local itemLink = GetLootSlotLink(slot)
+		-- 		remaining_loot = remaining_loot + 1
 
-				-- get number of open bag slots
-				for b = 0, 4 do
-					num_free = num_free + GetContainerNumFreeSlots(b);
-				end
+		-- 		-- get number of open bag slots
+		-- 		for b = 0, 4 do
+		-- 			num_free = num_free + GetContainerNumFreeSlots(b);
+		-- 		end
 
-				if (num_free == 0) then
-					bdlc:print("You have full bags! Delete something to loot "..itemLink)
-				end
+		-- 		if (num_free == 0) then
+		-- 			bdlc:print("You have full bags! Delete something to loot "..itemLink)
+		-- 		end
 
-				-- alert my raid that this exists
-				if (num_free == 0) then
-					SendChatMessage("BDLC: I have full bags but I looted "..itemLink, "RAID")
-				elseif (bdlc:IsInRaidInstance()) then
-					LootSlot(slot)
-				end
-			end
-		end
+		-- 		-- alert my raid that this exists
+		-- 		if (num_free == 0) then
+		-- 			SendChatMessage("BDLC: I have full bags but I looted "..itemLink, "RAID")
+		-- 		elseif (bdlc:IsInRaidInstance()) then
+		-- 			LootSlot(slot)
+		-- 		end
+		-- 	end
+		-- end
 
 		return
 	end
