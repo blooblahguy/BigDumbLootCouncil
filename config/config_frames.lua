@@ -16,7 +16,7 @@ function bdlc:createDropdown(opts)
 	local callback = opts['callback'] or function() end
 
 	local dropdown = CreateFrame("Frame", dropdown_name, opts['parent'], 'UIDropDownMenuTemplate')
-	local dd_title = dropdown:CreateFontString(dropdown, 'OVERLAY')
+	local dd_title = dropdown:CreateFontString(nil, 'OVERLAY')
 	dd_title:SetFontObject(bdlc:get_font(14))
 	dd_title:SetPoint("TOPLEFT", 20, 10)
 	dd_title:SetTextColor(1, 1, 1)

@@ -15,14 +15,8 @@ config:SetScript("OnDragStop", function(self)  config:StopMovingOrSizing() end)
 config:Hide()
 bdlc:setBackdrop(config)
 
--- main font object
-bdlc.font = CreateFont("bdlc_font")
-bdlc.font:SetFont(bdlc.media.font, 14, "THINOUTLINE")
-bdlc.font:SetShadowColor(0, 0, 0)
-bdlc.font:SetShadowOffset(1, -1)
-
 -- Config Title
-config.title = config:CreateFontString('nil', "OVERLAY")
+config.title = config:CreateFontString(nil, "OVERLAY")
 config.title:SetFontObject(bdlc:get_font(16, "OUTLINE"))
 config.title:SetText("|cffA02C2FBig|r Dumb Loot Council Config")
 config.title:SetTextColor(1,1,1)
@@ -66,9 +60,9 @@ config:SetScript("OnShow", function(self)
 	self.init = true
 	store_ranks()
 
-	--======================
+	-- ======================
 	-- min rank
-	--======================
+	-- ======================
 	local default = bdlc.config and bdlc.config.council_min_rank or bdlc.configDefaults.council_min_rank
 	local options = {
 		['name'] = 'lc_rank',

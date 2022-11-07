@@ -7,6 +7,7 @@ local GetContainerItemInfo = GetContainerItemInfo or C_Container.GetContainerIte
 function bdlc:print(...)
 	print("|cffA02C2FBDLC:|r", ...)
 end
+
 function bdlc:debug(...)
 	if (bdlc.config.debug or bdlc.enabledebug) then
 		bdlc:print(...)
@@ -45,7 +46,7 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 
 	if (not itemString) then 
 		bdlc:debug(itemLink.." isn't actually an item. Please report this to the developer")
-		return false -- this never ever happen
+		return false -- this never ever happens?
 	end
 
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)

@@ -14,9 +14,11 @@ bdlc.config = {}
 bdlc.enabledebug = false
 bdlc.enableTests = false
 
+-- tooltip scanner
 bdlc.tt = CreateFrame('GameTooltip', 'BDLC:TooltipScan', UIParent, 'GameTooltipTemplate')
 bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 
+-- basic media options
 bdlc.media = {
 	flat = "Interface\\Buttons\\WHITE8x8",
 	smooth = "Interface\\Addons\\bigdumblootcouncil\\media\\smooth.tga",
@@ -30,6 +32,13 @@ bdlc.media = {
 	green = {.1, .7, 0.3, 1},
 }
 
+-- main font object
+bdlc.font = CreateFont("bdlc_font")
+bdlc.font:SetFont(bdlc.media.font, 14, "THINOUTLINE")
+bdlc.font:SetShadowColor(0, 0, 0)
+bdlc.font:SetShadowOffset(1, -1)
+
+-- defaults
 bdlc.configDefaults = {
 	council_min_rank = 2,
 	debug = false,
