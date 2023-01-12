@@ -301,6 +301,8 @@ function bdlc:addUserWant(itemUID, playerName, want, itemLink1, itemLink2, roll,
 
 	bdlc:debug("User want:", playerName, itemLink, wantText)
 
+	local name, color = bdlc:prettyName(playerName)
+	entry.name.text:SetText(name)
 	entry:Show()
 	entry.interest.text:SetText(wantText)
 	entry.interest.text:SetTextColor(unpack(wantColor))
