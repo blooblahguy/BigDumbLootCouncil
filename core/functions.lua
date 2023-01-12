@@ -41,7 +41,7 @@ function bdlc:GetItemID(itemLink)
 end
 
 function bdlc:GetItemUID(itemLink, lootedBy)
-	lootedBy = lootedBy or ""
+	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 
 	if (not itemString) then 
@@ -377,7 +377,7 @@ function bdlc:GetItemValue(itemLink)
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 
 	local gem1 = select(4, string.split(":", itemString))
-	local ilvl = select(4, GetItemInfo(itemLink))
+	local ilvl = GetDetailedItemLevelInfo(itemLink) --select(4, GetItemInfo(itemLink))
 	local wf_tf = false;
 	local socket = tonumber(gem1) and true or false
 	local infostr = "";
@@ -404,6 +404,7 @@ function bdlc:GetItemValue(itemLink)
 end
 
 function bdlc:itemValidForSession(itemLink, lootedBy, test)
+	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
 	local valid = false
 
 	local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
@@ -805,7 +806,7 @@ end
 function bdlc:unitName(str)
 	local name, server = strsplit("-", str)
 
-	return bdlc:capitalize(name)
+	return bdlc:capitalize(Ambiguate(name, "short"))
 end
 
 -- To colorize lootedBy player
@@ -818,23 +819,35 @@ function bdlc:prettyName(playerName)
 	return "|cff"..bdlc:RGBToHex(color)..name.."|r", color
 end
 
+
 -- returns name-server for any valid name or unit
-function bdlc:FetchUnitName(name)
-	-- remove server
-	local splitName, splitRealm = strsplit("-", name)
-	
-	-- check if we have a unit without the realm, then with the realm
-	local fullName, realm = UnitFullName(splitName) or UnitFullName(name)
-	realm = realm or GetRealmName()
-	
-	-- if no unit is found, just return their name
-	if (not fullName) then return (splitName.."-"..realm):utf8lower() end
+function bdlc:FetchUnitName(name_string)
+	-- check that this user actually exists
+	if (not UnitExists(name_string)) then return name_string:utf8lower() end
+
+	-- handle if "player" or "target" was passed in
+	if (name_string == "player" or name_string == "target" or strfind(name_string, "raid") ~= nil or strfind(name_string, "party") ~= nil) then
+		local name, realm = strsplit("-", name_string)
+		name = UnitName(name_string)
+		name_string = realm and name.."-"..realm or name
+	end
+
+	-- check if we included a server, trying both
+	local name = Ambiguate(name_string, "mail")
+	local name2 = GetUnitName(name_string, true)
+
+	-- separate name-server
+	local name, realm = strsplit("-", name) -- this should be fine if realm name came in
+	local name2, realm2 = strsplit("-", name2) -- this will populate if user isn't on your same server
+	name = name and name or name2
+	realm = realm and realm or realm2
+	realm = realm or GetRealmName() -- if they're on our server, and didn't include their server, then we use ours
 	
 	-- we always ensure realm
-	fullName = (fullName.."-"..realm):utf8lower()
+	name = name.."-"..realm
 
-	-- for consistency
-	return Ambiguate(fullName, "mail")
+	-- for consistency juuuust in case
+	return Ambiguate(name, "mail"):utf8lower()
 end
 
 

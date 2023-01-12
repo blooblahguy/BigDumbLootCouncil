@@ -59,17 +59,10 @@ function remove_from_lc(name)
 end
 
 
--- check if you are personally a part of the lc
-function bdlc:in_loot_council()
-	
-end
 
-
-
-
+-- if i'm in lc, raid leader, or not in a group
 function bdlc:inLC()
-	-- if i'm in lc, raid leader, or not in a group
-	return bdlc.loot_council[bdlc:FetchUnitName('player')] or bdlc:IsRaidLeader()
+	return bdlc.loot_council[bdlc.localPlayer] or bdlc:IsRaidLeader()
 end
 
 function bdlc:customButtons(buttons)

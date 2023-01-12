@@ -8,7 +8,7 @@ bdlc.addonName = addonName
 bdlc.messagePrefix = "BDLC";
 bdlc.deliminator = "><";
 bdlc.colorString = "|cffA02C2FBig|r Dumb Loot Council "
-bdlc.localPlayer = (UnitName("player").."-"..GetRealmName()):utf8lower()
+bdlc.localPlayer = Ambiguate(UnitName("player").."-"..GetRealmName(), "mail"):utf8lower()
 bdlc.comm = LibStub:GetLibrary("AceComm-3.0")
 bdlc.config = {}
 bdlc.enabledebug = false
@@ -146,7 +146,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 		if (not msg2) then
 			bdlc:print("3rd parameter needs to be an itemLink")
 		end
-		if (bdlc:itemValidForSession(msg2, "player", true)) then
+		if (bdlc:itemValidForSession(msg2, bdlc.localPlayer, true)) then
 			bdlc:print(msg2, "valid for session.")
 		else
 			bdlc:print(msg2, "not valid for session.")

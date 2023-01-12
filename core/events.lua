@@ -14,9 +14,10 @@ for i = 1, 19 do
 end
 
 local events = CreateFrame("frame", nil, UIParent)
-events:RegisterEvent("BOSS_KILL");
-events:RegisterEvent("CHAT_MSG_LOOT");
-events:RegisterEvent("LOOT_OPENED");
+events:RegisterEvent("BOSS_KILL")
+events:RegisterEvent("START_LOOT_ROLL")
+events:RegisterEvent("CHAT_MSG_LOOT")
+events:RegisterEvent("LOOT_OPENED")
 events:RegisterEvent('TRADE_ACCEPT_UPDATE')
 events:SetScript("OnEvent", function(self, event, arg1, arg2)
 	-- when a boss dies it's time for more sessions
@@ -82,6 +83,12 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 		end
 	end
 
+	-- Now in DF we get roll windows for group loot, start off of those
+	if (event == "START_LOOT_ROLL" and bdlc:IsRaidLeader()) then
+		local itemLink = GetLootRollItemLink(arg1)
+		bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
+		return
+	end
 	-- When a user loots an item, snag that item link and attempt a session
 	if (event == "CHAT_MSG_LOOT") then
 		bdlc:StartSessionFromTradable(nil, arg1, arg2)

@@ -140,6 +140,7 @@ function bdlc:getTab(itemUID)
 end
 
 function bdlc:getEntry(itemUID, playerName)
+	playerName = bdlc:FetchUnitName(playerName)
 	local current_entry = false
 
 	for tab, v in bdlc.tabs:EnumerateActive() do
@@ -855,7 +856,7 @@ local function create_roll(self)
 	roll:RegisterForDrag("LeftButton", "RightButton")
 	roll:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMoving() end)
 	roll:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
-	bdlc:setBackdrop(roll, .1, .1, .1, .8)
+	bdlc:setBackdrop(roll, .1, .1, .1, .9)
 	
 	-- info variable
 	roll.notes = "";
@@ -1266,7 +1267,7 @@ end)
 -- Rolls
 --==========================================
 bdlc.rollFrame = CreateFrame('frame', "BDLC Roll Window", UIParent)
-bdlc.rollFrame:SetSize(420, 1)
+bdlc.rollFrame:SetSize(430, 1)
 bdlc.rollFrame:SetPoint("CENTER", UIParent, "CENTER", 600, 0)
 bdlc.rollFrame:EnableMouse(true)
 bdlc.rollFrame:SetMovable(true);
