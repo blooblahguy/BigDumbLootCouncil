@@ -774,27 +774,29 @@ bdlc.async:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 	-- couldn't tell if this item could be traded yet
 	if (bdlc.items_waiting_for_verify[itemID]) then
-		bdlc.items_waiting_for_verify[itemID] = nil
-
 		local itemLink = bdlc.items_waiting_for_verify[itemID]
 
 		bdlc:StartSessionFromTradable(itemLink)
+
+		bdlc.items_waiting_for_verify[itemID] = nil
 	end
 
 	-- startable in session, but didn't know what it was yet
 	if (bdlc.items_waiting_for_session[itemID]) then
-		bdlc.items_waiting_for_session[itemID] = nil
-
 		local itemLink, lootedBy, forced = unpack(bdlc.items_waiting_for_session[itemID])
+
 		bdlc:startSession(itemLink, lootedBy, forced)
+
+		bdlc.items_waiting_for_session[itemID] = nil
 	end
 
 	-- updating users current gear
 	if (bdlc.player_items_waiting[itemID]) then
-		bdlc.player_items_waiting[itemID] = nil
-
 		local itemLink, gear = unpack(bdlc.player_items_waiting[itemID])
+
 		bdlc:updateUserItem(itemLink, gear)
+
+		bdlc.player_items_waiting[itemID] = nil
 	end
 end)
 

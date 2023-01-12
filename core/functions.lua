@@ -859,7 +859,7 @@ function bdlc:FetchUnitName(name_string)
 	local name2, realm2 = name2 and strsplit("-", name2) -- this will populate if user isn't on your same server
 	name = name and name or name2
 	realm = realm and realm or realm2
-	realm = realm or GetRealmName() -- if they're on our server, and didn't include their server, then we use ours
+	realm = realm and realm or GetRealmName() -- if they're on our server, and didn't include their server, then we use ours
 	
 	-- we always ensure realm
 	name = name.."-"..realm
