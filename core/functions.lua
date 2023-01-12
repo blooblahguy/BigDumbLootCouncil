@@ -275,8 +275,26 @@ end
 --==============================================
 -- Session Functions
 --==============================================
-local function find_compare(a, b)
-	return strfind(a:utf8lower(), b:utf8lower())
+local function find_compare(itemLink, search)
+	search = search:utf8lower() -- match these cases
+
+	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
+	bdlc.tt:SetHyperlink(itemLink)
+	local itemString = string.match(itemLink, "item[%-?%d:]+")
+	
+	local num_lines = bdlc.tt:NumLines(true)
+	for i = 1, num_lines do
+		local line = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() and _G['BDLC:TooltipScanTextLeft'..i]:GetText():utf8lower() or nil;
+		print(line, search)
+		if not line then break end
+
+		-- found it
+		if (strfind(line, search) ~= nil) then return true end
+	end
+
+	bdlc.tt:Hide()
+
+	return false
 end
 
 -- return item ID(s) for gear comparison
@@ -286,19 +304,19 @@ function bdlc:fetchUserGear(unit, itemLink)
 	local isTier, tierType, usable = bdlc:isTier(itemLink)
 
 	if (isTier) then
-		if (find_compare(name, l["tierHelm"])) then
+		if (find_compare(itemLink, l["tierHelm"])) then
 			equipSlot = "INVTYPE_HEAD"
-		elseif (find_compare(name, l["tierShoulders"]) or find_compare(name, l["tierShoulders2"])) then
+		elseif (find_compare(itemLink, l["tierShoulders"]) or find_compare(itemLink, l["tierShoulders2"])) then
 			equipSlot = "INVTYPE_SHOULDER"
-		elseif (find_compare(name, l["tierLegs"]) or find_compare(name, l["tierLegs2"])) then
+		elseif (find_compare(itemLink, l["tierLegs"]) or find_compare(itemLink, l["tierLegs2"])) then
 			equipSlot = "INVTYPE_LEGS"
-		elseif (find_compare(name, l["tierCloak"])) then
+		elseif (find_compare(itemLink, l["tierCloak"])) then
 			equipSlot = "INVTYPE_BACK"
-		elseif (find_compare(name, l["tierChest"])) then
+		elseif (find_compare(itemLink, l["tierChest"])) then
 			equipSlot = "INVTYPE_CHEST"
-		elseif (find_compare(name, l["tierGloves"]) or find_compare(name, l["tierGloves2"])) then
+		elseif (find_compare(itemLink, l["tierGloves"]) or find_compare(itemLink, l["tierGloves2"])) then
 			equipSlot = "INVTYPE_HAND"
-		elseif (find_compare(name, l["tierBelt"])) then
+		elseif (find_compare(itemLink, l["tierBelt"])) then
 			equipSlot = "INVTYPE_WAIST"
 		end
 	end
@@ -365,7 +383,7 @@ function bdlc:fetchUserGear(unit, itemLink)
 	
 	-- if (slotID == 0 and not isRelic) then
 	if (slotID == 0) then
-		bdlc.print("Can't find compare for slot: "..equipSlot..". Let the developer know");
+		bdlc:print("Can't find compare for "..itemLink..". Let the developer know");
 	end
 	
 	return itemLink1, itemLink2
