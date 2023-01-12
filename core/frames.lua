@@ -1003,14 +1003,19 @@ local function create_roll(self)
 
 			if (not lastBtn) then
 				button:SetPoint("LEFT", roll.buttons, "LEFT", 8, -1)
-			else
+			elseif (name ~= "Reroll") then
 				button:SetPoint("LEFT", lastBtn, "RIGHT", 4, 0)
 			end
 
 			roll.buttons[name] = button
 			roll.btns[name] = button
-			lastBtn = button
 			firstBtn = firstBtn or button
+			if (name ~= "Reroll") then
+				lastBtn = button
+			end
+			if (name == "Reroll") then
+				button:SetPoint("LEFT", roll.item.item_text, "RIGHT", 4, 0)
+			end
 		end
 	end
 	

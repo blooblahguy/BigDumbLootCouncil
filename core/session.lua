@@ -143,6 +143,13 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 
 	local name, color = bdlc:prettyName(lootedBy)
 
+	-- reroll button for tier
+	if (bdlc:isTier(itemLink)) then
+		roll.buttons["Reroll"]:Show()
+	else
+		roll.buttons["Reroll"]:Hide()
+	end
+
 	roll:Show()
 	roll.itemUID = itemUID
 	roll.item.icon.tex:SetTexture(texture)
