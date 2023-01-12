@@ -5,6 +5,7 @@ local bdlc, c, l = unpack(select(2, ...))
 --------------------------------------
 -- important functionality localization
 l["tierHelm"] = "Helm"
+l["tierHelm"] = "Head"
 l["tierShoulders"] = "Shoulders"
 l["tierShoulders2"] = "Shoulder"
 l["tierLegs"] = "Leggings"
