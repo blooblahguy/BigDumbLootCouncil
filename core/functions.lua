@@ -285,7 +285,6 @@ local function find_compare(itemLink, search)
 	local num_lines = bdlc.tt:NumLines(true)
 	for i = 1, num_lines do
 		local line = _G['BDLC:TooltipScanTextLeft'..i] and _G['BDLC:TooltipScanTextLeft'..i]:GetText() and _G['BDLC:TooltipScanTextLeft'..i]:GetText():utf8lower() or nil;
-		print(line, search)
 		if not line then break end
 
 		-- found it
