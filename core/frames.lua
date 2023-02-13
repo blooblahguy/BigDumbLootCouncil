@@ -169,11 +169,14 @@ end
 
 
 function bdlc:getRoll(itemUID)
+	local current_role = false
 	for roll, v in bdlc.rolls:EnumerateActive() do
 		if (roll.itemUID == itemUID) then
 			return roll
 		end
 	end
+
+	return bdlc.rolls:Acquire()
 end
 
 --======================================
@@ -846,7 +849,7 @@ bdlc.tabs = CreateObjectPool(create_tab, reset_tab)
 
 -- rolls
 local i = 0
-local function create_roll(self)
+local function create_roll()
 	i = i + 1
 	local roll = CreateFrame("frame", nil, bdlc.rollFrame, BackdropTemplateMixin and "BackdropTemplate");
 

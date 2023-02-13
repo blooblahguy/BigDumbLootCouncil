@@ -3,19 +3,30 @@ local bdlc, c, l = unpack(select(2, ...))
 --==========================================
 -- Sessions
 --==========================================
-function bdlc:startSession(itemLink, lootedBy, forced)
+function bdlc:startSession(itemLink, lootedBy, forced, rollID)
 	if (not itemLink) then return end
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 	if (not itemString) then return end
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 
 	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
-	
+
+	-- convert these from "1" or "0" to true or false booleans
+	if (type(forced) == "string") then
+		forced = tonumber(forced) == 1 and true or false
+	end
+	-- roll needs to be something for uid
+	if (rollID == nil or rollID == false) then rollID = -1 end
+	if (type(rollID) == "string") then
+		rollID = tonumber(rollID)
+	end
+
+	-- check if item is cached in wow
 	if (GetItemInfo(itemLink)) then
-		local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
+		local itemUID = bdlc:GetItemUID(itemLink, lootedBy, rollID)
 		bdlc.itemMap[itemUID] = itemLink
 
-		if (bdlc:itemValidForSession(itemLink, lootedBy) or tonumber(forced) == 1) then
+		if (bdlc:itemValidForSession(itemLink, lootedBy, false, rollID) or forced) then
 			bdlc:debug("Starting session for "..itemLink)
 			bdlc.loot_sessions[itemUID] = lootedBy
 			bdlc.loot_want[itemUID] = {}
@@ -29,13 +40,13 @@ function bdlc:startSession(itemLink, lootedBy, forced)
 			bdlc:createRollWindow(itemUID, lootedBy)
 		end
 	else
-		bdlc.items_waiting_for_session[itemID] = {itemLink, lootedBy, forced}
+		-- need to await server async info
+		bdlc.items_waiting_for_session[itemID] = {itemLink, lootedBy, forced, rollID}
 		GetItemInfo(itemLink) -- queue the server
 	end
 end
 
 ----------------------------------------
--- StartSessionFromTradable
 -- Fired when an item is received via chat (trade or loot)
 ----------------------------------------
 function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
@@ -55,7 +66,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 		GetItemInfo(itemLink)
 
 		C_Timer.After(delay, function()
-			local itemUID = bdlc:GetItemUID(itemLink)
+			local itemUID = bdlc:GetItemUID(itemLink, false, -1)
 
 			-- this was traded to me, ignore it
 			if (bdlc.tradedItems[itemUID]) then
@@ -66,7 +77,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 			-- can we trade this item? scan the tooltip
 			if (bdlc:verifyTradability(itemLink)) then
 				bdlc:debug(itemLink, "is tradable")
-				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
+				bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'), 0, 0)
 			end
 		end)
 	end
@@ -137,7 +148,7 @@ end
 function bdlc:createRollWindow(itemUID, lootedBy)
 	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
 
-	local roll = bdlc.rolls:Acquire()
+	local roll = bdlc:getRoll(itemUID)
 	local itemLink = bdlc.itemMap[itemUID]
 	local itemName, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemLink)
 
@@ -174,6 +185,7 @@ function bdlc:createRollWindow(itemUID, lootedBy)
 					break
 				end
 			end
+			
 			qn:Show()
 			qn:SetText(v)
 			bdlc:skinButton(qn, true)
@@ -783,9 +795,9 @@ bdlc.async:SetScript("OnEvent", function(self, event, itemID, success)
 
 	-- startable in session, but didn't know what it was yet
 	if (bdlc.items_waiting_for_session[itemID]) then
-		local itemLink, lootedBy, forced = unpack(bdlc.items_waiting_for_session[itemID])
+		local itemLink, lootedBy, forced, rollID = unpack(bdlc.items_waiting_for_session[itemID])
 
-		bdlc:startSession(itemLink, lootedBy, forced)
+		bdlc:startSession(itemLink, lootedBy, forced, rollID)
 
 		bdlc.items_waiting_for_session[itemID] = nil
 	end

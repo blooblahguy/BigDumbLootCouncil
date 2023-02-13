@@ -75,7 +75,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 				local a1, a2, a3, itemLink = string.find(chatItemLink, "(|H(.+)|h)");
 				a1, a2, itemLink = string.find(itemLink, "(.-|h)");
 				
-				local itemUID = bdlc:GetItemUID(itemLink)
+				local itemUID = bdlc:GetItemUID(itemLink, false, -1)
 
 				-- Registering a filter
 				bdlc.tradedItems[itemUID] = time()
@@ -86,9 +86,10 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 	-- Now in DF we get roll windows for group loot, start off of those
 	if (event == "START_LOOT_ROLL" and bdlc:IsRaidLeader()) then
 		local itemLink = GetLootRollItemLink(arg1)
-		bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'))
+		bdlc:sendAction("startSession", itemLink, bdlc:FetchUnitName('player'), 0, arg1)
 		return
 	end
+
 	-- When a user loots an item, snag that item link and attempt a session
 	if (event == "CHAT_MSG_LOOT") then
 		bdlc:StartSessionFromTradable(nil, arg1, arg2)

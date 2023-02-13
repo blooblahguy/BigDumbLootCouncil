@@ -75,7 +75,7 @@ bdlc.item_drops = {}
 -- Commands
 SLASH_bdlc1 = "/bdlc"
 SlashCmdList["bdlc"] = function(original_msg, editbox)
-	local msg, msg2 = strsplit(" ", strtrim(original_msg), 2)
+	local msg, msg2, msg3 = strsplit(" ", strtrim(original_msg), 2)
 
 	-- list of commands
 	if (msg == "" or msg == " ") then
@@ -127,7 +127,7 @@ SlashCmdList["bdlc"] = function(original_msg, editbox)
 			bdlc:print("3rd parameter needs to be an itemLink")
 			return
 		end
-		bdlc:sendAction("startSession", msg2, bdlc.localPlayer, "1");
+		bdlc:sendAction("startSession", msg2, bdlc.localPlayer);
 		
 		return
 	end

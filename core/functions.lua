@@ -40,7 +40,7 @@ function bdlc:GetItemID(itemLink)
 	return itemID
 end
 
-function bdlc:GetItemUID(itemLink, lootedBy)
+function bdlc:GetItemUID(itemLink, lootedBy, rollID)
 	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
 	local itemString = string.match(itemLink, "item[%-?%d:]+")
 
@@ -51,7 +51,7 @@ function bdlc:GetItemUID(itemLink, lootedBy)
 
 	local itemType, itemID, enchant, gem1, gem2, gem3, gem4, suffixID, uniqueID, level, specializationID, upgradeId, instanceDifficultyID, numBonusIDs, bonusID1, bonusID2, upgradeValue = strsplit(":", itemString)
 
-	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue..":"..lootedBy
+	return itemID..":"..gem1..":"..bonusID1..":"..bonusID2..":"..upgradeValue..":"..lootedBy..":"..rollID
 end
 
 -- sort pairs
@@ -420,11 +420,11 @@ function bdlc:GetItemValue(itemLink)
 	return ilvl, wf_tf, socket, infostr
 end
 
-function bdlc:itemValidForSession(itemLink, lootedBy, test)
+function bdlc:itemValidForSession(itemLink, lootedBy, test, rollID)
 	lootedBy = lootedBy and bdlc:FetchUnitName(lootedBy) or ""
 	local valid = false
 
-	local itemUID = bdlc:GetItemUID(itemLink, lootedBy)
+	local itemUID = bdlc:GetItemUID(itemLink, lootedBy, rollID)
 
 	-- this session already exists, don't create again
 	if (bdlc.loot_sessions[itemUID] == lootedBy and not test) then
@@ -494,6 +494,7 @@ function bdlc:itemEquippable(itemUID)
 	classes["PRIEST"] = { [2]={4,10,14,15,19,20}, [4]={0,1,5}, }
 	classes["DEATHKNIGHT"] = { [2]={0,1,4,5,6,7,8,14,20}, [4]={4,5}, }
 	classes["SHAMAN"] = { [2]={0,1,4,5,10,13,14,15,20}, [4]={0,3,5,6}, }
+	classes["EVOKER"] = { [2]={0,1,4,5,7,8,10,13,14,15,20}, [4]={0,1,2,3,5}, }
 	classes["MAGE"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
 	classes["WARLOCK"] = { [2]={7,10,14,15,19,20}, [4]={0,1,5}, }
 	classes["MONK"] = { [2]={0,4,6,7,10,13,14,20}, [4]={0,2,5}, }
@@ -518,51 +519,48 @@ function bdlc:isTier(itemLink)
 	-- store class names
 	local classes = {}
 	local myClass = select(1, UnitClass("player")):lower()
+	local myClassGlobal = select(2, UnitClass("player")):lower()
 
-	for i = 1, 12 do
+	-- check demon hunter before hunter
+	local order = {1, 2, 12, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13}
+
+	-- global to local map
+	for i = 1, 13 do
 		local name, global, index = GetClassInfo(i)
-		classes[name:lower()] = name:lower()
+		classes[global:lower()] = name:lower()
 	end
-
-	-- local tier_classes = {
-	-- 	-- older
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Rogue"], classes["Shaman"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Priest"], classes["Druid"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Warlock"]}, ", ")),
-	-- 	-- old
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Warlock"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
-	-- 	-- newer
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Hunter"], classes["Shaman"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Rogue"], classes["Mage"], classes["Druid"]}, ", ")),
-	-- }
-
-	-- local weapon_classes = {
-	-- 	-- main hands
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Death Knight"], classes["Warlock"], classes["Demon Hunter"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Hunter"], classes["Mage"], classes["Druid"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Priest"], classes["Shaman"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Monk"], classes["Warrior"], classes["Rogue"]}, ", ")),
-	-- }
-	-- local offhand_classes = {
-	-- 	-- offhands
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Paladin"], classes["Monk"], classes["Warrior"], classes["Priest"]}, ", ")),
-	-- 	string.format(ITEM_CLASSES_ALLOWED, table.concat({classes["Shaman"], classes["Mage"], classes["Warlock"], classes["Druid"]}, ", ")),
-	-- }
 
 	-- ensure globals for us at least
 	ITEM_CLASSES_ALLOWED = ITEM_CLASSES_ALLOWED or "Classes: %s"
 	WEAPON = WEAPON or "Weapon"
 	SHIELDSLOT = SHIELDSLOT or "Shield"
 	INVTYPE_WEAPONOFFHAND = INVTYPE_WEAPONOFFHAND or "Off hand"
-
 	
 	local tier_string = string.utf8sub(ITEM_CLASSES_ALLOWED, 0, -3):lower()
 	bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
 	bdlc.tt:SetHyperlink(itemLink)
 	local name = select(1, GetItemInfo(itemLink))
 
+	-- check tier type first
+	for i = 1, 150 do
+		local line = _G['BDLC:TooltipScanTextLeft'..i]
+		local text = line and line:GetText() and line:GetText():lower()
+
+		if (not text) then break end
+
+		-- is a weapon
+		if (strfind(text, WEAPON:lower()) ~= nil) then
+			tierType = "weapon"
+		end
+
+		-- is an offhand/shield
+		local offhand_str = gsub(INVTYPE_WEAPONOFFHAND:lower(), " ", "")
+		if (strfind(text, SHIELDSLOT:lower()) ~= nil or strfind(text, offhand_str) ~= nil) then
+			tierType = "offhand"
+		end
+	end
+
+	-- next check for class so we can break and not double match
 	for i = 1, 150 do
 		local line = _G['BDLC:TooltipScanTextLeft'..i]
 		local text = line and line:GetText() and line:GetText():lower()
@@ -571,21 +569,25 @@ function bdlc:isTier(itemLink)
 
 		-- check if it's "Classes: "
 		if (strfind(text, tier_string) ~= nil) then
-			if (strfind(text, myClass) ~= nil) then
-				usable = true
+			-- hutner / demon hunter weirdness
+			if (myClassGlobal == "hunter") then
+				-- found "hunter"
+				if (strfind(text, myClass) ~= nil) then
+					-- did not find "demon hunter"
+					if (strfind(text, classes["demonhunter"]) == nil) then
+						usable = true
+					end
+				end
+			else
+				-- for everyone else
+				if (strfind(text, myClass) ~= nil) then
+					usable = true
+				end
 			end
 
 			isTier = true
-		end
 
-		-- is a weapon
-		if (strfind(text, WEAPON:lower()) ~= nil) then
-			tierType = "weapon"
-		end
-		-- is an offhand/shield
-		local offhand_str = gsub(INVTYPE_WEAPONOFFHAND:lower(), " ", "")
-		if (strfind(text, SHIELDSLOT:lower()) ~= nil or strfind(text, offhand_str) ~= nil) then
-			tierType = "offhand"
+			break
 		end
 	end
 
@@ -594,45 +596,6 @@ function bdlc:isTier(itemLink)
 	end
 
 	tierType = isTier and tierType or false
-
-	-- scan for class requirements
-	-- for i = 1, bdlc.tt:NumLines() do
-	-- 	local line = _G['BDLC:TooltipScanTextLeft'..i]
-	-- 	local text = line:GetText();
-
-	-- 	for k, v in pairs(weapon_classes) do
-	-- 		if (strfind(text, v) ~= nil) then
-	-- 			if (strfind(text, myClass) ~= nil) then
-	-- 				usable = true
-	-- 			end
-	-- 			isTier = true
-	-- 			tierType = "weapon"
-	-- 			break
-	-- 		end
-	-- 	end
-
-	-- 	for k, v in pairs(offhand_classes) do
-	-- 		if (strfind(text, v) ~= nil) then
-	-- 			if (strfind(text, myClass) ~= nil) then
-	-- 				usable = true
-	-- 			end
-	-- 			isTier = true
-	-- 			tierType = "offhand"
-	-- 			break
-	-- 		end
-	-- 	end
-
-	-- 	for k, v in pairs(tier_classes) do
-	-- 		if (strfind(text, v) ~= nil) then
-	-- 			if (strfind(text, myClass) ~= nil) then
-	-- 				usable = true
-	-- 			end
-	-- 			isTier = true
-	-- 			tierType = "armor"
-	-- 			break
-	-- 		end
-	-- 	end
-	-- end
 	
 	return isTier, tierType, usable
 end
@@ -758,8 +721,8 @@ function bdlc:tradableTooltip(itemLink)
 		for slot = 1, GetContainerNumSlots(bag) do
 			local bagItemLink = GetContainerNumSlots(bag, slot)
 
-			local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, "") or false
-			local itemUID = bdlc:GetItemUID(itemLink, "")
+			local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, false, -1) or false
+			local itemUID = bdlc:GetItemUID(itemLink, false, -1)
 			
 			if (bagUID and bagUID == itemUID) then
 				bdlc.tt:SetOwner(UIParent, 'ANCHOR_NONE')
