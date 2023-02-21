@@ -243,8 +243,9 @@ end
 AceComm.callbacks.OnUsed = nil
 AceComm.callbacks.OnUnused = nil
 
-local function OnEvent(self, event, prefix, message, distribution, sender)
+local function OnEvent(self, event, prefix, message, distribution, sender, fullSender)
 	if event == "CHAT_MSG_ADDON" then
+		-- print(sender, fullSender, Ambiguate(sender, "none"), Ambiguate(fullSender, "none"))
 		sender = Ambiguate(sender, "none")
 		local control, rest = match(message, "^([\001-\009])(.*)")
 		if control then
