@@ -1,7 +1,7 @@
 local bdlc, c, l = unpack(select(2, ...))
 
-local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
-local GetContainerItemInfo = GetContainerItemInfo or C_Container.GetContainerItemInfo
+local _GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
+local _GetContainerItemInfo = GetContainerItemInfo or C_Container.GetContainerItemInfo
 
 -- Debug
 function bdlc:print(...)
@@ -718,8 +718,8 @@ function bdlc:tradableTooltip(itemLink)
 
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
-		for slot = 1, GetContainerNumSlots(bag) do
-			local bagItemLink = GetContainerNumSlots(bag, slot)
+		for slot = 1, _GetContainerNumSlots(bag) do
+			local bagItemLink = _GetContainerNumSlots(bag, slot)
 
 			local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, false, -1) or false
 			local itemUID = bdlc:GetItemUID(itemLink, false, -1)

@@ -13,16 +13,17 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	end)
 
 	-- config initialize
-	BDLC_CONFIG = BDLC_CONFIG or bdlc.configDefaults
-	BDLC_HISTORY = BDLC_HISTORY or {}
+	BDLC_CONFIG = bdlc.configDefaults
+	-- BDLC_CONFIG = BDLC_CONFIG or bdlc.configDefaults
+	-- BDLC_HISTORY = BDLC_HISTORY or {}
 	bdlc.config = BDLC_CONFIG
 	
 	-- do a one time reset
-	if (not bdlc.config["shadowlands2"]) then
-		BDLC_CONFIG = bdlc.configDefaults
-		bdlc.config = BDLC_CONFIG
-		bdlc.config["shadowlands2"] = true
-	end
+	-- if (not bdlc.config["shadowlands2"]) then
+	-- 	BDLC_CONFIG = bdlc.configDefaults
+	-- 	bdlc.config = BDLC_CONFIG
+	-- 	bdlc.config["shadowlands2"] = true
+	-- end
 
 	-- C_Timer.After(0.2, function()
 		-- bdlc:startMockSession()

@@ -1,7 +1,7 @@
 local bdlc, c, l = unpack(select(2, ...))
 
-local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
-local GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetContainerNumFreeSlots
+local _GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
+local _GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetContainerNumFreeSlots
 
 -- Cache player inventory immediately, just makes things easier
 if (not IsAddOnLoaded('Blizzard_ArtifactUI')) then
@@ -45,7 +45,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 
 		-- 		-- get number of open bag slots
 		-- 		for b = 0, 4 do
-		-- 			num_free = num_free + GetContainerNumFreeSlots(b);
+		-- 			num_free = num_free + _GetContainerNumFreeSlots(b);
 		-- 		end
 
 		-- 		if (num_free == 0) then

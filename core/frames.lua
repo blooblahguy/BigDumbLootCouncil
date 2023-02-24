@@ -277,7 +277,7 @@ for i = 1, 10 do
 	trade_line.data.itemLink = select(2, GetItemInfo(28830))
 	trade_line.data.target = UnitName("player").."target"
 
-	-- trade_line:Hide()
+	trade_line:Hide()
 	bdlc.assignment_window.lines[i] = trade_line
 end
 
@@ -1044,6 +1044,7 @@ local function create_roll()
 	roll:RegisterForDrag("LeftButton", "RightButton")
 	roll:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMoving() end)
 	roll:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
+	roll:SetScript("OnMouseUp", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
 	bdlc:setBackdrop(roll, .1, .1, .1, .9)
 	
 	-- info variable
@@ -1364,6 +1365,7 @@ bdlc.window.header:EnableMouse(true);
 bdlc.window.header:RegisterForDrag("LeftButton","RightButton")
 bdlc.window.header:SetScript("OnDragStart", function(self) bdlc.window:StartMoving() end)
 bdlc.window.header:SetScript("OnDragStop", function(self)  bdlc.window:StopMovingOrSizing() end)
+bdlc.window.header:SetScript("OnMouseUp", function(self) bdlc.window:StopMovingOrSizing() end)
 bdlc.window.header:SetPoint("TOPLEFT", bdlc.window, "TOPLEFT")
 bdlc.window.header:SetPoint("BOTTOMRIGHT", bdlc.window, "TOPRIGHT", 0, -24)
 bdlc:setBackdrop(bdlc.window.header, .1, .1, .1, 1)
@@ -1471,6 +1473,7 @@ bdlc.rollFrame:SetClampedToScreen(true);
 bdlc.rollFrame:RegisterForDrag("LeftButton","RightButton")
 bdlc.rollFrame:SetScript("OnDragStart", function(self) bdlc.rollFrame:StartMoving() end)
 bdlc.rollFrame:SetScript("OnDragStop", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
+bdlc.rollFrame:SetScript("OnMouseUp", function(self) bdlc.rollFrame:StopMovingOrSizing() end)
 bdlc.rollFrame:Hide()
 
 bdlc.rollFrame.title = bdlc.rollFrame:CreateFontString(nil, "OVERLAY")

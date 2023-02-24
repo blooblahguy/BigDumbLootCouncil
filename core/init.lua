@@ -1,7 +1,7 @@
 local addonName, engine = ...
-engine[1] = CreateFrame("Frame", nil, UIParent)
-engine[2] = {}
-engine[3] = {}
+engine[1] = CreateFrame("Frame", nil, UIParent) -- core
+engine[2] = CreateFrame("Frame", nil, UIParent) -- config
+engine[3] = {} -- locales
 
 bdlc = engine[1]
 bdlc.addonName = addonName
