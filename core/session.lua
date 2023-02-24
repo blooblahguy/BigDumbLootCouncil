@@ -71,6 +71,7 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 			-- this was traded to me, ignore it
 			if (bdlc.tradedItems[itemUID]) then
 				bdlc:debug('Experimental: Item received via trading, will not be announced again.')
+				bdlc:sendAction("tradeReceived", bdlc.localPlayer, itemLink)
 				return
 			end
 
@@ -81,6 +82,15 @@ function bdlc:StartSessionFromTradable(itemLink, arg1, arg2, forced)
 			end
 		end)
 	end
+end
+
+----------------------------------------
+-- fired when trade is received and we can remove a user from the trade assignment window
+----------------------------------------
+function bdlc:tradeReceived(targetPlayer, itemLink)
+	if (not bdlc:IsRaidLeader()) then return end
+
+	bdlc:remove_trade_assignment(itemLink, targetPlayer)
 end
 
 ----------------------------------------
@@ -450,6 +460,8 @@ function bdlc:awardLoot(playerName, itemUID)
 	SendChatMessage("BDLC: Please trade "..itemLink.." to "..unit, "WHISPER", nil, lootedBy)
 	SendChatMessage("BDLC: "..lootedBy.."'s "..itemLink.." awarded to "..unit, "RAID")
 
+	bdlc:add_trade_assignment(lootedBy, itemLink, playerName)
+
 	-- bdlc:sendAction("addLootHistory", itemUID, playerName)
 
 	bdlc:repositionFrames()
@@ -758,7 +770,7 @@ function bdlc:voteForUser(councillorName, itemUID, playerEntryName, lcl)
 	bdlc:updateVotesRemaining(itemUID, councillorName)
 
 	-- now loop through and tally
-	for itemUID, un in pairs(bdlc.loot_sessions) do
+	for itemUID, info in pairs(bdlc.loot_sessions) do
 		local tab = bdlc:getTab(itemUID)
 		for entry, k in tab.entries:EnumerateActive() do
 			if (entry.itemUID) then

@@ -1,22 +1,30 @@
 local bdlc, c, l = unpack(select(2, ...))
 
+function bdlc:round(number, decimals)
+    return (("%%.%df"):format(decimals)):format(number)
+end
+
 --======================================
 -- Fonts
 --======================================
 bdlc.fonts = {}
 -- dynamic font creation/fetching
-function bdlc:get_font(size, outline)
-	outline = outline or ""
-	local name = size.."_"..outline
+function bdlc:get_font(size, outline, shadow)
+	size = bdlc:round(size)
+	local name = outline and size.."_"..outline or size
+	name = shadow and name.."_shadow" or name
+	outline = outline and outline or ""
+
 	
 	if (not bdlc.fonts[name]) then
 		local font = CreateFont("BDLC_"..name)
+
 		font:SetFont(bdlc.media.font, tonumber(size), outline)
-		if (outline == "") then
-			font:SetShadowColor(0, 0, 0)
+		if (shadow) then
+			font:SetShadowColor(0, 0, 0, 1)
 			font:SetShadowOffset(1, -1)
 		else
-			font:SetShadowColor(0, 0, 0)
+			font:SetShadowColor(0, 0, 0, 0)
 			font:SetShadowOffset(0, 0)
 		end
 
@@ -178,6 +186,183 @@ function bdlc:getRoll(itemUID)
 
 	return bdlc.rolls:Acquire()
 end
+
+
+--======================================
+-- Trade assignment window
+--======================================
+bdlc.assignment_window = CreateFrame("frame", "BDLC:Assignments", UIParent, BackdropTemplateMixin and "BackdropTemplate")
+bdlc.assignment_window:SetSize(330, 228)
+bdlc.assignment_window:SetPoint("LEFT", 200, 0)
+bdlc.assignment_window:SetFrameStrata("DIALOG")
+bdlc.assignment_window:EnableMouse(true)
+bdlc.assignment_window:SetMovable(true)
+-- bdlc.assignment_window:SetUserPlaced(true)
+bdlc.assignment_window:RegisterForDrag("LeftButton")
+bdlc.assignment_window:SetScript("OnDragStart", function(self) self:StartMoving() end)
+bdlc.assignment_window:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+bdlc.assignment_window:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+bdlc:setBackdrop(bdlc.assignment_window)
+
+local title = bdlc.assignment_window:CreateFontString(nil, "OVERLAY")
+title:SetFontObject(bdlc:get_font(12, "OUTLINE"))
+title:SetText(bdlc.colorString.." - Trade Assignments")
+title:SetJustifyH("CENTER")
+title:SetPoint("BOTTOM", bdlc.assignment_window, "TOP", 0, 2)
+bdlc.assignment_window.title = title
+
+bdlc.assignment_window.lines = {}
+for i = 1, 10 do
+	local trade_line = CreateFrame("frame", nil, bdlc.assignment_window)
+	trade_line:SetWidth(bdlc.assignment_window:GetWidth())
+	trade_line:SetHeight(20)
+
+	trade_line.itemLink = CreateFrame("frame", nil, trade_line)
+	trade_line.itemLink:SetSize(100, 18)
+	trade_line.itemLink:SetPoint("LEFT", trade_line, 10, 0)
+	trade_line.itemLink:EnableMouse(true)
+	trade_line.itemLink:SetScript("OnEnter", function(self)
+		ShowUIPanel(GameTooltip)
+		GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+		GameTooltip:SetHyperlink(self.itemLink)
+		GameTooltip:Show()
+	end)
+	trade_line.itemLink:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	trade_line.itemLink.text = trade_line.itemLink:CreateFontString(nil, "OVERLAY")
+	trade_line.itemLink.text:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.itemLink.text:SetJustifyH("LEFT")
+	trade_line.itemLink.text:SetAllPoints()
+
+	function trade_line.itemLink:SetItem(itemLink)
+		trade_line.itemLink.text:SetText(itemLink)
+		trade_line.itemLink.itemLink = itemLink
+	end
+
+	trade_line.itemLink:SetItem(select(2, GetItemInfo(28830)))
+
+	trade_line.lootedBy = trade_line:CreateFontString(nil, "OVERLAY")
+	trade_line.lootedBy:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.lootedBy:SetText(UnitName("player"))
+	trade_line.lootedBy:SetPoint("LEFT", trade_line.itemLink, "RIGHT", 5, 0)
+	trade_line.lootedBy:SetJustifyH("RIGHT")
+	trade_line.lootedBy:SetWidth(60)
+
+	trade_line.arrow = trade_line:CreateFontString(nil, "OVERLAY")
+	trade_line.arrow:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.arrow:SetText("Trade to")
+	trade_line.arrow:SetTextColor(.7, .7, .7)
+	trade_line.arrow:SetPoint("CENTER", trade_line, 10, 0)
+	trade_line.arrow:SetPoint("LEFT", trade_line.lootedBy, "RIGHT", 5, 0)
+	trade_line.arrow:SetJustifyH("LEFT")
+	trade_line.arrow:SetWidth(38)
+
+	trade_line.target = trade_line:CreateFontString(nil, "OVERLAY")
+	trade_line.target:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.target:SetText(UnitName("player").."target")
+	trade_line.target:SetPoint("LEFT", trade_line.arrow, "RIGHT", 5, 0)
+	trade_line.target:SetJustifyH("LEFT")
+	trade_line.target:SetWidth(60)
+
+	trade_line.remove = CreateFrame("button", nil, trade_line, BackdropTemplateMixin and "BackdropTemplate")
+	trade_line.remove:SetSize(10, 10)
+	trade_line.remove:SetText("x")
+	trade_line.remove:SetPoint("LEFT", trade_line.target, "RIGHT", 10, 0)
+	trade_line.remove:SetScript("OnClick", function()
+		bdlc:remove_trade_assignment(trade_line.data.itemLink, trade_line.data.target)
+	end)
+	bdlc:skinButton(trade_line.remove, true, "red")
+
+	trade_line.data = {}
+	trade_line.data.lootedBy = UnitName("player")
+	trade_line.data.itemLink = select(2, GetItemInfo(28830))
+	trade_line.data.target = UnitName("player").."target"
+
+	-- trade_line:Hide()
+	bdlc.assignment_window.lines[i] = trade_line
+end
+
+function bdlc.assignment_window:reposition_items()
+	local min_height = 100
+	local height = 10
+	local last
+	for i = 1, 10 do
+		local line = bdlc.assignment_window.lines[i]
+		line:ClearAllPoints()
+
+		if (line:IsShown()) then
+			if (not last) then
+				line:SetPoint("TOP", bdlc.assignment_window, 0, -5)
+			else
+				line:SetPoint("TOP", last, "BOTTOM", 0, -2)
+			end
+
+			height = height + 22
+
+			last = line
+		end
+	end
+
+	height = max(height, min_height)
+	bdlc.assignment_window:SetHeight(height)
+
+	if (not last) then
+		bdlc.assignment_window:Hide()
+	else
+		bdlc.assignment_window:Show()
+	end
+end
+
+function bdlc:add_trade_assignment(lootedBy, itemLink, target)
+	lootedBy = bdlc:FetchUnitName(lootedBy)
+	target = bdlc:FetchUnitName(target)
+	local line
+	for i = 1, 10 do
+		local l = bdlc.assignment_window.lines[i]
+		if (not l:IsShown()) then
+			line = l
+			break
+		end
+	end
+
+	if (not line) then return end
+
+	line.data.lootedBy = lootedBy:lower()
+	line.data.itemLink = itemLink:lower()
+	line.data.target = target:lower()
+	line.lootedBy:SetText(bdlc:prettyName(lootedBy))
+	line.itemLink:SetItem(itemLink)
+	line.target:SetText(bdlc:prettyName(target))
+	line:Show()
+
+	bdlc.assignment_window:reposition_items()
+end
+
+function bdlc:remove_trade_assignment(itemLink, target)
+	target = bdlc:FetchUnitName(target)
+	local line
+	for i = 1, 10 do
+		local l = bdlc.assignment_window.lines[i]
+		if (l.data.itemLink:lower() == itemLink:lower() and l.data.target:lower() == target:lower()) then
+			line = l
+			break
+		end
+	end
+
+	if (not line) then return end
+
+	line:Hide()
+	line.data.lootedBy = ""
+	line.data.itemLink = ""
+	line.data.target = ""
+
+	line.lootedBy:SetText("looted by")
+	line.itemLink:SetItem("itemlink")
+	line.target:SetText("target")
+
+	bdlc.assignment_window:reposition_items()
+end
+
+bdlc.assignment_window:reposition_items()
 
 --======================================
 -- Object Pools

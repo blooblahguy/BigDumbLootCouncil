@@ -35,4 +35,7 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	bdlc.council_votes = bdlc.config.council_votes
 	bdlc.buttons = bdlc.configDefaults.buttons
 	bdlc.master_looter_qn = bdlc.config.quick_notes
+
+
+	-- bdlc:startMockSession()
 end)
