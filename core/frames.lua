@@ -192,7 +192,7 @@ end
 -- Trade assignment window
 --======================================
 bdlc.assignment_window = CreateFrame("frame", "BDLC:Assignments", UIParent, BackdropTemplateMixin and "BackdropTemplate")
-bdlc.assignment_window:SetSize(330, 228)
+bdlc.assignment_window:SetSize(370, 228)
 bdlc.assignment_window:SetPoint("LEFT", 200, 0)
 bdlc.assignment_window:SetFrameStrata("DIALOG")
 bdlc.assignment_window:EnableMouse(true)
@@ -229,7 +229,7 @@ for i = 1, 10 do
 	end)
 	trade_line.itemLink:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	trade_line.itemLink.text = trade_line.itemLink:CreateFontString(nil, "OVERLAY")
-	trade_line.itemLink.text:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.itemLink.text:SetFontObject(bdlc:get_font(14, "OUTLINE"))
 	trade_line.itemLink.text:SetJustifyH("LEFT")
 	trade_line.itemLink.text:SetAllPoints()
 
@@ -241,27 +241,27 @@ for i = 1, 10 do
 	trade_line.itemLink:SetItem(select(2, GetItemInfo(28830)))
 
 	trade_line.lootedBy = trade_line:CreateFontString(nil, "OVERLAY")
-	trade_line.lootedBy:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.lootedBy:SetFontObject(bdlc:get_font(14, "OUTLINE"))
 	trade_line.lootedBy:SetText(UnitName("player"))
 	trade_line.lootedBy:SetPoint("LEFT", trade_line.itemLink, "RIGHT", 5, 0)
 	trade_line.lootedBy:SetJustifyH("RIGHT")
-	trade_line.lootedBy:SetWidth(60)
+	trade_line.lootedBy:SetWidth(80)
 
 	trade_line.arrow = trade_line:CreateFontString(nil, "OVERLAY")
-	trade_line.arrow:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.arrow:SetFontObject(bdlc:get_font(14, "OUTLINE"))
 	trade_line.arrow:SetText("Trade to")
 	trade_line.arrow:SetTextColor(.7, .7, .7)
 	trade_line.arrow:SetPoint("CENTER", trade_line, 10, 0)
 	trade_line.arrow:SetPoint("LEFT", trade_line.lootedBy, "RIGHT", 5, 0)
 	trade_line.arrow:SetJustifyH("LEFT")
-	trade_line.arrow:SetWidth(38)
+	-- trade_line.arrow:SetWidth(38)
 
 	trade_line.target = trade_line:CreateFontString(nil, "OVERLAY")
-	trade_line.target:SetFontObject(bdlc:get_font(11, "OUTLINE"))
+	trade_line.target:SetFontObject(bdlc:get_font(14, "OUTLINE"))
 	trade_line.target:SetText(UnitName("player").."target")
 	trade_line.target:SetPoint("LEFT", trade_line.arrow, "RIGHT", 5, 0)
 	trade_line.target:SetJustifyH("LEFT")
-	trade_line.target:SetWidth(60)
+	trade_line.target:SetWidth(80)
 
 	trade_line.remove = CreateFrame("button", nil, trade_line, BackdropTemplateMixin and "BackdropTemplate")
 	trade_line.remove:SetSize(10, 10)
@@ -360,6 +360,21 @@ function bdlc:remove_trade_assignment(itemLink, target)
 	line.target:SetText("target")
 
 	bdlc.assignment_window:reposition_items()
+end
+
+function bdlc:fetch_trade_assignment(lootedBy, target)
+	lootedBy = bdlc:FetchUnitName(lootedBy)
+	target = bdlc:FetchUnitName(target)
+	local line
+	for i = 1, 10 do
+		local l = bdlc.assignment_window.lines[i]
+		if (l.data.target:lower() == target:lower() and l.data.lootedBy:lower() == lootedBy:lower()) then
+			line = l
+			break
+		end
+	end
+
+	return line.data.itemLink
 end
 
 bdlc.assignment_window:reposition_items()

@@ -2,6 +2,7 @@ local bdlc, c, l = unpack(select(2, ...))
 
 local _GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots
 local _GetContainerItemInfo = GetContainerItemInfo or C_Container.GetContainerItemInfo
+local _GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetContainerNumFreeSlots
 
 -- Debug
 function bdlc:print(...)
@@ -710,6 +711,36 @@ function bdlc:GetRelics(rt)
 	return relic1, relic2
 end
 
+--================================================
+-- Trading
+--================================================
+function bdlc:populate_trade_window(itemLink1)
+	local itemLink1 = bdlc:GetItemUID(itemLink1, false, -1)
+	if (not _G.TradeFrame:IsShown()) then return end
+
+	-- find in bags
+	for bag = 0, 4 do
+		for slot = 1, _GetContainerNumSlots(bag) do
+			local bagItemLink = select(7, GetContainerItemInfo(bag, slot))
+
+			-- local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, false, -1) or false
+			-- local itemUID = bdlc:GetItemUID(itemLink, false, -1)
+			if (bagItemLink) then
+				local itemLink2 = bdlc:GetItemUID(bagItemLink, false, -1)
+				
+				if (itemLink2 and itemLink1 == itemLink2) then
+					-- we've matched our tradeable item, put it in the trade window
+					-- ClearCursor()
+					-- C_Container.PickupContainerItem(bag, slot)
+					UseContainerItem(bag, slot)
+				end
+			end
+		end
+	end
+
+	-- move to trade window
+end
+
 -- Tradability
 function bdlc:tradableTooltip(itemLink)
 	local isTradable = false
@@ -719,7 +750,7 @@ function bdlc:tradableTooltip(itemLink)
 	-- the tooltip for trading actually only shows up on bag tooltips, so we have to do this
 	for bag = 0, 4 do
 		for slot = 1, _GetContainerNumSlots(bag) do
-			local bagItemLink = _GetContainerNumSlots(bag, slot)
+			local bagItemLink = select(7, GetContainerItemInfo(bag, slot))
 
 			local bagUID = bagItemLink and bdlc:GetItemUID(bagItemLink, false, -1) or false
 			local itemUID = bdlc:GetItemUID(itemLink, false, -1)

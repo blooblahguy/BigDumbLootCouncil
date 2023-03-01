@@ -19,6 +19,8 @@ events:RegisterEvent("START_LOOT_ROLL")
 events:RegisterEvent("CHAT_MSG_LOOT")
 events:RegisterEvent("LOOT_OPENED")
 events:RegisterEvent('TRADE_ACCEPT_UPDATE')
+events:RegisterEvent('TRADE_SHOW')
+events:RegisterEvent('TRADE_CLOSED')
 events:SetScript("OnEvent", function(self, event, arg1, arg2)
 	-- when a boss dies it's time for more sessions
 	if (event == "BOSS_KILL") then
@@ -64,6 +66,22 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 		return
 	end
 
+	-- auto populate trade window
+	if (event == "TRADE_SHOW") then
+		bdlc.is_trading = true
+		local target = _G.TradeFrameRecipientNameText:GetText()
+		local itemLink = bdlc:fetch_trade_assignment('player', target)
+		if (itemLink) then
+			bdlc:populate_trade_window(itemLink)
+		end
+		return
+	end
+
+	if (event == "TRADE_CLOSED") then
+		bdlc.is_trading = false
+		return
+	end
+
 	-- log items being trades
 	if (event == "TRADE_ACCEPT_UPDATE") then
 		for i = 1, 6 do
@@ -81,6 +99,8 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 				bdlc.tradedItems[itemUID] = time()
 			end
 		end
+
+		return
 	end
 
 	-- Now in DF we get roll windows for group loot, start off of those
@@ -93,5 +113,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 	-- When a user loots an item, snag that item link and attempt a session
 	if (event == "CHAT_MSG_LOOT") then
 		bdlc:StartSessionFromTradable(nil, arg1, arg2)
+
+		return
 	end
 end)
